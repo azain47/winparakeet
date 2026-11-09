@@ -362,16 +362,25 @@ fn calculate_overlay_position(
     width: f64,
     height: f64,
 ) -> Option<(f64, f64)> {
+    let edge = settings::get_settings(app_handle).overlay_position;
+    calculate_edge_position(app_handle, width, height, edge)
+}
+
+/// [`calculate_overlay_position`] for a window on `edge` of the screen.
+fn calculate_edge_position(
+    app_handle: &AppHandle,
+    width: f64,
+    height: f64,
+    edge: OverlayPosition,
+) -> Option<(f64, f64)> {
     let monitor = get_monitor_with_cursor(app_handle)?;
     let scale = monitor.scale_factor();
     let monitor_x = monitor.position().x as f64 / scale;
     let monitor_y = monitor.position().y as f64 / scale;
     let monitor_width = monitor.size().width as f64 / scale;
 
-    let settings = settings::get_settings(app_handle);
-
     let x = monitor_x + (monitor_width - width) / 2.0;
-    let y = match settings.overlay_position {
+    let y = match edge {
         OverlayPosition::Top => monitor_y + OVERLAY_TOP_OFFSET,
         OverlayPosition::Bottom => {
             // work_area.position shares monitor.position's global coordinate
@@ -453,6 +462,25 @@ fn place_windows_overlay(
     logical_width: f64,
     logical_height: f64,
 ) -> Result<(), String> {
+    let edge = settings::get_settings(app_handle).overlay_position;
+    place_windows_edge_window(
+        app_handle,
+        overlay_window,
+        logical_width,
+        logical_height,
+        edge,
+    )
+}
+
+/// [`place_windows_overlay`] for a window on `edge` of the screen.
+#[cfg(target_os = "windows")]
+fn place_windows_edge_window(
+    app_handle: &AppHandle,
+    overlay_window: &tauri::webview::WebviewWindow,
+    logical_width: f64,
+    logical_height: f64,
+    edge: OverlayPosition,
+) -> Result<(), String> {
     use windows::Win32::UI::WindowsAndMessaging::{SetWindowPos, SWP_NOACTIVATE, SWP_NOZORDER};
 
     let monitor = get_monitor_with_cursor(app_handle)
@@ -465,7 +493,7 @@ fn place_windows_overlay(
         text_scale,
         logical_width,
         logical_height,
-        settings::get_settings(app_handle).overlay_position,
+        edge,
     );
     let hwnd = overlay_window
         .hwnd()
@@ -628,6 +656,10 @@ fn show_overlay_state_on_main(app_handle: &AppHandle, state: &str, generation: u
     if !is_current(generation) {
         log::debug!("Skipping stale overlay show '{state}': a newer request superseded it");
         return;
+    }
+    // The meeting bar shares the overlay's spot; the overlay has it for now.
+    if let Some(bar) = app_handle.get_webview_window(MEETING_INDICATOR_LABEL) {
+        let _ = bar.hide();
     }
     // Size the overlay for this state (compact vs. streaming), then position it.
     let (width, height) = overlay_dimensions(state);
@@ -800,7 +832,13 @@ pub fn update_overlay_position(app_handle: &AppHandle) {
     // Positioning queries monitors/cursor (GDK/Xlib on Linux) and moves the
     // window, so it must run on the main thread — see show_overlay_state.
     let handle = app_handle.clone();
-    let _ = app_handle.run_on_main_thread(move || update_overlay_position_on_main(&handle));
+    let _ = app_handle.run_on_main_thread(move || {
+        update_overlay_position_on_main(&handle);
+        // The meeting bar sits where the overlay does.
+        if MEETING_INDICATOR_WANTED.load(Ordering::SeqCst) {
+            place_meeting_indicator_on_main(&handle);
+        }
+    });
 }
 
 fn update_overlay_position_on_main(app_handle: &AppHandle) {
@@ -878,6 +916,10 @@ fn hide_overlay_window(app_handle: &AppHandle, generation: u64) {
                     return;
                 }
                 let _ = window.hide();
+                // Its spot is free again for a meeting that is still recording.
+                if MEETING_INDICATOR_WANTED.load(Ordering::SeqCst) {
+                    show_meeting_indicator_on_main(window.app_handle());
+                }
             });
         });
     });
@@ -938,6 +980,153 @@ pub fn emit_levels(app_handle: &AppHandle, levels: &[f32]) {
     // eval_script call per callback, cutting the per-callback WebKit
     // dispatch work in half.
     let _ = app_handle.emit_to("recording_overlay", "mic-level", levels);
+}
+
+/* ─────────────────────────── meeting indicator ─────────────────────────── */
+
+/// The bar that shows while a meeting records (src/meeting-indicator), so
+/// it's never recorded unnoticed: a red dot, the time, both sides' levels,
+/// and Stop. It sits where the dictation overlay does, styled like it, and
+/// steps aside while that overlay shows.
+const MEETING_INDICATOR_LABEL: &str = "meeting_indicator";
+/// Its window in logical points: as tall as the card in MeetingIndicator.css
+/// (the dictation pill's height), so the card sits where that pill does.
+const MEETING_INDICATOR_WIDTH: f64 = 340.0;
+const MEETING_INDICATOR_HEIGHT: f64 = 42.0;
+
+/// Whether a meeting wants the bar shown. The main-thread show checks it, so
+/// a stop that lands while the window is still being made wins.
+static MEETING_INDICATOR_WANTED: AtomicBool = AtomicBool::new(false);
+/// Held while the bar's window is being made, so two quick starts make one.
+static MEETING_INDICATOR_CREATING: Mutex<()> = Mutex::new(());
+
+/// Makes the bar's window, hidden, on first use: the first meeting pays for
+/// the webview, not every launch. Never on the main thread, which building a
+/// webview waits on.
+fn create_meeting_indicator(app_handle: &AppHandle) -> Option<tauri::webview::WebviewWindow> {
+    let mut builder = tauri::WebviewWindowBuilder::new(
+        app_handle,
+        MEETING_INDICATOR_LABEL,
+        tauri::WebviewUrl::App("src/meeting-indicator/index.html".into()),
+    )
+    .title("Recording meeting")
+    .resizable(false)
+    .inner_size(MEETING_INDICATOR_WIDTH, MEETING_INDICATOR_HEIGHT)
+    .shadow(false)
+    .maximizable(false)
+    .minimizable(false)
+    .closable(false)
+    .accept_first_mouse(true)
+    .decorations(false)
+    .always_on_top(true)
+    .skip_taskbar(true)
+    .transparent(true)
+    .focusable(false)
+    .focused(false)
+    .visible(false);
+
+    if let Some(data_dir) = crate::portable::data_dir() {
+        builder = builder.data_directory(data_dir.join("webview"));
+    }
+
+    match builder.build() {
+        Ok(window) => Some(window),
+        Err(error) => {
+            log::error!("Failed to create the meeting indicator: {error}");
+            None
+        }
+    }
+}
+
+/// Shows the meeting bar, making its window on first use.
+pub fn show_meeting_indicator(app_handle: &AppHandle) {
+    MEETING_INDICATOR_WANTED.store(true, Ordering::SeqCst);
+    let handle = app_handle.clone();
+    // Its own thread: making the webview waits on the main thread, and the
+    // caller (starting a meeting) holds locks the main thread can take.
+    let spawned = std::thread::Builder::new()
+        .name("meeting-indicator".into())
+        .spawn(move || {
+            {
+                let _creating = MEETING_INDICATOR_CREATING
+                    .lock()
+                    .unwrap_or_else(PoisonError::into_inner);
+                if handle.get_webview_window(MEETING_INDICATOR_LABEL).is_none()
+                    && create_meeting_indicator(&handle).is_none()
+                {
+                    return;
+                }
+            }
+            let main = handle.clone();
+            let _ = handle.run_on_main_thread(move || show_meeting_indicator_on_main(&main));
+        });
+    if let Err(error) = spawned {
+        log::error!("Failed to show the meeting indicator: {error}");
+    }
+}
+
+/// Shows the bar, if a meeting still wants it and the dictation overlay
+/// isn't using the spot (the overlay's hide brings it back). Main thread only.
+fn show_meeting_indicator_on_main(app_handle: &AppHandle) {
+    if !MEETING_INDICATOR_WANTED.load(Ordering::SeqCst)
+        || !matches!(overlay_state().content, OverlayContent::Hidden)
+    {
+        return;
+    }
+    let Some(window) = app_handle.get_webview_window(MEETING_INDICATOR_LABEL) else {
+        return;
+    };
+    place_meeting_indicator_on_main(app_handle);
+    let _ = window.show();
+    #[cfg(target_os = "windows")]
+    {
+        force_overlay_topmost(&window);
+        // As for the overlay: showing can cross a DPI boundary, and the
+        // reflow that follows clobbers the first placement.
+        place_meeting_indicator_on_main(app_handle);
+    }
+}
+
+/// Hides the meeting bar.
+pub fn hide_meeting_indicator(app_handle: &AppHandle) {
+    MEETING_INDICATOR_WANTED.store(false, Ordering::SeqCst);
+    let handle = app_handle.clone();
+    let _ = app_handle.run_on_main_thread(move || {
+        if MEETING_INDICATOR_WANTED.load(Ordering::SeqCst) {
+            return;
+        }
+        if let Some(window) = handle.get_webview_window(MEETING_INDICATOR_LABEL) {
+            let _ = window.hide();
+        }
+    });
+}
+
+/// Centers the bar on the overlay's edge of the screen the cursor is on.
+/// Main thread only, like the overlay's placement.
+fn place_meeting_indicator_on_main(app_handle: &AppHandle) {
+    let Some(window) = app_handle.get_webview_window(MEETING_INDICATOR_LABEL) else {
+        return;
+    };
+    let edge = settings::get_settings(app_handle).overlay_position;
+    #[cfg(target_os = "windows")]
+    if let Err(error) = place_windows_edge_window(
+        app_handle,
+        &window,
+        MEETING_INDICATOR_WIDTH,
+        MEETING_INDICATOR_HEIGHT,
+        edge,
+    ) {
+        log::error!("Failed to place the meeting indicator: {error}");
+    }
+    #[cfg(not(target_os = "windows"))]
+    if let Some((x, y)) = calculate_edge_position(
+        app_handle,
+        MEETING_INDICATOR_WIDTH,
+        MEETING_INDICATOR_HEIGHT,
+        edge,
+    ) {
+        let _ = window.set_position(tauri::Position::Logical(tauri::LogicalPosition { x, y }));
+    }
 }
 
 #[cfg(test)]

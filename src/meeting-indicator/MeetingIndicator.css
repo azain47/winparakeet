@@ -1,0 +1,155 @@
+@import "../styles/theme.css";
+
+/* The meeting bar: the dictation pill's look (RecordingOverlay.css: same
+   height, surface, tinted edge, pulsing dot and round button), in red. Its
+   window (overlay.rs MEETING_INDICATOR_*) is as tall as the card, so the card
+   sits exactly where the dictation pill does. */
+:root {
+  --mi-font:
+    "Segoe UI Variable Text", "Segoe UI", -apple-system, BlinkMacSystemFont,
+    Roboto, sans-serif;
+  --mi-red: var(--color-error);
+  --mi-red-soft: color-mix(in srgb, var(--color-error) 20%, transparent);
+}
+
+.mi-stage {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mi-font);
+}
+
+.mi-card {
+  /* 40px inside a 1px edge, like the pill's control row (.sbase). */
+  height: 40px;
+  max-width: calc(100vw - 2px);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 7px 0 15px;
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--color-flyout) 97%, transparent);
+  border: 1px solid color-mix(in srgb, var(--mi-red) 45%, var(--color-line));
+  color: var(--color-text);
+  font-size: 13px;
+  white-space: nowrap;
+  animation: mi-pop 360ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.mi-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--mi-red);
+  animation: mi-pulse 1.9s infinite;
+}
+
+.mi-label {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 600;
+}
+
+.mi-time {
+  min-width: 34px;
+  color: var(--color-ink-2);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.mi-meter {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-ink-3);
+}
+.mi-meter svg {
+  flex: none;
+  width: 13px;
+  height: 13px;
+}
+.mi-meter.reconnecting {
+  color: var(--color-warning);
+}
+.mi-meter.failed {
+  opacity: 0.45;
+}
+
+.mi-bar {
+  width: 26px;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--color-line);
+}
+.mi-bar i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-ink-2);
+  transition: width 100ms linear;
+}
+
+.mi-stop {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--mi-red) 18%, transparent);
+  cursor: pointer;
+  transition: background-color 120ms ease;
+}
+.mi-stop:hover,
+.mi-stop:focus-visible {
+  background: var(--mi-red);
+  outline: none;
+}
+.mi-stop:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.mi-stop-icon {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  background: var(--mi-red);
+}
+.mi-stop:hover .mi-stop-icon,
+.mi-stop:focus-visible .mi-stop-icon {
+  background: #fff;
+}
+
+@keyframes mi-pulse {
+  0% {
+    box-shadow: 0 0 0 0 var(--mi-red-soft);
+  }
+  70% {
+    box-shadow: 0 0 0 7px transparent;
+  }
+}
+
+@keyframes mi-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mi-dot,
+  .mi-card {
+    animation: none;
+  }
+}

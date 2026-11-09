@@ -1253,6 +1253,7 @@ impl MeetingRecorder {
             audio.remove_mute();
         }
         crate::tray::set_meeting_recording(&self.app, true);
+        crate::overlay::show_meeting_indicator(&self.app);
         emit_recording_changed(&self.app, Some(session.snapshot()));
         info!(
             "Meeting {} recording (microphone {:?}, system audio {:?})",
@@ -1320,6 +1321,7 @@ impl MeetingRecorder {
             .take()
             .ok_or_else(|| anyhow!("No meeting is recording"))?;
         crate::tray::set_meeting_recording(&self.app, false);
+        crate::overlay::hide_meeting_indicator(&self.app);
         emit_recording_changed(&self.app, None);
         Ok(session)
     }

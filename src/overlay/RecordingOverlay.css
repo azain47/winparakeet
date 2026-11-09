@@ -111,7 +111,9 @@
   flex: none; /* hold our own width; never let the stage flex shrink the card */
   transform-origin: bottom center;
   background: var(--s-surface);
-  border: 1px solid var(--s-border);
+  /* An accent-tinted edge, like the meeting bar's red one, so the two bars
+     read as one family: green for dictation, red for a meeting. */
+  border: 1px solid color-mix(in srgb, var(--s-accent) 45%, var(--s-border));
   /* Flat: no drop shadow, no backdrop blur/saturate (was a glassy gradient look). */
   /* pop-in plays on mount; morph (width/radius) is a transition */
   animation: scard-pop 460ms cubic-bezier(0.22, 1, 0.36, 1);
@@ -174,6 +176,9 @@
 }
 .scard.level-warning {
   --notice: var(--color-warning);
+}
+.scard.cnotice {
+  border-color: color-mix(in srgb, var(--notice) 45%, var(--s-border));
 }
 .sbase.snotice {
   grid-template-columns: auto minmax(0, max-content);
@@ -287,10 +292,10 @@
   flex: none; /* the control row never squashes; only the text region gives */
   padding: 0 10px;
   display: grid;
-  /* Equal side columns (min 22px to hold the cancel button) keep the center item
+  /* Equal side columns (min 26px to hold the cancel button) keep the center item
      — waveform or label — centered whether the pill is at min width or content-
      sized. */
-  grid-template-columns: minmax(22px, 1fr) auto minmax(22px, 1fr);
+  grid-template-columns: minmax(26px, 1fr) auto minmax(26px, 1fr);
   align-items: center;
 }
 .sbase-l {
@@ -306,8 +311,8 @@
   justify-self: end;
 }
 .sdot {
-  width: 7px;
-  height: 7px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   flex: none;
   box-sizing: border-box;
@@ -401,8 +406,8 @@
   }
 }
 .sx {
-  width: 22px;
-  height: 22px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   flex: none;
   padding: 0;

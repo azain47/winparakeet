@@ -37,7 +37,7 @@ The **Meetings** tab records a call without joining it: your microphone ("Me") a
   </picture>
 </p>
 
-- Start and stop from the Meetings tab, the tray menu, or `winparakeet.exe --toggle-meeting`. Dictation keeps working during a meeting.
+- Start and stop from the Meetings tab, the tray menu, or `winparakeet.exe --toggle-meeting`. While a meeting records, a red bar sits where the dictation pill does, with the time, both sides' levels and a Stop button. Dictation keeps working during a meeting.
 - Speaker labels come from NVIDIA's Sortformer (an optional 139 MB download): up to four speakers on the other side of the call, and on your microphone too when several people in the room share it (for an in-person meeting, record only the microphone). Click a speaker to name them.
 - On speakers instead of headphones, your microphone also hears the other side; those lines are dropped from "Me" when the other side said them at the same time.
 - The audio is saved as you go: if WinParakeet or Windows crashes mid-call, the recording is recovered on the next launch.
