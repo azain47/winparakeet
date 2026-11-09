@@ -18,6 +18,7 @@
     "advanced": "고급",
     "postProcessing": "후처리",
     "history": "히스토리",
+    "bin": "휴지통",
     "debug": "디버그",
     "about": "정보"
   },
@@ -697,8 +698,11 @@
       "copyError": "전사 내용을 클립보드에 복사하지 못했습니다.",
       "save": "변환된 텍스트 저장",
       "unsave": "저장에서 제거",
-      "delete": "항목 삭제",
-      "deleteError": "항목 삭제에 실패했습니다. 다시 시도해주세요.",
+      "moveToBin": "휴지통으로 이동",
+      "deleteError": "항목을 휴지통으로 이동하지 못했습니다. 다시 시도해 주세요.",
+      "movedToBin": "휴지통으로 이동했습니다",
+      "undo": "실행 취소",
+      "undoFailed": "항목을 복원하지 못했습니다. 아직 휴지통에 있습니다.",
       "retranscribe": "다시 전사",
       "cancelTranscription": "전사 취소",
       "transcribing": "전사 중...",
@@ -717,6 +721,28 @@
       "showLess": "간략히 보기",
       "dropTitle": "놓아서 받아쓰기",
       "dropDescription": "기록에 표시됩니다."
+    },
+    "bin": {
+      "loading": "휴지통을 불러오는 중...",
+      "empty": "휴지통이 비어 있습니다. 삭제한 받아쓰기와 녹음은 영구 삭제할 때까지 여기에 남아 있습니다.",
+      "loadFailed": "휴지통을 불러오지 못했습니다.",
+      "emptyBin": "휴지통 비우기",
+      "emptyTitle": "휴지통을 비울까요?",
+      "emptyDescription": "휴지통의 모든 항목이 영구적으로 삭제됩니다. 이 작업은 되돌릴 수 없습니다.",
+      "emptyFailed": "휴지통을 비우지 못했습니다. 다시 시도해 주세요.",
+      "emptyPartial": "파일이 사용 중이어서 일부 항목을 삭제하지 못했습니다. 아직 휴지통에 있습니다.",
+      "dictation": "받아쓰기",
+      "recording": "녹음",
+      "recordingNote": "여기에는 녹음만 있습니다. 텍스트는 아직 기록에 있습니다.",
+      "deletedAt": "{{date}}에 삭제됨",
+      "noText": "텍스트 없음",
+      "restore": "복원",
+      "restoreFailed": "복원하지 못했습니다. 다시 시도해 주세요.",
+      "deletePermanently": "영구 삭제",
+      "deleteTitle": "영구적으로 삭제할까요?",
+      "deleteDescription": "이 항목은 영구적으로 삭제됩니다. 이 작업은 되돌릴 수 없습니다.",
+      "deleteFailed": "삭제하지 못했습니다. 파일이 사용 중일 수 있습니다.",
+      "cancel": "취소"
     },
     "debug": {
       "logDirectory": {
@@ -786,15 +812,28 @@
         "entries": "항목"
       },
       "recordingRetention": {
-        "title": "녹음 자동 삭제",
-        "description": "공간 절약을 위해 오래된 녹음을 자동으로 삭제하거나, 녹음을 저장하지 않고 텍스트만 보관합니다",
+        "title": "히스토리 정리",
+        "description": "오래된 항목은 자동으로 휴지통으로 이동하거나, 녹음 저장을 중단해 기록에 텍스트만 남깁니다",
         "dontSave": "녹음 저장 안 함",
         "never": "안 함",
         "preserveLimit": "최근 {{count}}개 유지",
         "days3": "3일 후",
         "weeks2": "2주 후",
         "months3": "3개월 후",
-        "placeholder": "보관 기간 선택..."
+        "placeholder": "보관 기간 선택...",
+        "stopSaving": {
+          "title": "녹음 저장을 중단할까요?",
+          "description": "이제부터 받아쓰기는 텍스트만 보관합니다. 현재 저장된 녹음: {{number}}개.",
+          "keep": "그대로 두기",
+          "older": "<days/>일보다 오래된 녹음을 휴지통으로 이동",
+          "days": "일수",
+          "all": "모두 휴지통으로 이동",
+          "note": "텍스트는 기록에 남고, 별표 표시한 항목은 녹음을 유지하며, 이동한 항목은 휴지통에서 복원할 수 있습니다.",
+          "cancel": "취소",
+          "confirm": "저장 중단",
+          "countFailed": "저장된 녹음 수를 세지 못했습니다. 다시 시도해 주세요.",
+          "moveFailed": "녹음을 휴지통으로 이동하지 못했습니다. 다시 시도해 주세요."
+        }
       },
       "alwaysOnMicrophone": {
         "label": "항상 켜진 마이크",

@@ -18,6 +18,7 @@
     "advanced": "Avançado",
     "postProcessing": "Pós-Processamento",
     "history": "Histórico",
+    "bin": "Lixeira",
     "debug": "Depuração",
     "about": "Sobre"
   },
@@ -697,8 +698,11 @@
       "copyError": "Não foi possível copiar a transcrição para a área de transferência.",
       "save": "Salvar transcrição",
       "unsave": "Remover dos salvos",
-      "delete": "Excluir entrada",
-      "deleteError": "Falha ao excluir entrada. Por favor, tente novamente.",
+      "moveToBin": "Mover para a lixeira",
+      "deleteError": "Não foi possível mover a entrada para a lixeira. Tente novamente.",
+      "movedToBin": "Movido para a lixeira",
+      "undo": "Desfazer",
+      "undoFailed": "Não foi possível restaurar a entrada. Ela continua na lixeira.",
       "retranscribe": "Re-transcrever",
       "cancelTranscription": "Cancelar transcrição",
       "transcribing": "Transcrevendo...",
@@ -717,6 +721,28 @@
       "showLess": "Mostrar menos",
       "dropTitle": "Solte para transcrever",
       "dropDescription": "Ele aparecerá no histórico."
+    },
+    "bin": {
+      "loading": "Carregando a lixeira...",
+      "empty": "A lixeira está vazia. Ditados e gravações excluídos ficam aqui até você excluí-los permanentemente.",
+      "loadFailed": "Não foi possível carregar a lixeira.",
+      "emptyBin": "Esvaziar lixeira",
+      "emptyTitle": "Esvaziar a lixeira?",
+      "emptyDescription": "Tudo o que está na lixeira será excluído permanentemente. Isso não pode ser desfeito.",
+      "emptyFailed": "Não foi possível esvaziar a lixeira. Tente novamente.",
+      "emptyPartial": "Alguns itens não puderam ser excluídos porque seus arquivos estão em uso. Eles continuam na lixeira.",
+      "dictation": "Ditado",
+      "recording": "Gravação",
+      "recordingNote": "Só a gravação está aqui. O texto continua no histórico.",
+      "deletedAt": "Excluído em {{date}}",
+      "noText": "Sem texto",
+      "restore": "Restaurar",
+      "restoreFailed": "Não foi possível restaurar. Tente novamente.",
+      "deletePermanently": "Excluir permanentemente",
+      "deleteTitle": "Excluir permanentemente?",
+      "deleteDescription": "Este item será excluído permanentemente. Isso não pode ser desfeito.",
+      "deleteFailed": "Não foi possível excluir. O arquivo pode estar em uso.",
+      "cancel": "Cancelar"
     },
     "debug": {
       "logDirectory": {
@@ -786,15 +812,28 @@
         "entries": "entradas"
       },
       "recordingRetention": {
-        "title": "Excluir Gravações Automaticamente",
-        "description": "Excluir automaticamente gravações antigas para economizar espaço, ou não salvar gravações e manter apenas o texto",
+        "title": "Limpar Histórico",
+        "description": "Entradas antigas vão automaticamente para a lixeira, ou pare de salvar gravações para que o histórico guarde só o texto",
         "dontSave": "Não salvar gravações",
         "never": "Nunca",
         "preserveLimit": "Manter as últimas {{count}}",
         "days3": "Após 3 dias",
         "weeks2": "Após 2 semanas",
         "months3": "Após 3 meses",
-        "placeholder": "Selecionar período de retenção..."
+        "placeholder": "Selecionar período de retenção...",
+        "stopSaving": {
+          "title": "Parar de salvar gravações?",
+          "description": "De agora em diante, os ditados guardarão só o texto. Gravações salvas agora: {{number}}.",
+          "keep": "Mantê-las",
+          "older": "Mover para a lixeira gravações com mais de <days/> dias",
+          "days": "Dias",
+          "all": "Mover todas para a lixeira",
+          "note": "O texto continua no histórico, entradas com estrela mantêm suas gravações e tudo o que for movido pode ser restaurado da lixeira.",
+          "cancel": "Cancelar",
+          "confirm": "Parar de salvar",
+          "countFailed": "Não foi possível contar as gravações salvas. Tente novamente.",
+          "moveFailed": "Não foi possível mover as gravações para a lixeira. Tente novamente."
+        }
       },
       "alwaysOnMicrophone": {
         "label": "Microfone Sempre Ativo",

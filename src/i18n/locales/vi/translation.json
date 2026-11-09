@@ -18,6 +18,7 @@
     "advanced": "Nâng cao",
     "postProcessing": "Xử lý sau",
     "history": "Lịch sử",
+    "bin": "Thùng rác",
     "debug": "Gỡ lỗi",
     "about": "Giới thiệu"
   },
@@ -697,8 +698,11 @@
       "copyError": "Không thể sao chép bản ghi vào bộ nhớ tạm.",
       "save": "Lưu bản ghi",
       "unsave": "Xóa khỏi đã lưu",
-      "delete": "Xóa mục",
-      "deleteError": "Không thể xóa mục. Vui lòng thử lại.",
+      "moveToBin": "Chuyển vào Thùng rác",
+      "deleteError": "Không thể chuyển mục vào Thùng rác. Vui lòng thử lại.",
+      "movedToBin": "Đã chuyển vào Thùng rác",
+      "undo": "Hoàn tác",
+      "undoFailed": "Không thể khôi phục mục. Mục vẫn ở trong Thùng rác.",
       "retranscribe": "Phiên âm lại",
       "cancelTranscription": "Hủy phiên âm",
       "transcribing": "Đang phiên âm...",
@@ -717,6 +721,28 @@
       "showLess": "Thu gọn",
       "dropTitle": "Thả để chép lời",
       "dropDescription": "Nó sẽ xuất hiện trong Lịch sử."
+    },
+    "bin": {
+      "loading": "Đang tải Thùng rác...",
+      "empty": "Thùng rác trống. Bản đọc chính tả và bản ghi âm đã xóa sẽ ở đây cho đến khi bạn xóa vĩnh viễn.",
+      "loadFailed": "Không thể tải Thùng rác.",
+      "emptyBin": "Dọn sạch Thùng rác",
+      "emptyTitle": "Dọn sạch Thùng rác?",
+      "emptyDescription": "Mọi thứ trong Thùng rác sẽ bị xóa vĩnh viễn. Không thể hoàn tác.",
+      "emptyFailed": "Không thể dọn sạch Thùng rác. Vui lòng thử lại.",
+      "emptyPartial": "Một số mục không thể xóa vì tệp của chúng đang được sử dụng. Chúng vẫn ở trong Thùng rác.",
+      "dictation": "Đọc chính tả",
+      "recording": "Bản ghi âm",
+      "recordingNote": "Ở đây chỉ có bản ghi âm. Văn bản của nó vẫn ở trong Lịch sử.",
+      "deletedAt": "Đã xóa {{date}}",
+      "noText": "Không có văn bản",
+      "restore": "Khôi phục",
+      "restoreFailed": "Không thể khôi phục. Vui lòng thử lại.",
+      "deletePermanently": "Xóa vĩnh viễn",
+      "deleteTitle": "Xóa vĩnh viễn?",
+      "deleteDescription": "Mục này sẽ bị xóa vĩnh viễn. Không thể hoàn tác.",
+      "deleteFailed": "Không thể xóa. Tệp của nó có thể đang được sử dụng.",
+      "cancel": "Hủy"
     },
     "debug": {
       "logDirectory": {
@@ -786,15 +812,28 @@
         "entries": "mục"
       },
       "recordingRetention": {
-        "title": "Tự động xóa ghi âm",
-        "description": "Tự động xóa bản ghi âm cũ để tiết kiệm dung lượng, hoặc không lưu bản ghi âm và chỉ giữ văn bản",
+        "title": "Dọn dẹp lịch sử",
+        "description": "Các mục cũ tự động chuyển vào Thùng rác, hoặc ngừng lưu bản ghi âm để Lịch sử chỉ giữ văn bản",
         "dontSave": "Không lưu bản ghi âm",
         "never": "Không bao giờ",
         "preserveLimit": "Giữ {{count}} bản mới nhất",
         "days3": "Sau 3 ngày",
         "weeks2": "Sau 2 tuần",
         "months3": "Sau 3 tháng",
-        "placeholder": "Chọn thời gian lưu giữ..."
+        "placeholder": "Chọn thời gian lưu giữ...",
+        "stopSaving": {
+          "title": "Ngừng lưu bản ghi âm?",
+          "description": "Từ giờ, các bản đọc chính tả chỉ giữ văn bản. Số bản ghi âm đang được lưu: {{number}}.",
+          "keep": "Giữ lại",
+          "older": "Chuyển các bản ghi âm cũ hơn <days/> ngày vào Thùng rác",
+          "days": "Ngày",
+          "all": "Chuyển tất cả vào Thùng rác",
+          "note": "Văn bản vẫn ở trong Lịch sử, các mục có gắn sao giữ lại bản ghi âm, và mọi thứ đã chuyển đều có thể khôi phục từ Thùng rác.",
+          "cancel": "Hủy",
+          "confirm": "Ngừng lưu",
+          "countFailed": "Không thể đếm các bản ghi âm đã lưu. Vui lòng thử lại.",
+          "moveFailed": "Không thể chuyển các bản ghi âm vào Thùng rác. Vui lòng thử lại."
+        }
       },
       "alwaysOnMicrophone": {
         "label": "Micrô luôn bật",

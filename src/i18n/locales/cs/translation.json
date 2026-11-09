@@ -18,6 +18,7 @@
     "advanced": "Pokročilé",
     "postProcessing": "Následné zpracování",
     "history": "Historie",
+    "bin": "Koš",
     "debug": "Ladění",
     "about": "O aplikaci"
   },
@@ -697,8 +698,11 @@
       "copyError": "Přepis se nepodařilo zkopírovat do schránky.",
       "save": "Uložit přepis",
       "unsave": "Odebrat z uložených",
-      "delete": "Smazat záznam",
-      "deleteError": "Nepodařilo se smazat záznam. Zkuste to prosím znovu.",
+      "moveToBin": "Přesunout do koše",
+      "deleteError": "Záznam se nepodařilo přesunout do koše. Zkuste to znovu.",
+      "movedToBin": "Přesunuto do koše",
+      "undo": "Zpět",
+      "undoFailed": "Záznam se nepodařilo obnovit. Je stále v koši.",
       "retranscribe": "Přepsat znovu",
       "cancelTranscription": "Zrušit přepis",
       "transcribing": "Přepisuji...",
@@ -717,6 +721,28 @@
       "showLess": "Zobrazit méně",
       "dropTitle": "Pusťte pro přepis",
       "dropDescription": "Zobrazí se v historii."
+    },
+    "bin": {
+      "loading": "Načítání koše...",
+      "empty": "Koš je prázdný. Smazané diktáty a nahrávky tu zůstanou, dokud je trvale nesmažete.",
+      "loadFailed": "Koš se nepodařilo načíst.",
+      "emptyBin": "Vysypat koš",
+      "emptyTitle": "Vysypat koš?",
+      "emptyDescription": "Vše v koši bude trvale smazáno. Tuto akci nelze vrátit.",
+      "emptyFailed": "Koš se nepodařilo vysypat. Zkuste to znovu.",
+      "emptyPartial": "Některé položky nešlo smazat, protože se jejich soubory používají. Jsou stále v koši.",
+      "dictation": "Diktát",
+      "recording": "Nahrávka",
+      "recordingNote": "Je tu jen nahrávka. Její text je stále v historii.",
+      "deletedAt": "Smazáno {{date}}",
+      "noText": "Žádný text",
+      "restore": "Obnovit",
+      "restoreFailed": "Obnovení se nezdařilo. Zkuste to znovu.",
+      "deletePermanently": "Trvale smazat",
+      "deleteTitle": "Trvale smazat?",
+      "deleteDescription": "Tato položka bude trvale smazána. Tuto akci nelze vrátit.",
+      "deleteFailed": "Smazání se nezdařilo. Soubor se možná používá.",
+      "cancel": "Zrušit"
     },
     "debug": {
       "logDirectory": {
@@ -786,15 +812,28 @@
         "entries": "záznamů"
       },
       "recordingRetention": {
-        "title": "Automatické mazání nahrávek",
-        "description": "Automaticky mazat staré nahrávky kvůli úspoře místa, nebo nahrávky vůbec neukládat a ponechat jen text",
+        "title": "Úklid historie",
+        "description": "Staré záznamy se automaticky přesouvají do koše, nebo se nahrávky přestanou ukládat a historie si ponechá jen text",
         "dontSave": "Neukládat nahrávky",
         "never": "Nikdy",
         "preserveLimit": "Ponechat posledních {{count}}",
         "days3": "Po 3 dnech",
         "weeks2": "Po 2 týdnech",
         "months3": "Po 3 měsících",
-        "placeholder": "Vyberte dobu uchování..."
+        "placeholder": "Vyberte dobu uchování...",
+        "stopSaving": {
+          "title": "Přestat ukládat nahrávky?",
+          "description": "Od teď si diktáty ponechají jen text. Aktuálně uložené nahrávky: {{number}}.",
+          "keep": "Ponechat",
+          "older": "Přesunout do koše nahrávky starší než <days/> dní",
+          "days": "Dny",
+          "all": "Přesunout všechny do koše",
+          "note": "Jejich text zůstane v historii, záznamy s hvězdičkou si nahrávky ponechají a vše přesunuté lze obnovit z koše.",
+          "cancel": "Zrušit",
+          "confirm": "Přestat ukládat",
+          "countFailed": "Uložené nahrávky se nepodařilo spočítat. Zkuste to znovu.",
+          "moveFailed": "Nahrávky se nepodařilo přesunout do koše. Zkuste to znovu."
+        }
       },
       "alwaysOnMicrophone": {
         "label": "Vždy zapnutý mikrofon",

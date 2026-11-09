@@ -18,6 +18,7 @@
     "advanced": "Avanzado",
     "postProcessing": "Post proceso",
     "history": "Historial",
+    "bin": "Papelera",
     "debug": "Depuración",
     "about": "Acerca de"
   },
@@ -697,8 +698,11 @@
       "copyError": "No se pudo copiar la transcripción al portapapeles.",
       "save": "Guardar transcripción",
       "unsave": "Eliminar de guardados",
-      "delete": "Eliminar entrada",
-      "deleteError": "Error al eliminar la entrada. Por favor, intenta de nuevo.",
+      "moveToBin": "Mover a la papelera",
+      "deleteError": "No se pudo mover la entrada a la papelera. Inténtalo de nuevo.",
+      "movedToBin": "Movido a la papelera",
+      "undo": "Deshacer",
+      "undoFailed": "No se pudo restaurar la entrada. Sigue en la papelera.",
       "retranscribe": "Re-transcribir",
       "cancelTranscription": "Cancelar transcripción",
       "transcribing": "Transcribiendo...",
@@ -717,6 +721,28 @@
       "showLess": "Mostrar menos",
       "dropTitle": "Suelta para transcribir",
       "dropDescription": "Aparecerá en el historial."
+    },
+    "bin": {
+      "loading": "Cargando la papelera...",
+      "empty": "La papelera está vacía. Los dictados y grabaciones eliminados se quedan aquí hasta que los elimines definitivamente.",
+      "loadFailed": "No se pudo cargar la papelera.",
+      "emptyBin": "Vaciar papelera",
+      "emptyTitle": "¿Vaciar la papelera?",
+      "emptyDescription": "Todo lo que hay en la papelera se eliminará definitivamente. No se puede deshacer.",
+      "emptyFailed": "No se pudo vaciar la papelera. Inténtalo de nuevo.",
+      "emptyPartial": "Algunos elementos no se pudieron eliminar porque sus archivos están en uso. Siguen en la papelera.",
+      "dictation": "Dictado",
+      "recording": "Grabación",
+      "recordingNote": "Aquí solo está la grabación. Su texto sigue en el historial.",
+      "deletedAt": "Eliminado el {{date}}",
+      "noText": "Sin texto",
+      "restore": "Restaurar",
+      "restoreFailed": "No se pudo restaurar. Inténtalo de nuevo.",
+      "deletePermanently": "Eliminar definitivamente",
+      "deleteTitle": "¿Eliminar definitivamente?",
+      "deleteDescription": "Este elemento se eliminará definitivamente. No se puede deshacer.",
+      "deleteFailed": "No se pudo eliminar. Puede que su archivo esté en uso.",
+      "cancel": "Cancelar"
     },
     "debug": {
       "logDirectory": {
@@ -786,15 +812,28 @@
         "entries": "entradas"
       },
       "recordingRetention": {
-        "title": "Eliminación automática de grabaciones",
-        "description": "Elimina automáticamente las grabaciones antiguas para ahorrar espacio, o no guardes grabaciones y conserva solo el texto",
+        "title": "Limpieza del historial",
+        "description": "Las entradas antiguas pasan automáticamente a la papelera, o deja de guardar grabaciones para que el historial conserve solo el texto",
         "dontSave": "No guardar grabaciones",
         "never": "Nunca",
         "preserveLimit": "Mantener las últimas {{count}}",
         "days3": "Después de 3 días",
         "weeks2": "Después de 2 semanas",
         "months3": "Después de 3 meses",
-        "placeholder": "Seleccionar período de retención..."
+        "placeholder": "Seleccionar período de retención...",
+        "stopSaving": {
+          "title": "¿Dejar de guardar grabaciones?",
+          "description": "A partir de ahora, los dictados conservarán solo su texto. Grabaciones guardadas ahora: {{number}}.",
+          "keep": "Conservarlas",
+          "older": "Mover a la papelera las grabaciones de más de <days/> días",
+          "days": "Días",
+          "all": "Moverlas todas a la papelera",
+          "note": "Su texto se queda en el historial, las entradas destacadas conservan sus grabaciones y todo lo movido se puede restaurar desde la papelera.",
+          "cancel": "Cancelar",
+          "confirm": "Dejar de guardar",
+          "countFailed": "No se pudieron contar las grabaciones guardadas. Inténtalo de nuevo.",
+          "moveFailed": "No se pudieron mover las grabaciones a la papelera. Inténtalo de nuevo."
+        }
       },
       "alwaysOnMicrophone": {
         "label": "Micrófono siempre activo",

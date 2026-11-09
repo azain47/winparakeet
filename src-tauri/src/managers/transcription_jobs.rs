@@ -5,7 +5,7 @@ use anyhow::{anyhow, Result};
 use log::{error, info, warn};
 use serde::{Deserialize, Serialize};
 use specta::Type;
-use std::collections::VecDeque;
+use std::collections::{HashSet, VecDeque};
 use std::panic::{catch_unwind, AssertUnwindSafe};
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, AtomicU8, Ordering};
@@ -66,6 +66,10 @@ struct Jobs {
     /// Entry ids of files waiting to be transcribed.
     files: VecDeque<i64>,
     running: Option<Running>,
+    /// Entries whose recording was made only for their job: files added
+    /// while recordings aren't kept. It goes to the Bin when their last job
+    /// ends.
+    temporary: HashSet<i64>,
 }
 
 impl Jobs {
@@ -99,15 +103,6 @@ pub struct TranscriptionJobManager {
 impl TranscriptionJobManager {
     /// Starts the thread that runs the jobs.
     pub fn new(app: &AppHandle) -> Arc<Self> {
-        // A recording left by a job that a quit interrupted.
-        if !crate::settings::get_recording_retention_period(app).keeps_recordings() {
-            if let Err(e) = app
-                .state::<Arc<HistoryManager>>()
-                .remove_recordings(|_| false)
-            {
-                error!("Failed to remove recordings that are not kept: {}", e);
-            }
-        }
         let manager = Arc::new(Self {
             app: app.clone(),
             jobs: Mutex::new(Jobs::default()),
@@ -162,8 +157,8 @@ impl TranscriptionJobManager {
             .map(|n| n.to_string_lossy().into_owned())
             .unwrap_or_else(|| path.display().to_string());
         let entry = {
-            // Under the lock from the entry to its job, so recordings that
-            // are not kept are never removed in between.
+            // Under the lock from the entry to its job, so `bin_recordings`
+            // never takes the recording in between.
             let mut jobs = self.lock();
             let entry = match hm.save_file_entry(file_name, source_name) {
                 Ok(entry) => entry,
@@ -172,6 +167,9 @@ impl TranscriptionJobManager {
                     return Err(e);
                 }
             };
+            if !crate::settings::get_recording_retention_period(&self.app).keeps_recordings() {
+                jobs.temporary.insert(entry.id);
+            }
             self.enqueue(&mut jobs, entry.id, false);
             entry
         };
@@ -231,27 +229,43 @@ impl TranscriptionJobManager {
         running.chain(queued).collect()
     }
 
-    /// Deletes every recording no job still needs; for when recordings are
-    /// not kept.
-    pub fn remove_unused_recordings(&self) -> Result<()> {
-        self.remove_unused_recordings_locked(&self.lock())
-    }
-
-    /// The same, under the lock that queues jobs, so a recording can't be
-    /// removed between its entry and its job.
-    fn remove_unused_recordings_locked(&self, jobs: &Jobs) -> Result<()> {
+    /// How many recordings `bin_recordings` would move without a cutoff.
+    pub fn count_recordings(&self) -> Result<u32> {
+        let jobs = self.lock();
         self.app
             .state::<Arc<HistoryManager>>()
-            .remove_recordings(|entry_id| jobs.has(entry_id))
+            .count_recordings(|entry_id| jobs.has(entry_id))
     }
 
-    /// After a job ends: its recording goes too if recordings are not kept.
-    fn drop_recording_if_not_kept(&self, jobs: &Jobs) {
+    /// Moves the recordings of entries that aren't starred to the Bin, all
+    /// or those older than `older_than_days`; their text stays in History.
+    /// A job's recording stays: this runs under the lock that queues jobs.
+    pub fn bin_recordings(&self, older_than_days: Option<u32>) -> Result<u32> {
+        let jobs = self.lock();
+        self.app
+            .state::<Arc<HistoryManager>>()
+            .bin_recordings(older_than_days, |entry_id| jobs.has(entry_id))
+    }
+
+    /// After a job ends or leaves the queue: a recording made only for the
+    /// entry's jobs goes to the Bin once none is left, unless recordings are
+    /// kept by now.
+    fn bin_temporary_recording(&self, jobs: &mut Jobs, entry_id: i64) {
+        if jobs.has(entry_id) || !jobs.temporary.remove(&entry_id) {
+            return;
+        }
         if crate::settings::get_recording_retention_period(&self.app).keeps_recordings() {
             return;
         }
-        if let Err(e) = self.remove_unused_recordings_locked(jobs) {
-            error!("Failed to remove recordings that are not kept: {}", e);
+        if let Err(e) = self
+            .app
+            .state::<Arc<HistoryManager>>()
+            .bin_recording(entry_id)
+        {
+            error!(
+                "Failed to move the recording of history entry {} to the Bin: {}",
+                entry_id, e
+            );
         }
     }
 
@@ -270,7 +284,7 @@ impl TranscriptionJobManager {
             }
             self.sync_job_active(&jobs);
             self.emit(entry_id, TranscriptionJobStatus::Cancelled);
-            self.drop_recording_if_not_kept(&jobs);
+            self.bin_temporary_recording(&mut jobs, entry_id);
             jobs.is_idle()
         };
         if idle && !crate::tray::dictation_in_progress(&self.app) {
@@ -365,7 +379,7 @@ impl TranscriptionJobManager {
                 // Under the lock, so a new job for the entry can't be
                 // reported before this one's end.
                 self.emit(entry_id, status);
-                self.drop_recording_if_not_kept(&jobs);
+                self.bin_temporary_recording(&mut jobs, entry_id);
                 jobs.is_idle()
             };
             if idle {

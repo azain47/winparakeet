@@ -975,6 +975,10 @@ async getAudioFilePath(fileName: string) : Promise<Result<string, string>> {
     else return { status: "error", error: e  as any };
 }
 },
+/**
+ * Moves the entry to the Bin, its recording with it. It comes back with
+ * `restore_bin_item`.
+ */
 async deleteHistoryEntry(id: number) : Promise<Result<null, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("delete_history_entry", { id }) };
@@ -1075,6 +1079,78 @@ async setWindowChrome(background: string, text: string) : Promise<Result<null, s
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
+},
+/**
+ * Everything in the Bin, most recently binned first.
+ */
+async getBinItems() : Promise<Result<BinItem[], string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_bin_items") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Puts a Bin item back: an entry returns to History, a recording to its
+ * entry.
+ */
+async restoreBinItem(id: number, kind: BinItemKind) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("restore_bin_item", { id, kind }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Deletes a Bin item for good, its recording file included. Fails, keeping
+ * the item, when the file can't be deleted (another app has it open).
+ */
+async deleteBinItem(id: number, kind: BinItemKind) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("delete_bin_item", { id, kind }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Deletes everything in the Bin for good; how many items went. An item
+ * whose file can't be deleted stays in the Bin.
+ */
+async emptyBin() : Promise<Result<number, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("empty_bin") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * The recordings `bin_recordings` can move: those of History entries that
+ * aren't starred and that no transcription job needs.
+ */
+async countRecordings() : Promise<Result<number, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("count_recordings") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Moves recordings to the Bin, keeping their entries' text in History: all
+ * those `count_recordings` counts, or only the ones older than
+ * `older_than_days`. How many moved.
+ */
+async binRecordings(olderThanDays: number | null) : Promise<Result<number, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("bin_recordings", { olderThanDays }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 }
 }
 
@@ -1082,6 +1158,7 @@ async setWindowChrome(background: string, text: string) : Promise<Result<null, s
 
 
 export const events = __makeEvents__<{
+binChanged: BinChanged,
 historyUpdatePayload: HistoryUpdatePayload,
 noticesChanged: NoticesChanged,
 recordingStateEvent: RecordingStateEvent,
@@ -1090,6 +1167,7 @@ streamTextEvent: StreamTextEvent,
 transcriptionCompleteEvent: TranscriptionCompleteEvent,
 transcriptionJob: TranscriptionJob
 }>({
+binChanged: "bin-changed",
 historyUpdatePayload: "history-update-payload",
 noticesChanged: "notices-changed",
 recordingStateEvent: "recording-state-event",
@@ -1211,6 +1289,39 @@ export type AutoUnavailableReason =
  */
 { kind: "no_match" }
 export type AvailableAccelerators = { transcribe: string[]; gpu_devices: GpuDeviceOption[] }
+/**
+ * The Bin's contents changed; `count` items are in it now.
+ */
+export type BinChanged = { count: number }
+/**
+ * Something in the Bin. Nothing leaves the Bin except by restoring it or
+ * deleting it for good.
+ */
+export type BinItem = { 
+/**
+ * The entry it belongs to. A `recording` item's entry is still in History.
+ */
+entry: HistoryEntry; kind: BinItemKind; 
+/**
+ * When it went to the Bin, in Unix seconds.
+ */
+binned_at: number; 
+/**
+ * Its recording in the recordings folder; empty when it has none.
+ */
+recording: string }
+/**
+ * What a Bin item holds.
+ */
+export type BinItemKind = 
+/**
+ * A whole History entry, with its recording if it had one.
+ */
+"entry" | 
+/**
+ * Only a recording; its entry is still in History, keeping its text.
+ */
+"recording"
 export type BindingResponse = { success: boolean; binding: ShortcutBinding | null; error: string | null }
 /**
  * Script applied to Mandarin and Cantonese output. Traditional carries its region
@@ -1438,8 +1549,9 @@ export type RecordingPhase =
 "cancelled"
 export type RecordingRetentionPeriod = 
 /**
- * No recording is kept: History keeps only the text. A file being
- * transcribed keeps its recording until its job ends.
+ * New recordings aren't kept: a dictation saves only its text, and a
+ * transcribed file's recording goes to the Bin when its job ends.
+ * Recordings saved before stay where they are.
  */
 "dont_save" | "never" | "preserve_limit" | "days_3" | "weeks_2" | "months_3"
 export type RecordingStateEvent = { phase: RecordingPhase }

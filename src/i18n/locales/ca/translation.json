@@ -18,6 +18,7 @@
     "advanced": "Avançat",
     "postProcessing": "Postprocessament",
     "history": "Historial",
+    "bin": "Paperera",
     "debug": "Depuració",
     "about": "Quant a"
   },
@@ -697,8 +698,11 @@
       "copyError": "No s'ha pogut copiar la transcripció al porta-retalls.",
       "save": "Desa la transcripció",
       "unsave": "Treu de les desades",
-      "delete": "Suprimeix l'entrada",
-      "deleteError": "No s'ha pogut suprimir l'entrada. Torneu-ho a provar.",
+      "moveToBin": "Mou a la paperera",
+      "deleteError": "No s'ha pogut moure l'entrada a la paperera. Torna-ho a provar.",
+      "movedToBin": "S'ha mogut a la paperera",
+      "undo": "Desfés",
+      "undoFailed": "No s'ha pogut restaurar l'entrada. Encara és a la paperera.",
       "retranscribe": "Torneu a transcriure",
       "cancelTranscription": "Cancel·la la transcripció",
       "transcribing": "S'està transcrivint...",
@@ -717,6 +721,28 @@
       "showLess": "Mostra'n menys",
       "dropTitle": "Deixa anar per transcriure",
       "dropDescription": "Apareixerà a l'historial."
+    },
+    "bin": {
+      "loading": "S'està carregant la paperera...",
+      "empty": "La paperera és buida. Els dictats i enregistraments suprimits es queden aquí fins que els suprimeixis definitivament.",
+      "loadFailed": "No s'ha pogut carregar la paperera.",
+      "emptyBin": "Buida la paperera",
+      "emptyTitle": "Vols buidar la paperera?",
+      "emptyDescription": "Tot el que hi ha a la paperera se suprimirà definitivament. No es pot desfer.",
+      "emptyFailed": "No s'ha pogut buidar la paperera. Torna-ho a provar.",
+      "emptyPartial": "Alguns elements no s'han pogut suprimir perquè els seus fitxers estan en ús. Encara són a la paperera.",
+      "dictation": "Dictat",
+      "recording": "Enregistrament",
+      "recordingNote": "Aquí només hi ha l'enregistrament. El seu text encara és a l'historial.",
+      "deletedAt": "Suprimit el {{date}}",
+      "noText": "Sense text",
+      "restore": "Restaura",
+      "restoreFailed": "No s'ha pogut restaurar. Torna-ho a provar.",
+      "deletePermanently": "Suprimeix definitivament",
+      "deleteTitle": "Vols suprimir-ho definitivament?",
+      "deleteDescription": "Aquest element se suprimirà definitivament. No es pot desfer.",
+      "deleteFailed": "No s'ha pogut suprimir. Potser el seu fitxer està en ús.",
+      "cancel": "Cancel·la"
     },
     "debug": {
       "logDirectory": {
@@ -786,15 +812,28 @@
         "entries": "entrades"
       },
       "recordingRetention": {
-        "title": "Supressió automàtica d'enregistraments",
-        "description": "Elimina automàticament les gravacions antigues per estalviar espai, o no les desis mai i conserva només el text",
+        "title": "Neteja de l'historial",
+        "description": "Les entrades antigues passen automàticament a la paperera, o deixa de desar enregistraments perquè l'historial només en conservi el text",
         "dontSave": "No desar les gravacions",
         "never": "Mai",
         "preserveLimit": "Conserva els últims {{count}}",
         "days3": "Al cap de 3 dies",
         "weeks2": "Al cap de 2 setmanes",
         "months3": "Al cap de 3 mesos",
-        "placeholder": "Selecciona el període de conservació..."
+        "placeholder": "Selecciona el període de conservació...",
+        "stopSaving": {
+          "title": "Vols deixar de desar enregistraments?",
+          "description": "A partir d'ara, els dictats només conservaran el text. Enregistraments desats ara: {{number}}.",
+          "keep": "Conserva'ls",
+          "older": "Mou a la paperera els enregistraments de més de <days/> dies",
+          "days": "Dies",
+          "all": "Mou-los tots a la paperera",
+          "note": "El seu text es queda a l'historial, les entrades destacades conserven els enregistraments i tot el que es mogui es pot restaurar des de la paperera.",
+          "cancel": "Cancel·la",
+          "confirm": "Deixa de desar",
+          "countFailed": "No s'han pogut comptar els enregistraments desats. Torna-ho a provar.",
+          "moveFailed": "No s'han pogut moure els enregistraments a la paperera. Torna-ho a provar."
+        }
       },
       "alwaysOnMicrophone": {
         "label": "Micròfon sempre actiu",

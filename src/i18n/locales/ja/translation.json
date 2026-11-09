@@ -18,6 +18,7 @@
     "advanced": "詳細設定",
     "postProcessing": "後処理",
     "history": "履歴",
+    "bin": "ごみ箱",
     "debug": "デバッグ",
     "about": "概要"
   },
@@ -697,8 +698,11 @@
       "copyError": "文字起こしをクリップボードにコピーできませんでした。",
       "save": "文字起こしを保存",
       "unsave": "保存から削除",
-      "delete": "エントリーを削除",
-      "deleteError": "エントリーの削除に失敗しました。もう一度お試しください。",
+      "moveToBin": "ごみ箱に移動",
+      "deleteError": "項目をごみ箱に移動できませんでした。もう一度お試しください。",
+      "movedToBin": "ごみ箱に移動しました",
+      "undo": "元に戻す",
+      "undoFailed": "項目を復元できませんでした。ごみ箱に残っています。",
       "retranscribe": "再文字起こし",
       "cancelTranscription": "文字起こしをキャンセル",
       "transcribing": "文字起こし中…",
@@ -717,6 +721,28 @@
       "showLess": "閉じる",
       "dropTitle": "ドロップして文字起こし",
       "dropDescription": "履歴に表示されます。"
+    },
+    "bin": {
+      "loading": "ごみ箱を読み込み中...",
+      "empty": "ごみ箱は空です。削除した音声入力と録音は、完全に削除するまでここに残ります。",
+      "loadFailed": "ごみ箱を読み込めませんでした。",
+      "emptyBin": "ごみ箱を空にする",
+      "emptyTitle": "ごみ箱を空にしますか？",
+      "emptyDescription": "ごみ箱の中身はすべて完全に削除されます。この操作は元に戻せません。",
+      "emptyFailed": "ごみ箱を空にできませんでした。もう一度お試しください。",
+      "emptyPartial": "ファイルが使用中のため、一部の項目を削除できませんでした。ごみ箱に残っています。",
+      "dictation": "音声入力",
+      "recording": "録音",
+      "recordingNote": "ここにあるのは録音だけです。テキストは履歴に残っています。",
+      "deletedAt": "削除日時: {{date}}",
+      "noText": "テキストなし",
+      "restore": "復元",
+      "restoreFailed": "復元できませんでした。もう一度お試しください。",
+      "deletePermanently": "完全に削除",
+      "deleteTitle": "完全に削除しますか？",
+      "deleteDescription": "この項目は完全に削除されます。この操作は元に戻せません。",
+      "deleteFailed": "削除できませんでした。ファイルが使用中の可能性があります。",
+      "cancel": "キャンセル"
     },
     "debug": {
       "logDirectory": {
@@ -786,15 +812,28 @@
         "entries": "件"
       },
       "recordingRetention": {
-        "title": "録音の自動削除",
-        "description": "古い録音を自動的に削除して容量を節約するか、録音をまったく保存せずテキストのみを残します",
+        "title": "履歴の整理",
+        "description": "古い項目を自動的にごみ箱に移動するか、録音の保存をやめて履歴にテキストだけを残します",
         "dontSave": "録音を保存しない",
         "never": "しない",
         "preserveLimit": "最新{{count}}件を保持",
         "days3": "3日後",
         "weeks2": "2週間後",
         "months3": "3ヶ月後",
-        "placeholder": "保持期間を選択…"
+        "placeholder": "保持期間を選択…",
+        "stopSaving": {
+          "title": "録音の保存をやめますか？",
+          "description": "今後、音声入力はテキストだけを保持します。現在保存されている録音: {{number}}",
+          "keep": "残す",
+          "older": "<days/> 日より古い録音をごみ箱に移動",
+          "days": "日数",
+          "all": "すべてごみ箱に移動",
+          "note": "テキストは履歴に残り、スター付きの項目は録音を保持します。移動したものはごみ箱から復元できます。",
+          "cancel": "キャンセル",
+          "confirm": "保存をやめる",
+          "countFailed": "保存されている録音を数えられませんでした。もう一度お試しください。",
+          "moveFailed": "録音をごみ箱に移動できませんでした。もう一度お試しください。"
+        }
       },
       "alwaysOnMicrophone": {
         "label": "マイク常時オン",

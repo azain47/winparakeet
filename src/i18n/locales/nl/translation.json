@@ -18,6 +18,7 @@
     "advanced": "Geavanceerd",
     "postProcessing": "Naverwerking",
     "history": "Geschiedenis",
+    "bin": "Prullenbak",
     "debug": "Probleemoplossing",
     "about": "Over WinParakeet"
   },
@@ -697,8 +698,11 @@
       "copyError": "Transcriptie naar het klembord kopiëren mislukt.",
       "save": "Transcriptie opslaan",
       "unsave": "Verwijderen uit opgeslagen",
-      "delete": "Item verwijderen",
-      "deleteError": "Item verwijderen mislukt. Probeer het opnieuw.",
+      "moveToBin": "Naar de prullenbak verplaatsen",
+      "deleteError": "Kan het item niet naar de prullenbak verplaatsen. Probeer het opnieuw.",
+      "movedToBin": "Naar de prullenbak verplaatst",
+      "undo": "Ongedaan maken",
+      "undoFailed": "Kan het item niet terugzetten. Het staat nog in de prullenbak.",
       "retranscribe": "Opnieuw transcriberen",
       "cancelTranscription": "Transcriptie annuleren",
       "transcribing": "Transcriberen...",
@@ -717,6 +721,28 @@
       "showLess": "Minder tonen",
       "dropTitle": "Loslaten om te transcriberen",
       "dropDescription": "Het verschijnt in de geschiedenis."
+    },
+    "bin": {
+      "loading": "Prullenbak laden...",
+      "empty": "De prullenbak is leeg. Verwijderde dictaten en opnames blijven hier tot je ze definitief verwijdert.",
+      "loadFailed": "Kan de prullenbak niet laden.",
+      "emptyBin": "Prullenbak legen",
+      "emptyTitle": "Prullenbak legen?",
+      "emptyDescription": "Alles in de prullenbak wordt definitief verwijderd. Dit kan niet ongedaan worden gemaakt.",
+      "emptyFailed": "Kan de prullenbak niet legen. Probeer het opnieuw.",
+      "emptyPartial": "Sommige items konden niet worden verwijderd omdat hun bestanden in gebruik zijn. Ze staan nog in de prullenbak.",
+      "dictation": "Dictaat",
+      "recording": "Opname",
+      "recordingNote": "Alleen de opname staat hier. De tekst staat nog in de geschiedenis.",
+      "deletedAt": "Verwijderd op {{date}}",
+      "noText": "Geen tekst",
+      "restore": "Terugzetten",
+      "restoreFailed": "Kan het niet terugzetten. Probeer het opnieuw.",
+      "deletePermanently": "Definitief verwijderen",
+      "deleteTitle": "Definitief verwijderen?",
+      "deleteDescription": "Dit item wordt definitief verwijderd. Dit kan niet ongedaan worden gemaakt.",
+      "deleteFailed": "Kan het niet verwijderen. Het bestand is mogelijk in gebruik.",
+      "cancel": "Annuleren"
     },
     "debug": {
       "logDirectory": {
@@ -786,15 +812,28 @@
         "entries": "items"
       },
       "recordingRetention": {
-        "title": "Opnames automatisch verwijderen",
-        "description": "Oude opnames automatisch verwijderen om ruimte te besparen, of opnames helemaal niet opslaan en alleen de tekst bewaren",
+        "title": "Geschiedenis opschonen",
+        "description": "Oude items gaan automatisch naar de prullenbak, of stop met het bewaren van opnames zodat de geschiedenis alleen de tekst houdt",
         "dontSave": "Opnames niet opslaan",
         "never": "Nooit",
         "preserveLimit": "Bewaar de nieuwste {{count}}",
         "days3": "Na 3 dagen",
         "weeks2": "Na 2 weken",
         "months3": "Na 3 maanden",
-        "placeholder": "Selecteer bewaarperiode..."
+        "placeholder": "Selecteer bewaarperiode...",
+        "stopSaving": {
+          "title": "Stoppen met opnames bewaren?",
+          "description": "Vanaf nu houden dictaten alleen hun tekst. Nu bewaarde opnames: {{number}}.",
+          "keep": "Bewaren",
+          "older": "Opnames ouder dan <days/> dagen naar de prullenbak verplaatsen",
+          "days": "Dagen",
+          "all": "Allemaal naar de prullenbak verplaatsen",
+          "note": "Hun tekst blijft in de geschiedenis, items met een ster houden hun opnames en alles wat verplaatst is, kun je terugzetten vanuit de prullenbak.",
+          "cancel": "Annuleren",
+          "confirm": "Stoppen met bewaren",
+          "countFailed": "Kan de bewaarde opnames niet tellen. Probeer het opnieuw.",
+          "moveFailed": "Kan de opnames niet naar de prullenbak verplaatsen. Probeer het opnieuw."
+        }
       },
       "alwaysOnMicrophone": {
         "label": "Microfoon altijd aan",

@@ -18,6 +18,7 @@
     "advanced": "Avancerat",
     "postProcessing": "Efterbearbetning",
     "history": "Historik",
+    "bin": "Papperskorg",
     "debug": "Felsökning",
     "about": "Om"
   },
@@ -697,8 +698,11 @@
       "copyError": "Det gick inte att kopiera transkriptionen till urklipp.",
       "save": "Spara transkription",
       "unsave": "Ta bort från sparade",
-      "delete": "Ta bort post",
-      "deleteError": "Misslyckades med att ta bort post. Försök igen.",
+      "moveToBin": "Flytta till papperskorgen",
+      "deleteError": "Det gick inte att flytta posten till papperskorgen. Försök igen.",
+      "movedToBin": "Flyttad till papperskorgen",
+      "undo": "Ångra",
+      "undoFailed": "Det gick inte att återställa posten. Den finns kvar i papperskorgen.",
       "retranscribe": "Transkribera igen",
       "cancelTranscription": "Avbryt transkribering",
       "transcribing": "Transkriberar...",
@@ -717,6 +721,28 @@
       "showLess": "Visa mindre",
       "dropTitle": "Släpp för att transkribera",
       "dropDescription": "Den visas i historiken."
+    },
+    "bin": {
+      "loading": "Läser in papperskorgen...",
+      "empty": "Papperskorgen är tom. Borttagna dikteringar och inspelningar stannar här tills du tar bort dem permanent.",
+      "loadFailed": "Det gick inte att läsa in papperskorgen.",
+      "emptyBin": "Töm papperskorgen",
+      "emptyTitle": "Tömma papperskorgen?",
+      "emptyDescription": "Allt i papperskorgen tas bort permanent. Det går inte att ångra.",
+      "emptyFailed": "Det gick inte att tömma papperskorgen. Försök igen.",
+      "emptyPartial": "Vissa objekt kunde inte tas bort eftersom deras filer används. De finns kvar i papperskorgen.",
+      "dictation": "Diktering",
+      "recording": "Inspelning",
+      "recordingNote": "Bara inspelningen finns här. Texten finns kvar i historiken.",
+      "deletedAt": "Borttagen {{date}}",
+      "noText": "Ingen text",
+      "restore": "Återställ",
+      "restoreFailed": "Det gick inte att återställa. Försök igen.",
+      "deletePermanently": "Ta bort permanent",
+      "deleteTitle": "Ta bort permanent?",
+      "deleteDescription": "Det här objektet tas bort permanent. Det går inte att ångra.",
+      "deleteFailed": "Det gick inte att ta bort. Filen kan vara i användning.",
+      "cancel": "Avbryt"
     },
     "debug": {
       "logDirectory": {
@@ -786,15 +812,28 @@
         "entries": "poster"
       },
       "recordingRetention": {
-        "title": "Radera inspelningar automatiskt",
-        "description": "Radera gamla inspelningar automatiskt för att spara utrymme, eller spara inga inspelningar alls och behåll bara texten",
+        "title": "Rensa historik",
+        "description": "Gamla poster flyttas automatiskt till papperskorgen, eller sluta spara inspelningar så att historiken bara behåller texten",
         "dontSave": "Spara inte inspelningar",
         "never": "Aldrig",
         "preserveLimit": "Behåll de senaste {{count}}",
         "days3": "Efter 3 dagar",
         "weeks2": "Efter 2 veckor",
         "months3": "Efter 3 månader",
-        "placeholder": "Välj lagringsperiod..."
+        "placeholder": "Välj lagringsperiod...",
+        "stopSaving": {
+          "title": "Sluta spara inspelningar?",
+          "description": "Från och med nu behåller dikteringar bara sin text. Sparade inspelningar just nu: {{number}}.",
+          "keep": "Behåll dem",
+          "older": "Flytta inspelningar äldre än <days/> dagar till papperskorgen",
+          "days": "Dagar",
+          "all": "Flytta alla till papperskorgen",
+          "note": "Texten stannar i historiken, stjärnmärkta poster behåller sina inspelningar och allt som flyttas kan återställas från papperskorgen.",
+          "cancel": "Avbryt",
+          "confirm": "Sluta spara",
+          "countFailed": "Det gick inte att räkna de sparade inspelningarna. Försök igen.",
+          "moveFailed": "Det gick inte att flytta inspelningarna till papperskorgen. Försök igen."
+        }
       },
       "alwaysOnMicrophone": {
         "label": "Alltid påslagen mikrofon",

@@ -18,6 +18,7 @@
     "advanced": "進階",
     "postProcessing": "後處理",
     "history": "歷史紀錄",
+    "bin": "資源回收筒",
     "debug": "偵錯",
     "about": "關於"
   },
@@ -697,8 +698,11 @@
       "copyError": "無法將轉錄複製到剪貼簿。",
       "save": "儲存轉錄",
       "unsave": "從已儲存中移除",
-      "delete": "刪除條目",
-      "deleteError": "刪除條目失敗，請重試",
+      "moveToBin": "移至資源回收筒",
+      "deleteError": "無法將項目移至資源回收筒。請再試一次。",
+      "movedToBin": "已移至資源回收筒",
+      "undo": "復原",
+      "undoFailed": "無法還原項目，它仍在資源回收筒中。",
       "retranscribe": "重新轉錄",
       "cancelTranscription": "取消轉錄",
       "transcribing": "轉錄中...",
@@ -717,6 +721,28 @@
       "showLess": "收合",
       "dropTitle": "拖放到此處進行轉錄",
       "dropDescription": "它會出現在歷史記錄中。"
+    },
+    "bin": {
+      "loading": "正在載入資源回收筒...",
+      "empty": "資源回收筒是空的。刪除的聽寫和錄音會留在這裡，直到你將其永久刪除。",
+      "loadFailed": "無法載入資源回收筒。",
+      "emptyBin": "清理資源回收筒",
+      "emptyTitle": "要清理資源回收筒嗎？",
+      "emptyDescription": "資源回收筒中的所有內容都會被永久刪除，且無法復原。",
+      "emptyFailed": "無法清理資源回收筒。請再試一次。",
+      "emptyPartial": "部分項目因檔案正在使用而無法刪除，仍在資源回收筒中。",
+      "dictation": "聽寫",
+      "recording": "錄音",
+      "recordingNote": "這裡只有錄音，其文字仍在歷史記錄中。",
+      "deletedAt": "刪除於 {{date}}",
+      "noText": "沒有文字",
+      "restore": "還原",
+      "restoreFailed": "無法還原。請再試一次。",
+      "deletePermanently": "永久刪除",
+      "deleteTitle": "要永久刪除嗎？",
+      "deleteDescription": "此項目將被永久刪除，且無法復原。",
+      "deleteFailed": "無法刪除，其檔案可能正在使用。",
+      "cancel": "取消"
     },
     "debug": {
       "logDirectory": {
@@ -786,15 +812,28 @@
         "entries": "筆"
       },
       "recordingRetention": {
-        "title": "自動刪除錄音",
-        "description": "自動刪除舊錄音以節省空間，或完全不儲存錄音，只保留文字",
+        "title": "清理歷史紀錄",
+        "description": "舊項目會自動移至資源回收筒，或停止儲存錄音，讓歷史記錄只保留文字",
         "dontSave": "不儲存錄音",
         "never": "從不",
         "preserveLimit": "保留最新 {{count}} 筆",
         "days3": "3 天後",
         "weeks2": "2 週後",
         "months3": "3 個月後",
-        "placeholder": "選擇保留期限..."
+        "placeholder": "選擇保留期限...",
+        "stopSaving": {
+          "title": "要停止儲存錄音嗎？",
+          "description": "從現在起，聽寫只會保留文字。目前已儲存的錄音：{{number}}。",
+          "keep": "保留",
+          "older": "將超過 <days/> 天的錄音移至資源回收筒",
+          "days": "天數",
+          "all": "全部移至資源回收筒",
+          "note": "其文字會保留在歷史記錄中，已加星號的項目會保留錄音，移走的任何內容都可以從資源回收筒還原。",
+          "cancel": "取消",
+          "confirm": "停止儲存",
+          "countFailed": "無法計算已儲存的錄音。請再試一次。",
+          "moveFailed": "無法將錄音移至資源回收筒。請再試一次。"
+        }
       },
       "alwaysOnMicrophone": {
         "label": "麥克風常開",

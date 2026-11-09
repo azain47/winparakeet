@@ -7,12 +7,10 @@ use serde::{Deserialize, Serialize};
 use specta::Type;
 use std::fs;
 use std::path::PathBuf;
-use std::sync::Arc;
-use tauri::{AppHandle, Manager};
+use tauri::AppHandle;
 use tauri_specta::Event;
 
 use crate::language_detection::{LanguageDecision, LanguageSource};
-use crate::managers::transcription_jobs::TranscriptionJobManager;
 use crate::settings::RecordingRetentionPeriod;
 
 /// Database migrations for transcription history.
@@ -47,6 +45,31 @@ const ENTRY_COLUMNS: &str = "id, file_name, timestamp, saved, title, transcripti
     post_processed_text, post_process_prompt, post_process_requested, source_name, language, \
     language_source";
 
+/// The Bin: entries moved out of History whole, and recordings moved out of
+/// entries that stay. Created outside [`MIGRATIONS`] like [`ADDED_COLUMNS`],
+/// which `binned_entries` gets too. An entry whose recording went to the Bin
+/// before it holds that recording, with `recording_binned_at` set so that
+/// restoring the entry puts the recording back in the Bin.
+const BIN_TABLES: &str = "
+    CREATE TABLE IF NOT EXISTS binned_entries (
+        id INTEGER PRIMARY KEY,
+        file_name TEXT NOT NULL,
+        timestamp INTEGER NOT NULL,
+        saved BOOLEAN NOT NULL DEFAULT 0,
+        title TEXT NOT NULL,
+        transcription_text TEXT NOT NULL,
+        post_processed_text TEXT,
+        post_process_prompt TEXT,
+        post_process_requested BOOLEAN NOT NULL DEFAULT 0,
+        binned_at INTEGER NOT NULL,
+        recording_binned_at INTEGER
+    );
+    CREATE TABLE IF NOT EXISTS binned_recordings (
+        entry_id INTEGER PRIMARY KEY,
+        file_name TEXT NOT NULL,
+        binned_at INTEGER NOT NULL
+    );";
+
 #[derive(Clone, Debug, Serialize, Deserialize, Type)]
 pub struct PaginatedHistory {
     pub entries: Vec<HistoryEntry>,
@@ -64,6 +87,35 @@ pub enum HistoryUpdatePayload {
     Deleted { id: i64 },
     #[serde(rename = "toggled")]
     Toggled { id: i64 },
+}
+
+/// What a Bin item holds.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
+#[serde(rename_all = "snake_case")]
+pub enum BinItemKind {
+    /// A whole History entry, with its recording if it had one.
+    Entry,
+    /// Only a recording; its entry is still in History, keeping its text.
+    Recording,
+}
+
+/// Something in the Bin. Nothing leaves the Bin except by restoring it or
+/// deleting it for good.
+#[derive(Clone, Debug, Serialize, Deserialize, Type)]
+pub struct BinItem {
+    /// The entry it belongs to. A `recording` item's entry is still in History.
+    pub entry: HistoryEntry,
+    pub kind: BinItemKind,
+    /// When it went to the Bin, in Unix seconds.
+    pub binned_at: i64,
+    /// Its recording in the recordings folder; empty when it has none.
+    pub recording: String,
+}
+
+/// The Bin's contents changed; `count` items are in it now.
+#[derive(Clone, Debug, Serialize, Deserialize, Type, tauri_specta::Event)]
+pub struct BinChanged {
+    pub count: u32,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Type)]
@@ -175,25 +227,26 @@ impl HistoryManager {
             other => other?,
         }
 
-        // Not a migration: a higher user_version makes released builds refuse
-        // the database, while an extra nullable column is invisible to them.
-        for column in ADDED_COLUMNS {
-            if !Self::has_column(conn, column)? {
-                conn.execute(
-                    &format!("ALTER TABLE transcription_history ADD COLUMN {column} TEXT"),
-                    [],
-                )?;
-                info!("Added the {column} column to transcription history");
+        // Not migrations: a higher user_version makes released builds refuse
+        // the database, while an extra table or nullable column is invisible
+        // to them.
+        conn.execute_batch(BIN_TABLES)?;
+        for table in ["transcription_history", "binned_entries"] {
+            for column in ADDED_COLUMNS {
+                if !Self::has_column(conn, table, column)? {
+                    conn.execute(&format!("ALTER TABLE {table} ADD COLUMN {column} TEXT"), [])?;
+                    info!("Added the {column} column to {table}");
+                }
             }
         }
 
         Ok(())
     }
 
-    fn has_column(conn: &Connection, name: &str) -> Result<bool> {
+    fn has_column(conn: &Connection, table: &str, name: &str) -> Result<bool> {
         Ok(conn.query_row(
-            "SELECT COUNT(*) > 0 FROM pragma_table_info('transcription_history') WHERE name = ?1",
-            [name],
+            "SELECT COUNT(*) > 0 FROM pragma_table_info(?1) WHERE name = ?2",
+            [table, name],
             |row| row.get(0),
         )?)
     }
@@ -437,23 +490,13 @@ impl HistoryManager {
         Ok(entry)
     }
 
+    /// Moves the entries that the retention setting no longer keeps to the Bin.
     pub fn cleanup_old_entries(&self) -> Result<()> {
         let retention_period = crate::settings::get_recording_retention_period(&self.app_handle);
 
         match retention_period {
-            RecordingRetentionPeriod::DontSave => {
-                // The entries and their text stay; only the recordings go,
-                // except those a job still has to transcribe.
-                match self.app_handle.try_state::<Arc<TranscriptionJobManager>>() {
-                    Some(jobs) => jobs.remove_unused_recordings(),
-                    // Before the job manager exists, there is no job.
-                    None => self.remove_recordings(|_| false),
-                }
-            }
-            RecordingRetentionPeriod::Never => {
-                // Don't delete anything
-                Ok(())
-            }
+            // Not saving new recordings leaves the ones saved before alone.
+            RecordingRetentionPeriod::DontSave | RecordingRetentionPeriod::Never => Ok(()),
             RecordingRetentionPeriod::PreserveLimit => {
                 // Use the old count-based logic with history_limit
                 let limit = crate::settings::get_history_limit(&self.app_handle);
@@ -466,163 +509,25 @@ impl HistoryManager {
         }
     }
 
-    /// Deletes every recording but those `in_use` says a job still needs.
-    /// The entries keep their text, and are announced without the recording.
-    ///
-    /// A file is deleted before its entry forgets it. A recording Windows
-    /// keeps open (the History player, a virus scanner) can't be deleted yet:
-    /// its entry keeps the name, so the next cleanup or the startup sweep
-    /// tries again instead of leaving an untracked file behind.
-    pub fn remove_recordings(&self, in_use: impl Fn(i64) -> bool) -> Result<()> {
-        let conn = self.get_connection()?;
-        let mut removed = 0;
-        for (id, file_name) in Self::recordings_to_remove(&conn, in_use)? {
-            if !self.delete_unkept_recording(&file_name)
-                || !Self::forget_recording(&conn, id, &file_name)?
-            {
-                continue;
-            }
-            removed += 1;
-            match conn.query_row(
-                &format!("SELECT {ENTRY_COLUMNS} FROM transcription_history WHERE id = ?1"),
-                params![id],
-                Self::map_history_entry,
-            ) {
-                Ok(entry) => {
-                    if let Err(e) = (HistoryUpdatePayload::Updated { entry }).emit(&self.app_handle)
-                    {
-                        error!("Failed to emit history-updated event: {}", e);
-                    }
-                }
-                // Deleted meanwhile; its deletion was announced already.
-                Err(rusqlite::Error::QueryReturnedNoRows) => {}
-                Err(e) => error!("Failed to read history entry {}: {}", id, e),
-            }
-        }
-        if removed > 0 {
-            info!("Removed {} recordings that are not kept", removed);
-        }
-        Ok(())
-    }
-
-    /// The entries with a recording that `in_use` doesn't claim: ids and file names.
-    fn recordings_to_remove(
-        conn: &Connection,
-        in_use: impl Fn(i64) -> bool,
-    ) -> Result<Vec<(i64, String)>> {
-        let recordings: Vec<(i64, String)> = conn
-            .prepare("SELECT id, file_name FROM transcription_history WHERE file_name != ''")?
-            .query_map([], |row| {
-                Ok((row.get::<_, i64>(0)?, row.get::<_, String>(1)?))
-            })?
-            .collect::<rusqlite::Result<Vec<_>>>()?;
-        Ok(recordings
-            .into_iter()
-            .filter(|(id, _)| !in_use(*id))
-            .collect())
-    }
-
-    /// Clears an entry's recording, if it still names `file_name`; whether it did.
-    fn forget_recording(conn: &Connection, id: i64, file_name: &str) -> Result<bool> {
-        let changed = conn.execute(
-            "UPDATE transcription_history SET file_name = '' WHERE id = ?1 AND file_name = ?2",
-            params![id, file_name],
-        )?;
-        Ok(changed > 0)
-    }
-
-    /// Deletes a recording that isn't kept; whether the file is gone now
-    /// (deleted, or missing already).
-    fn delete_unkept_recording(&self, file_name: &str) -> bool {
-        match fs::remove_file(self.recordings_dir.join(file_name)) {
-            Ok(()) => {
-                debug!("Deleted WAV file: {}", file_name);
-                true
-            }
-            Err(e) if e.kind() == std::io::ErrorKind::NotFound => true,
-            Err(e) => {
-                warn!("Couldn't delete WAV file {} yet: {}", file_name, e);
-                false
-            }
-        }
-    }
-
-    /// Deletes an entry's recording, if it has one; whether a file went.
-    fn remove_recording_file(&self, file_name: &str) -> bool {
-        if file_name.is_empty() {
-            return false;
-        }
-        match fs::remove_file(self.recordings_dir.join(file_name)) {
-            Ok(()) => {
-                debug!("Deleted WAV file: {}", file_name);
-                true
-            }
-            Err(e) if e.kind() == std::io::ErrorKind::NotFound => false,
-            Err(e) => {
-                error!("Failed to delete WAV file {}: {}", file_name, e);
-                false
-            }
-        }
-    }
-
-    fn delete_entries_and_files(&self, entries: &[(i64, String)]) -> Result<usize> {
-        if entries.is_empty() {
-            return Ok(0);
-        }
-
-        let conn = self.get_connection()?;
-        let mut deleted_count = 0;
-
-        for (id, file_name) in entries {
-            // Delete database entry
-            conn.execute(
-                "DELETE FROM transcription_history WHERE id = ?1",
-                params![id],
-            )?;
-
-            // Delete WAV file
-            if self.remove_recording_file(file_name) {
-                deleted_count += 1;
-            }
-        }
-
-        Ok(deleted_count)
-    }
-
     fn cleanup_by_count(&self, limit: usize) -> Result<()> {
         let conn = self.get_connection()?;
 
-        // Unsaved dictations, newest first. Transcribed files are only ever
-        // deleted explicitly, and don't count toward the limit.
-        let mut stmt = conn.prepare(
-            "SELECT id, file_name FROM transcription_history WHERE saved = 0 AND source_name IS NULL ORDER BY timestamp DESC"
-        )?;
+        // Unsaved dictations, newest first. Transcribed files only go to the
+        // Bin explicitly, and don't count toward the limit.
+        let ids: Vec<i64> = conn
+            .prepare(
+                "SELECT id FROM transcription_history WHERE saved = 0 AND source_name IS NULL ORDER BY timestamp DESC",
+            )?
+            .query_map([], |row| row.get(0))?
+            .collect::<rusqlite::Result<_>>()?;
 
-        let rows = stmt.query_map([], |row| {
-            Ok((row.get::<_, i64>("id")?, row.get::<_, String>("file_name")?))
-        })?;
-
-        let mut entries: Vec<(i64, String)> = Vec::new();
-        for row in rows {
-            entries.push(row?);
+        match ids.get(limit..) {
+            Some(old) => self.bin_old_entries(old),
+            None => Ok(()),
         }
-
-        if entries.len() > limit {
-            let entries_to_delete = &entries[limit..];
-            let deleted_count = self.delete_entries_and_files(entries_to_delete)?;
-
-            if deleted_count > 0 {
-                debug!("Cleaned up {} old history entries by count", deleted_count);
-            }
-        }
-
-        Ok(())
     }
 
-    fn cleanup_by_time(
-        &self,
-        retention_period: crate::settings::RecordingRetentionPeriod,
-    ) -> Result<()> {
+    fn cleanup_by_time(&self, retention_period: RecordingRetentionPeriod) -> Result<()> {
         let conn = self.get_connection()?;
 
         // Calculate cutoff timestamp (current time minus retention period)
@@ -634,31 +539,403 @@ impl HistoryManager {
             _ => unreachable!("Should not reach here"),
         };
 
-        // Unsaved dictations older than the cutoff; transcribed files are only
-        // ever deleted explicitly.
-        let mut stmt = conn.prepare(
-            "SELECT id, file_name FROM transcription_history WHERE saved = 0 AND source_name IS NULL AND timestamp < ?1",
-        )?;
+        // Unsaved dictations older than the cutoff; transcribed files only go
+        // to the Bin explicitly.
+        let ids: Vec<i64> = conn
+            .prepare(
+                "SELECT id FROM transcription_history WHERE saved = 0 AND source_name IS NULL AND timestamp < ?1",
+            )?
+            .query_map(params![cutoff_timestamp], |row| row.get(0))?
+            .collect::<rusqlite::Result<_>>()?;
 
-        let rows = stmt.query_map(params![cutoff_timestamp], |row| {
-            Ok((row.get::<_, i64>("id")?, row.get::<_, String>("file_name")?))
-        })?;
+        self.bin_old_entries(&ids)
+    }
 
-        let mut entries_to_delete: Vec<(i64, String)> = Vec::new();
-        for row in rows {
-            entries_to_delete.push(row?);
+    /// Moves entries that the retention setting no longer keeps to the Bin.
+    fn bin_old_entries(&self, ids: &[i64]) -> Result<()> {
+        if ids.is_empty() {
+            return Ok(());
         }
-
-        let deleted_count = self.delete_entries_and_files(&entries_to_delete)?;
-
-        if deleted_count > 0 {
-            debug!(
-                "Cleaned up {} old history entries based on retention period",
-                deleted_count
-            );
+        let mut conn = self.get_connection()?;
+        let binned = Self::bin_entries_with_conn(&mut conn, ids, Utc::now().timestamp())?;
+        debug!("Moved {} old history entries to the Bin", binned.len());
+        for id in binned {
+            self.announce(HistoryUpdatePayload::Deleted { id });
         }
-
+        self.announce_bin(&conn);
         Ok(())
+    }
+
+    /// Moves the entry to the Bin, its recording with it.
+    pub fn bin_entry(&self, id: i64) -> Result<()> {
+        let mut conn = self.get_connection()?;
+        if Self::bin_entries_with_conn(&mut conn, &[id], Utc::now().timestamp())?.is_empty() {
+            return Err(anyhow!("History entry {} not found", id));
+        }
+        debug!("Moved history entry {} to the Bin", id);
+        self.announce(HistoryUpdatePayload::Deleted { id });
+        self.announce_bin(&conn);
+        Ok(())
+    }
+
+    /// Moves the entries to the Bin; the ids of those that were in History.
+    /// An entry whose recording is in the Bin already holds it there, so the
+    /// Bin shows them as one item.
+    fn bin_entries_with_conn(conn: &mut Connection, ids: &[i64], now: i64) -> Result<Vec<i64>> {
+        let tx = conn.transaction()?;
+        let mut binned = Vec::new();
+        for &id in ids {
+            let moved = tx.execute(
+                &format!(
+                    "INSERT INTO binned_entries ({ENTRY_COLUMNS}, binned_at)
+                     SELECT {ENTRY_COLUMNS}, ?2 FROM transcription_history WHERE id = ?1"
+                ),
+                params![id, now],
+            )?;
+            if moved == 0 {
+                continue;
+            }
+            tx.execute(
+                "UPDATE binned_entries
+                 SET file_name = (SELECT file_name FROM binned_recordings WHERE entry_id = ?1),
+                     recording_binned_at = (SELECT binned_at FROM binned_recordings WHERE entry_id = ?1)
+                 WHERE id = ?1 AND EXISTS (SELECT 1 FROM binned_recordings WHERE entry_id = ?1)",
+                params![id],
+            )?;
+            tx.execute(
+                "DELETE FROM binned_recordings WHERE entry_id = ?1",
+                params![id],
+            )?;
+            tx.execute(
+                "DELETE FROM transcription_history WHERE id = ?1",
+                params![id],
+            )?;
+            binned.push(id);
+        }
+        tx.commit()?;
+        Ok(binned)
+    }
+
+    /// Moves the entry's recording to the Bin, if it has one; the entry keeps
+    /// its text.
+    pub fn bin_recording(&self, id: i64) -> Result<()> {
+        self.bin_recordings_of(&[id]).map(|_| ())
+    }
+
+    /// How many recordings `bin_recordings` would move without a cutoff.
+    pub fn count_recordings(&self, in_use: impl Fn(i64) -> bool) -> Result<u32> {
+        let conn = self.get_connection()?;
+        Ok(Self::recordings_to_bin(&conn, None, in_use)?.len() as u32)
+    }
+
+    /// Moves recordings to the Bin, their entries keeping their text: those
+    /// of entries that aren't starred and that `in_use` doesn't claim, and
+    /// with `older_than_days`, only older ones. How many moved.
+    pub fn bin_recordings(
+        &self,
+        older_than_days: Option<u32>,
+        in_use: impl Fn(i64) -> bool,
+    ) -> Result<u32> {
+        let cutoff =
+            older_than_days.map(|days| Utc::now().timestamp() - i64::from(days) * 24 * 60 * 60);
+        let ids = Self::recordings_to_bin(&self.get_connection()?, cutoff, in_use)?;
+        let moved = self.bin_recordings_of(&ids)?;
+        info!("Moved {} recordings to the Bin", moved);
+        Ok(moved)
+    }
+
+    /// Entries with a recording that aren't starred, that `in_use` doesn't
+    /// claim, and that are older than `cutoff` (Unix seconds) if there is one.
+    fn recordings_to_bin(
+        conn: &Connection,
+        cutoff: Option<i64>,
+        in_use: impl Fn(i64) -> bool,
+    ) -> Result<Vec<i64>> {
+        let ids: Vec<i64> = conn
+            .prepare(
+                "SELECT id FROM transcription_history WHERE file_name != '' AND saved = 0 AND timestamp < ?1 ORDER BY id",
+            )?
+            .query_map(params![cutoff.unwrap_or(i64::MAX)], |row| row.get(0))?
+            .collect::<rusqlite::Result<_>>()?;
+        Ok(ids.into_iter().filter(|&id| !in_use(id)).collect())
+    }
+
+    fn bin_recordings_of(&self, ids: &[i64]) -> Result<u32> {
+        let mut conn = self.get_connection()?;
+        let entries = Self::bin_recordings_with_conn(&mut conn, ids, Utc::now().timestamp())?;
+        let moved = entries.len() as u32;
+        for entry in entries {
+            self.announce(HistoryUpdatePayload::Updated { entry });
+        }
+        if moved > 0 {
+            self.announce_bin(&conn);
+        }
+        Ok(moved)
+    }
+
+    /// Moves the entries' recordings to the Bin; the entries, now without one.
+    fn bin_recordings_with_conn(
+        conn: &mut Connection,
+        ids: &[i64],
+        now: i64,
+    ) -> Result<Vec<HistoryEntry>> {
+        let tx = conn.transaction()?;
+        let mut entries = Vec::new();
+        for &id in ids {
+            let moved = tx.execute(
+                "INSERT INTO binned_recordings (entry_id, file_name, binned_at)
+                 SELECT id, file_name, ?2 FROM transcription_history WHERE id = ?1 AND file_name != ''",
+                params![id, now],
+            )?;
+            if moved == 0 {
+                continue;
+            }
+            tx.execute(
+                "UPDATE transcription_history SET file_name = '' WHERE id = ?1",
+                params![id],
+            )?;
+            entries.push(Self::entry_with_conn(&tx, id)?);
+        }
+        tx.commit()?;
+        Ok(entries)
+    }
+
+    /// Everything in the Bin, most recently binned first.
+    pub fn bin_items(&self) -> Result<Vec<BinItem>> {
+        Self::bin_items_with_conn(&self.get_connection()?)
+    }
+
+    fn bin_items_with_conn(conn: &Connection) -> Result<Vec<BinItem>> {
+        let mut items: Vec<BinItem> = conn
+            .prepare(&format!(
+                "SELECT {ENTRY_COLUMNS}, binned_at FROM binned_entries"
+            ))?
+            .query_map([], |row| {
+                let entry = Self::map_history_entry(row)?;
+                Ok(BinItem {
+                    recording: entry.file_name.clone(),
+                    entry,
+                    kind: BinItemKind::Entry,
+                    binned_at: row.get("binned_at")?,
+                })
+            })?
+            .collect::<rusqlite::Result<_>>()?;
+
+        // A binned recording's entry is in History: binning the entry takes
+        // the recording back.
+        let recordings: Vec<(i64, String, i64)> = conn
+            .prepare("SELECT entry_id, file_name, binned_at FROM binned_recordings")?
+            .query_map([], |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)))?
+            .collect::<rusqlite::Result<_>>()?;
+        for (id, recording, binned_at) in recordings {
+            if let Some(entry) = Self::entry_with_conn(conn, id).optional()? {
+                items.push(BinItem {
+                    entry,
+                    kind: BinItemKind::Recording,
+                    binned_at,
+                    recording,
+                });
+            }
+        }
+
+        items.sort_by(|a, b| {
+            b.binned_at
+                .cmp(&a.binned_at)
+                .then(b.entry.id.cmp(&a.entry.id))
+        });
+        Ok(items)
+    }
+
+    /// Puts a Bin item back: an entry returns to History, a recording to its
+    /// entry.
+    pub fn restore_bin_item(&self, id: i64, kind: BinItemKind) -> Result<()> {
+        let mut conn = self.get_connection()?;
+        let payload = match kind {
+            BinItemKind::Entry => HistoryUpdatePayload::Added {
+                entry: Self::restore_entry_with_conn(&mut conn, id)?,
+            },
+            BinItemKind::Recording => HistoryUpdatePayload::Updated {
+                entry: Self::restore_recording_with_conn(&mut conn, id)?,
+            },
+        };
+        debug!("Restored {:?} {} from the Bin", kind, id);
+        self.announce(payload);
+        self.announce_bin(&conn);
+        Ok(())
+    }
+
+    /// The entry goes back to History with its id, so it sorts where it was,
+    /// and a recording that was in the Bin before it goes back to the Bin.
+    fn restore_entry_with_conn(conn: &mut Connection, id: i64) -> Result<HistoryEntry> {
+        let tx = conn.transaction()?;
+        let binned_recording: Option<(String, i64)> = tx
+            .query_row(
+                "SELECT file_name, recording_binned_at FROM binned_entries
+                 WHERE id = ?1 AND recording_binned_at IS NOT NULL",
+                params![id],
+                |row| Ok((row.get(0)?, row.get(1)?)),
+            )
+            .optional()?;
+        let restored = tx.execute(
+            &format!(
+                "INSERT INTO transcription_history ({ENTRY_COLUMNS})
+                 SELECT {ENTRY_COLUMNS} FROM binned_entries WHERE id = ?1"
+            ),
+            params![id],
+        )?;
+        if restored == 0 {
+            return Err(anyhow!("Bin item {} not found", id));
+        }
+        if let Some((file_name, binned_at)) = binned_recording {
+            tx.execute(
+                "INSERT INTO binned_recordings (entry_id, file_name, binned_at) VALUES (?1, ?2, ?3)",
+                params![id, file_name, binned_at],
+            )?;
+            tx.execute(
+                "UPDATE transcription_history SET file_name = '' WHERE id = ?1",
+                params![id],
+            )?;
+        }
+        tx.execute("DELETE FROM binned_entries WHERE id = ?1", params![id])?;
+        let entry = Self::entry_with_conn(&tx, id)?;
+        tx.commit()?;
+        Ok(entry)
+    }
+
+    fn restore_recording_with_conn(conn: &mut Connection, id: i64) -> Result<HistoryEntry> {
+        let tx = conn.transaction()?;
+        let file_name: String = tx
+            .query_row(
+                "SELECT file_name FROM binned_recordings WHERE entry_id = ?1",
+                params![id],
+                |row| row.get(0),
+            )
+            .optional()?
+            .ok_or_else(|| anyhow!("Bin item {} not found", id))?;
+        let restored = tx.execute(
+            "UPDATE transcription_history SET file_name = ?2 WHERE id = ?1 AND file_name = ''",
+            params![id, file_name],
+        )?;
+        if restored == 0 {
+            return Err(anyhow!(
+                "History entry {} can't take its recording back",
+                id
+            ));
+        }
+        tx.execute(
+            "DELETE FROM binned_recordings WHERE entry_id = ?1",
+            params![id],
+        )?;
+        let entry = Self::entry_with_conn(&tx, id)?;
+        tx.commit()?;
+        Ok(entry)
+    }
+
+    /// Deletes a Bin item for good, its recording file included. Fails,
+    /// keeping the item, when the file can't be deleted.
+    pub fn delete_bin_item(&self, id: i64, kind: BinItemKind) -> Result<()> {
+        let conn = self.get_connection()?;
+        let (select, delete) = Self::bin_item_queries(kind);
+        let file_name: String = conn
+            .query_row(select, params![id], |row| row.get(0))
+            .optional()?
+            .ok_or_else(|| anyhow!("Bin item {} not found", id))?;
+        self.delete_recording_file(&file_name)?;
+        conn.execute(delete, params![id])?;
+        info!("Deleted {:?} {} from the Bin for good", kind, id);
+        self.announce_bin(&conn);
+        Ok(())
+    }
+
+    /// Deletes everything in the Bin for good; how many items went. An item
+    /// whose file can't be deleted stays.
+    pub fn empty_bin(&self) -> Result<u32> {
+        let conn = self.get_connection()?;
+        let mut items: Vec<(BinItemKind, i64, String)> = Vec::new();
+        for kind in [BinItemKind::Entry, BinItemKind::Recording] {
+            let query = match kind {
+                BinItemKind::Entry => "SELECT id, file_name FROM binned_entries",
+                BinItemKind::Recording => "SELECT entry_id, file_name FROM binned_recordings",
+            };
+            let rows: Vec<(i64, String)> = conn
+                .prepare(query)?
+                .query_map([], |row| Ok((row.get(0)?, row.get(1)?)))?
+                .collect::<rusqlite::Result<_>>()?;
+            items.extend(rows.into_iter().map(|(id, file)| (kind, id, file)));
+        }
+
+        let mut deleted = 0;
+        for (kind, id, file_name) in items {
+            if let Err(e) = self.delete_recording_file(&file_name) {
+                warn!("Keeping {:?} {} in the Bin: {}", kind, id, e);
+                continue;
+            }
+            conn.execute(Self::bin_item_queries(kind).1, params![id])?;
+            deleted += 1;
+        }
+        info!("Emptied the Bin: {} items deleted for good", deleted);
+        self.announce_bin(&conn);
+        Ok(deleted)
+    }
+
+    /// The queries that read a Bin item's file name and delete the item.
+    fn bin_item_queries(kind: BinItemKind) -> (&'static str, &'static str) {
+        match kind {
+            BinItemKind::Entry => (
+                "SELECT file_name FROM binned_entries WHERE id = ?1",
+                "DELETE FROM binned_entries WHERE id = ?1",
+            ),
+            BinItemKind::Recording => (
+                "SELECT file_name FROM binned_recordings WHERE entry_id = ?1",
+                "DELETE FROM binned_recordings WHERE entry_id = ?1",
+            ),
+        }
+    }
+
+    /// Deletes a recording file for good; one that's gone already counts.
+    fn delete_recording_file(&self, file_name: &str) -> Result<()> {
+        if file_name.is_empty() {
+            return Ok(());
+        }
+        match fs::remove_file(self.recordings_dir.join(file_name)) {
+            Ok(()) => {
+                debug!("Deleted WAV file: {}", file_name);
+                Ok(())
+            }
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(()),
+            Err(e) => Err(anyhow!("Couldn't delete {}: {}", file_name, e)),
+        }
+    }
+
+    fn entry_with_conn(conn: &Connection, id: i64) -> rusqlite::Result<HistoryEntry> {
+        conn.query_row(
+            &format!("SELECT {ENTRY_COLUMNS} FROM transcription_history WHERE id = ?1"),
+            params![id],
+            Self::map_history_entry,
+        )
+    }
+
+    fn announce(&self, payload: HistoryUpdatePayload) {
+        if let Err(e) = payload.emit(&self.app_handle) {
+            error!("Failed to emit history-updated event: {}", e);
+        }
+    }
+
+    /// Tells the UI how many items the Bin holds now.
+    fn announce_bin(&self, conn: &Connection) {
+        let count = conn.query_row(
+            "SELECT (SELECT COUNT(*) FROM binned_entries) + (SELECT COUNT(*) FROM binned_recordings)",
+            [],
+            |row| row.get(0),
+        );
+        match count {
+            Ok(count) => {
+                if let Err(e) = (BinChanged { count }).emit(&self.app_handle) {
+                    error!("Failed to emit bin-changed event: {}", e);
+                }
+            }
+            Err(e) => error!("Failed to count the Bin: {}", e),
+        }
     }
 
     pub async fn get_history_entries(
@@ -795,30 +1072,6 @@ impl HistoryManager {
         Ok(entry)
     }
 
-    pub async fn delete_entry(&self, id: i64) -> Result<()> {
-        let conn = self.get_connection()?;
-
-        // Delete the audio file first; the entry goes even if that fails.
-        if let Some(entry) = self.get_entry_by_id(id).await? {
-            self.remove_recording_file(&entry.file_name);
-        }
-
-        // Delete from database
-        conn.execute(
-            "DELETE FROM transcription_history WHERE id = ?1",
-            params![id],
-        )?;
-
-        debug!("Deleted history entry with id: {}", id);
-
-        // Emit history updated event
-        if let Err(e) = (HistoryUpdatePayload::Deleted { id }).emit(&self.app_handle) {
-            error!("Failed to emit history-updated event: {}", e);
-        }
-
-        Ok(())
-    }
-
     fn format_timestamp_title(&self, timestamp: i64) -> String {
         if let Some(utc_datetime) = DateTime::from_timestamp(timestamp, 0) {
             // Convert UTC to local timezone
@@ -892,8 +1145,10 @@ mod tests {
     fn migrating_adds_columns_without_raising_the_version() {
         let mut conn = Connection::open_in_memory().expect("open in-memory db");
         HistoryManager::apply_migrations(&mut conn).expect("migrate");
-        for column in ADDED_COLUMNS {
-            assert!(HistoryManager::has_column(&conn, column).expect("read table info"));
+        for table in ["transcription_history", "binned_entries"] {
+            for column in ADDED_COLUMNS {
+                assert!(HistoryManager::has_column(&conn, table, column).expect("read table info"));
+            }
         }
         assert_eq!(user_version(&conn), MIGRATIONS.len() as i32);
 
@@ -996,31 +1251,102 @@ mod tests {
         assert_eq!(entry.transcription_text, "dictated");
     }
 
+    fn migrated_conn() -> Connection {
+        let mut conn = Connection::open_in_memory().expect("open in-memory db");
+        HistoryManager::apply_migrations(&mut conn).expect("migrate");
+        conn
+    }
+
     #[test]
-    fn recordings_to_remove_skip_those_in_use_and_without_audio() {
-        let conn = setup_conn();
-        insert_entry(&conn, 100, "first", None);
-        insert_entry(&conn, 200, "second", None);
-        insert_entry(&conn, 300, "third", None);
+    fn a_binned_entry_holds_its_binned_recording_and_comes_back_as_it_was() {
+        let mut conn = migrated_conn();
+        insert_entry(&conn, 100, "said", Some("polished"));
+
+        // The recording goes first; the entry stays without it.
+        let updated = HistoryManager::bin_recordings_with_conn(&mut conn, &[1], 500).unwrap();
+        assert_eq!(updated[0].file_name, "");
+        let items = HistoryManager::bin_items_with_conn(&conn).unwrap();
+        assert_eq!(items.len(), 1);
+        assert_eq!(items[0].kind, BinItemKind::Recording);
+        assert_eq!(items[0].recording, "handy-100.wav");
+
+        // Then the entry: one item, holding the recording again.
+        assert_eq!(
+            HistoryManager::bin_entries_with_conn(&mut conn, &[1], 600).unwrap(),
+            vec![1]
+        );
+        assert!(HistoryManager::get_latest_entry_with_conn(&conn)
+            .unwrap()
+            .is_none());
+        let items = HistoryManager::bin_items_with_conn(&conn).unwrap();
+        assert_eq!(items.len(), 1);
+        assert_eq!(items[0].kind, BinItemKind::Entry);
+        assert_eq!(items[0].recording, "handy-100.wav");
+        assert_eq!(items[0].binned_at, 600);
+
+        // Restored, it has its id and text back, and the recording is in the
+        // Bin again, as it was.
+        let entry = HistoryManager::restore_entry_with_conn(&mut conn, 1).unwrap();
+        assert_eq!(entry.id, 1);
+        assert_eq!(entry.file_name, "");
+        assert_eq!(entry.transcription_text, "said");
+        assert_eq!(entry.post_processed_text.as_deref(), Some("polished"));
+        let items = HistoryManager::bin_items_with_conn(&conn).unwrap();
+        assert_eq!(items.len(), 1);
+        assert_eq!(items[0].kind, BinItemKind::Recording);
+        assert_eq!(items[0].recording, "handy-100.wav");
+        assert_eq!(items[0].binned_at, 500);
+        assert!(HistoryManager::restore_entry_with_conn(&mut conn, 1).is_err());
+
+        // An entry binned with its own recording brings it back.
+        HistoryManager::restore_recording_with_conn(&mut conn, 1).unwrap();
+        HistoryManager::bin_entries_with_conn(&mut conn, &[1], 700).unwrap();
+        let entry = HistoryManager::restore_entry_with_conn(&mut conn, 1).unwrap();
+        assert_eq!(entry.file_name, "handy-100.wav");
+        assert!(HistoryManager::bin_items_with_conn(&conn)
+            .unwrap()
+            .is_empty());
+    }
+
+    #[test]
+    fn a_binned_recording_returns_to_its_entry() {
+        let mut conn = migrated_conn();
+        insert_entry(&conn, 100, "said", None);
+        HistoryManager::bin_recordings_with_conn(&mut conn, &[1], 500).unwrap();
+
+        let entry = HistoryManager::restore_recording_with_conn(&mut conn, 1).unwrap();
+        assert_eq!(entry.file_name, "handy-100.wav");
+        assert!(HistoryManager::bin_items_with_conn(&conn)
+            .unwrap()
+            .is_empty());
+        assert!(HistoryManager::restore_recording_with_conn(&mut conn, 1).is_err());
+    }
+
+    #[test]
+    fn recordings_to_bin_skip_starred_in_use_newer_and_missing() {
+        let conn = migrated_conn();
+        for timestamp in [100, 200, 300, 400, 900] {
+            insert_entry(&conn, timestamp, "said", None);
+        }
         conn.execute(
-            "UPDATE transcription_history SET file_name = '' WHERE timestamp = 300",
+            "UPDATE transcription_history SET saved = 1 WHERE timestamp = 200",
             [],
         )
-        .expect("clear third recording");
+        .unwrap();
+        conn.execute(
+            "UPDATE transcription_history SET file_name = '' WHERE timestamp = 400",
+            [],
+        )
+        .unwrap();
 
-        let unkept = HistoryManager::recordings_to_remove(&conn, |id| id == 2).unwrap();
-        assert_eq!(unkept, vec![(1, "handy-100.wav".to_string())]);
-        assert!(HistoryManager::forget_recording(&conn, 1, "handy-100.wav").unwrap());
-        // An entry whose recording changed meanwhile keeps it.
-        assert!(!HistoryManager::forget_recording(&conn, 2, "handy-other.wav").unwrap());
-
-        let file_names: Vec<String> = conn
-            .prepare("SELECT file_name FROM transcription_history ORDER BY id")
-            .unwrap()
-            .query_map([], |row| row.get(0))
-            .unwrap()
-            .collect::<rusqlite::Result<_>>()
-            .unwrap();
-        assert_eq!(file_names, ["", "handy-200.wav", ""]);
+        let in_use = |id: i64| id == 3;
+        assert_eq!(
+            HistoryManager::recordings_to_bin(&conn, Some(500), in_use).unwrap(),
+            vec![1]
+        );
+        assert_eq!(
+            HistoryManager::recordings_to_bin(&conn, None, in_use).unwrap(),
+            vec![1, 5]
+        );
     }
 }

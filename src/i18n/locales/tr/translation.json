@@ -18,6 +18,7 @@
     "advanced": "Gelişmiş",
     "postProcessing": "Son İşlem",
     "history": "Geçmiş",
+    "bin": "Çöp Kutusu",
     "debug": "Hata Ayıklama",
     "about": "Hakkında"
   },
@@ -697,8 +698,11 @@
       "copyError": "Transkripsiyon panoya kopyalanamadı.",
       "save": "Transkripsiyonu kaydet",
       "unsave": "Kaydedilenlerden kaldır",
-      "delete": "Kaydı sil",
-      "deleteError": "Kayıt silinemedi. Lütfen tekrar deneyin.",
+      "moveToBin": "Çöp Kutusuna taşı",
+      "deleteError": "Kayıt Çöp Kutusuna taşınamadı. Lütfen tekrar deneyin.",
+      "movedToBin": "Çöp Kutusuna taşındı",
+      "undo": "Geri al",
+      "undoFailed": "Kayıt geri yüklenemedi. Hâlâ Çöp Kutusunda.",
       "retranscribe": "Yeniden transkribe et",
       "cancelTranscription": "Transkripsiyonu iptal et",
       "transcribing": "Transkribe ediliyor...",
@@ -717,6 +721,28 @@
       "showLess": "Daha az göster",
       "dropTitle": "Yazıya dökmek için bırakın",
       "dropDescription": "Geçmiş'te görünecek."
+    },
+    "bin": {
+      "loading": "Çöp Kutusu yükleniyor...",
+      "empty": "Çöp Kutusu boş. Silinen dikteler ve ses kayıtları, siz kalıcı olarak silene kadar burada kalır.",
+      "loadFailed": "Çöp Kutusu yüklenemedi.",
+      "emptyBin": "Çöp Kutusunu boşalt",
+      "emptyTitle": "Çöp Kutusu boşaltılsın mı?",
+      "emptyDescription": "Çöp Kutusundaki her şey kalıcı olarak silinecek. Bu işlem geri alınamaz.",
+      "emptyFailed": "Çöp Kutusu boşaltılamadı. Lütfen tekrar deneyin.",
+      "emptyPartial": "Bazı öğeler, dosyaları kullanımda olduğu için silinemedi. Hâlâ Çöp Kutusundalar.",
+      "dictation": "Dikte",
+      "recording": "Ses kaydı",
+      "recordingNote": "Burada yalnızca ses kaydı var. Metni hâlâ Geçmiş'te.",
+      "deletedAt": "Silinme: {{date}}",
+      "noText": "Metin yok",
+      "restore": "Geri yükle",
+      "restoreFailed": "Geri yüklenemedi. Lütfen tekrar deneyin.",
+      "deletePermanently": "Kalıcı olarak sil",
+      "deleteTitle": "Kalıcı olarak silinsin mi?",
+      "deleteDescription": "Bu öğe kalıcı olarak silinecek. Bu işlem geri alınamaz.",
+      "deleteFailed": "Silinemedi. Dosyası kullanımda olabilir.",
+      "cancel": "İptal"
     },
     "debug": {
       "logDirectory": {
@@ -786,15 +812,28 @@
         "entries": "kayıt"
       },
       "recordingRetention": {
-        "title": "Kayıtları Otomatik Sil",
-        "description": "Yer kazanmak için eski kayıtları otomatik olarak sil veya kayıtları hiç saklamayıp yalnızca metni tut",
+        "title": "Geçmişi Temizle",
+        "description": "Eski kayıtlar otomatik olarak Çöp Kutusuna taşınır ya da ses kayıtları artık saklanmaz ve Geçmiş yalnızca metni tutar",
         "dontSave": "Kayıtları kaydetme",
         "never": "Asla",
         "preserveLimit": "Son {{count}} kaydı tut",
         "days3": "3 gün sonra",
         "weeks2": "2 hafta sonra",
         "months3": "3 ay sonra",
-        "placeholder": "Saklama süresi seçin..."
+        "placeholder": "Saklama süresi seçin...",
+        "stopSaving": {
+          "title": "Ses kayıtları artık saklanmasın mı?",
+          "description": "Bundan sonra dikteler yalnızca metinlerini tutacak. Şu anda saklanan ses kaydı sayısı: {{number}}.",
+          "keep": "Sakla",
+          "older": "<days/> günden eski ses kayıtlarını Çöp Kutusuna taşı",
+          "days": "Gün",
+          "all": "Hepsini Çöp Kutusuna taşı",
+          "note": "Metinleri Geçmiş'te kalır, yıldızlı kayıtlar ses kayıtlarını korur ve taşınan her şey Çöp Kutusundan geri yüklenebilir.",
+          "cancel": "İptal",
+          "confirm": "Saklamayı durdur",
+          "countFailed": "Saklanan ses kayıtları sayılamadı. Lütfen tekrar deneyin.",
+          "moveFailed": "Ses kayıtları Çöp Kutusuna taşınamadı. Lütfen tekrar deneyin."
+        }
       },
       "alwaysOnMicrophone": {
         "label": "Mikrofon Her Zaman Açık",

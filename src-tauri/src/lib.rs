@@ -818,9 +818,16 @@ pub fn run(cli_args: CliArgs) {
             notices::dismiss_notice,
             notices::dismiss_overlay_notice,
             window_chrome::set_window_chrome,
+            commands::history::get_bin_items,
+            commands::history::restore_bin_item,
+            commands::history::delete_bin_item,
+            commands::history::empty_bin,
+            commands::history::count_recordings,
+            commands::history::bin_recordings,
         ])
         .events(collect_events![
             managers::history::HistoryUpdatePayload,
+            managers::history::BinChanged,
             managers::transcription_jobs::TranscriptionJob,
             managers::transcription::StreamTextEvent,
             managers::transcription::StreamPhaseEvent,

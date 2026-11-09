@@ -18,6 +18,7 @@
     "advanced": "Lanjutan",
     "postProcessing": "Pascaproses",
     "history": "Riwayat",
+    "bin": "Tempat Sampah",
     "debug": "Debug",
     "about": "Tentang"
   },
@@ -697,8 +698,11 @@
       "copyError": "Gagal menyalin transkripsi ke papan klip.",
       "save": "Simpan transkripsi",
       "unsave": "Hapus dari daftar tersimpan",
-      "delete": "Hapus entri",
-      "deleteError": "Gagal menghapus entri. Silakan coba lagi.",
+      "moveToBin": "Pindahkan ke Tempat Sampah",
+      "deleteError": "Tidak dapat memindahkan entri ke Tempat Sampah. Silakan coba lagi.",
+      "movedToBin": "Dipindahkan ke Tempat Sampah",
+      "undo": "Urungkan",
+      "undoFailed": "Tidak dapat memulihkan entri. Entri masih ada di Tempat Sampah.",
       "retranscribe": "Transkripsikan ulang",
       "cancelTranscription": "Batalkan transkripsi",
       "transcribing": "Mentranskripsikan...",
@@ -717,6 +721,28 @@
       "showLess": "Tampilkan lebih sedikit",
       "dropTitle": "Lepaskan untuk mentranskripsi",
       "dropDescription": "Akan muncul di Riwayat."
+    },
+    "bin": {
+      "loading": "Memuat Tempat Sampah...",
+      "empty": "Tempat Sampah kosong. Dikte dan rekaman yang dihapus tetap di sini sampai Anda menghapusnya secara permanen.",
+      "loadFailed": "Tidak dapat memuat Tempat Sampah.",
+      "emptyBin": "Kosongkan Tempat Sampah",
+      "emptyTitle": "Kosongkan Tempat Sampah?",
+      "emptyDescription": "Semua isi Tempat Sampah akan dihapus secara permanen. Tindakan ini tidak dapat diurungkan.",
+      "emptyFailed": "Tidak dapat mengosongkan Tempat Sampah. Silakan coba lagi.",
+      "emptyPartial": "Beberapa item tidak dapat dihapus karena filenya sedang digunakan. Item tersebut masih ada di Tempat Sampah.",
+      "dictation": "Dikte",
+      "recording": "Rekaman",
+      "recordingNote": "Hanya rekamannya yang ada di sini. Teksnya masih ada di Riwayat.",
+      "deletedAt": "Dihapus {{date}}",
+      "noText": "Tidak ada teks",
+      "restore": "Pulihkan",
+      "restoreFailed": "Tidak dapat memulihkannya. Silakan coba lagi.",
+      "deletePermanently": "Hapus permanen",
+      "deleteTitle": "Hapus secara permanen?",
+      "deleteDescription": "Item ini akan dihapus secara permanen. Tindakan ini tidak dapat diurungkan.",
+      "deleteFailed": "Tidak dapat menghapusnya. Filenya mungkin sedang digunakan.",
+      "cancel": "Batal"
     },
     "debug": {
       "logDirectory": {
@@ -786,15 +812,28 @@
         "entries": "entri"
       },
       "recordingRetention": {
-        "title": "Hapus Rekaman Secara Otomatis",
-        "description": "Hapus rekaman lama secara otomatis untuk menghemat ruang, atau jangan simpan rekaman sama sekali dan simpan teksnya saja",
+        "title": "Bersihkan Riwayat",
+        "description": "Entri lama otomatis dipindahkan ke Tempat Sampah, atau berhenti menyimpan rekaman sehingga Riwayat hanya menyimpan teks",
         "dontSave": "Jangan simpan rekaman",
         "never": "Tidak Pernah",
         "preserveLimit": "Simpan {{count}} terbaru",
         "days3": "Setelah 3 hari",
         "weeks2": "Setelah 2 minggu",
         "months3": "Setelah 3 bulan",
-        "placeholder": "Pilih masa penyimpanan..."
+        "placeholder": "Pilih masa penyimpanan...",
+        "stopSaving": {
+          "title": "Berhenti menyimpan rekaman?",
+          "description": "Mulai sekarang, dikte hanya akan menyimpan teksnya. Rekaman yang tersimpan saat ini: {{number}}.",
+          "keep": "Simpan",
+          "older": "Pindahkan rekaman yang lebih lama dari <days/> hari ke Tempat Sampah",
+          "days": "Hari",
+          "all": "Pindahkan semuanya ke Tempat Sampah",
+          "note": "Teksnya tetap di Riwayat, entri berbintang tetap menyimpan rekamannya, dan semua yang dipindahkan dapat dipulihkan dari Tempat Sampah.",
+          "cancel": "Batal",
+          "confirm": "Berhenti menyimpan",
+          "countFailed": "Tidak dapat menghitung rekaman yang tersimpan. Silakan coba lagi.",
+          "moveFailed": "Tidak dapat memindahkan rekaman ke Tempat Sampah. Silakan coba lagi."
+        }
       },
       "alwaysOnMicrophone": {
         "label": "Mikrofon Selalu Aktif",

@@ -221,8 +221,9 @@ pub enum AutoSubmitKey {
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Type)]
 #[serde(rename_all = "snake_case")]
 pub enum RecordingRetentionPeriod {
-    /// No recording is kept: History keeps only the text. A file being
-    /// transcribed keeps its recording until its job ends.
+    /// New recordings aren't kept: a dictation saves only its text, and a
+    /// transcribed file's recording goes to the Bin when its job ends.
+    /// Recordings saved before stay where they are.
     DontSave,
     Never,
     PreserveLimit,

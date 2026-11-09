@@ -8,6 +8,7 @@ import {
   Mic,
   Sparkles,
   Cpu,
+  Trash2,
 } from "lucide-react";
 import AppMark from "./icons/AppMark";
 import { PRODUCT_NAME } from "../lib/brand";
@@ -16,6 +17,7 @@ import {
   GeneralSettings,
   AdvancedSettings,
   HistorySettings,
+  BinSettings,
   AboutSettings,
   PostProcessingSettings,
   ModelsSettings,
@@ -50,6 +52,12 @@ export const SECTIONS_CONFIG = {
     labelKey: "sidebar.history",
     icon: History,
     component: HistorySettings,
+    enabled: () => true,
+  },
+  bin: {
+    labelKey: "sidebar.bin",
+    icon: Trash2,
+    component: BinSettings,
     enabled: () => true,
   },
   models: {

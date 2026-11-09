@@ -18,6 +18,7 @@
     "advanced": "Advanced",
     "postProcessing": "Post Process",
     "history": "History",
+    "bin": "Bin",
     "debug": "Debug",
     "about": "About"
   },
@@ -697,8 +698,11 @@
       "copyError": "Failed to copy transcription to clipboard.",
       "save": "Save transcription",
       "unsave": "Remove from saved",
-      "delete": "Delete entry",
-      "deleteError": "Failed to delete entry. Please try again.",
+      "moveToBin": "Move to the Bin",
+      "deleteError": "Couldn't move the entry to the Bin. Please try again.",
+      "movedToBin": "Moved to the Bin",
+      "undo": "Undo",
+      "undoFailed": "Couldn't restore the entry. It's still in the Bin.",
       "retranscribe": "Re-transcribe",
       "cancelTranscription": "Cancel transcription",
       "transcribing": "Transcribing...",
@@ -717,6 +721,28 @@
       "showLess": "Show less",
       "dropTitle": "Drop to transcribe",
       "dropDescription": "It'll show up in History."
+    },
+    "bin": {
+      "loading": "Loading the Bin...",
+      "empty": "The Bin is empty. Deleted dictations and recordings stay here until you delete them permanently.",
+      "loadFailed": "Couldn't load the Bin.",
+      "emptyBin": "Empty Bin",
+      "emptyTitle": "Empty the Bin?",
+      "emptyDescription": "Everything in the Bin will be deleted permanently. This can't be undone.",
+      "emptyFailed": "Couldn't empty the Bin. Please try again.",
+      "emptyPartial": "Some items couldn't be deleted because their files are in use. They're still in the Bin.",
+      "dictation": "Dictation",
+      "recording": "Recording",
+      "recordingNote": "Only the recording is here. Its text is still in History.",
+      "deletedAt": "Deleted {{date}}",
+      "noText": "No text",
+      "restore": "Restore",
+      "restoreFailed": "Couldn't restore it. Please try again.",
+      "deletePermanently": "Delete permanently",
+      "deleteTitle": "Delete permanently?",
+      "deleteDescription": "This item will be deleted permanently. This can't be undone.",
+      "deleteFailed": "Couldn't delete it. Its file may be in use.",
+      "cancel": "Cancel"
     },
     "debug": {
       "logDirectory": {
@@ -786,15 +812,28 @@
         "entries": "entries"
       },
       "recordingRetention": {
-        "title": "Auto-Delete Recordings",
-        "description": "Automatically delete old recordings to save space, or don't save recordings at all and keep only the text",
+        "title": "Clean Up History",
+        "description": "Old entries move to the Bin automatically, or stop saving recordings so History keeps only the text",
         "dontSave": "Don't save recordings",
         "never": "Never",
         "preserveLimit": "Keep latest {{count}}",
         "days3": "After 3 days",
         "weeks2": "After 2 weeks",
         "months3": "After 3 months",
-        "placeholder": "Select retention period..."
+        "placeholder": "Select retention period...",
+        "stopSaving": {
+          "title": "Stop saving recordings?",
+          "description": "From now on, dictations will keep only their text. Recordings saved now: {{number}}.",
+          "keep": "Keep them",
+          "older": "Move recordings older than <days/> days to the Bin",
+          "days": "Days",
+          "all": "Move all of them to the Bin",
+          "note": "Their text stays in History, starred entries keep their recordings, and anything moved can be restored from the Bin.",
+          "cancel": "Cancel",
+          "confirm": "Stop saving",
+          "countFailed": "Couldn't count the saved recordings. Please try again.",
+          "moveFailed": "Couldn't move the recordings to the Bin. Please try again."
+        }
       },
       "alwaysOnMicrophone": {
         "label": "Always-On Microphone",

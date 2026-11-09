@@ -18,6 +18,7 @@
     "advanced": "Zaawansowane",
     "postProcessing": "Postproces",
     "history": "Historia",
+    "bin": "Kosz",
     "debug": "Debugowanie",
     "about": "O programie"
   },
@@ -697,8 +698,11 @@
       "copyError": "Nie udało się skopiować transkrypcji do schowka.",
       "save": "Zapisz transkrypcję",
       "unsave": "Usuń z zapisanych",
-      "delete": "Usuń wpis",
-      "deleteError": "Nie udało się usunąć wpisu. Spróbuj ponownie.",
+      "moveToBin": "Przenieś do kosza",
+      "deleteError": "Nie udało się przenieść wpisu do kosza. Spróbuj ponownie.",
+      "movedToBin": "Przeniesiono do kosza",
+      "undo": "Cofnij",
+      "undoFailed": "Nie udało się przywrócić wpisu. Nadal jest w koszu.",
       "retranscribe": "Transkrybuj ponownie",
       "cancelTranscription": "Anuluj transkrypcję",
       "transcribing": "Transkrybuję...",
@@ -717,6 +721,28 @@
       "showLess": "Pokaż mniej",
       "dropTitle": "Upuść, aby transkrybować",
       "dropDescription": "Pojawi się w historii."
+    },
+    "bin": {
+      "loading": "Wczytywanie kosza...",
+      "empty": "Kosz jest pusty. Usunięte dyktowania i nagrania zostają tutaj, dopóki nie usuniesz ich na stałe.",
+      "loadFailed": "Nie udało się wczytać kosza.",
+      "emptyBin": "Opróżnij kosz",
+      "emptyTitle": "Opróżnić kosz?",
+      "emptyDescription": "Wszystko w koszu zostanie usunięte na stałe. Tej operacji nie można cofnąć.",
+      "emptyFailed": "Nie udało się opróżnić kosza. Spróbuj ponownie.",
+      "emptyPartial": "Niektórych elementów nie udało się usunąć, bo ich pliki są w użyciu. Nadal są w koszu.",
+      "dictation": "Dyktowanie",
+      "recording": "Nagranie",
+      "recordingNote": "Tutaj jest tylko nagranie. Jego tekst nadal jest w historii.",
+      "deletedAt": "Usunięto: {{date}}",
+      "noText": "Brak tekstu",
+      "restore": "Przywróć",
+      "restoreFailed": "Nie udało się przywrócić. Spróbuj ponownie.",
+      "deletePermanently": "Usuń na stałe",
+      "deleteTitle": "Usunąć na stałe?",
+      "deleteDescription": "Ten element zostanie usunięty na stałe. Tej operacji nie można cofnąć.",
+      "deleteFailed": "Nie udało się usunąć. Plik może być w użyciu.",
+      "cancel": "Anuluj"
     },
     "debug": {
       "logDirectory": {
@@ -786,15 +812,28 @@
         "entries": "wpisy"
       },
       "recordingRetention": {
-        "title": "Automatyczne usuwanie nagrań",
-        "description": "Automatycznie usuwaj stare nagrania, aby oszczędzać miejsce, lub w ogóle nie zapisuj nagrań i zachowuj tylko tekst",
+        "title": "Porządkowanie historii",
+        "description": "Stare wpisy automatycznie trafiają do kosza albo nagrania przestają być zapisywane, a historia zachowuje tylko tekst",
         "dontSave": "Nie zapisuj nagrań",
         "never": "Nigdy",
         "preserveLimit": "Zachowaj ostatnie {{count}}",
         "days3": "Po 3 dniach",
         "weeks2": "Po 2 tygodniach",
         "months3": "Po 3 miesiącach",
-        "placeholder": "Wybierz okres retencji..."
+        "placeholder": "Wybierz okres retencji...",
+        "stopSaving": {
+          "title": "Przestać zapisywać nagrania?",
+          "description": "Od teraz dyktowania zachowają tylko tekst. Obecnie zapisane nagrania: {{number}}.",
+          "keep": "Zachowaj je",
+          "older": "Przenieś do kosza nagrania starsze niż <days/> dni",
+          "days": "Dni",
+          "all": "Przenieś wszystkie do kosza",
+          "note": "Ich tekst zostaje w historii, wpisy oznaczone gwiazdką zachowują nagrania, a wszystko, co przeniesiesz, możesz przywrócić z kosza.",
+          "cancel": "Anuluj",
+          "confirm": "Przestań zapisywać",
+          "countFailed": "Nie udało się policzyć zapisanych nagrań. Spróbuj ponownie.",
+          "moveFailed": "Nie udało się przenieść nagrań do kosza. Spróbuj ponownie."
+        }
       },
       "alwaysOnMicrophone": {
         "label": "Mikrofon zawsze aktywny",

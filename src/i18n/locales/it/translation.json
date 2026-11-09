@@ -18,6 +18,7 @@
     "advanced": "Avanzate",
     "postProcessing": "Post-Elaborazione",
     "history": "Cronologia",
+    "bin": "Cestino",
     "debug": "Debug",
     "about": "Informazioni"
   },
@@ -697,8 +698,11 @@
       "copyError": "Impossibile copiare la trascrizione negli appunti.",
       "save": "Salva la trascrizione",
       "unsave": "Rimuovi dai salvataggi",
-      "delete": "Elimina elemento",
-      "deleteError": "Errore nell'eliminazione dell'elemento. Riprova.",
+      "moveToBin": "Sposta nel cestino",
+      "deleteError": "Impossibile spostare la voce nel cestino. Riprova.",
+      "movedToBin": "Spostato nel cestino",
+      "undo": "Annulla",
+      "undoFailed": "Impossibile ripristinare la voce. È ancora nel cestino.",
       "retranscribe": "Ri-trascrivere",
       "cancelTranscription": "Annulla trascrizione",
       "transcribing": "Trascrizione in corso...",
@@ -717,6 +721,28 @@
       "showLess": "Mostra di meno",
       "dropTitle": "Rilascia per trascrivere",
       "dropDescription": "Comparirà nella cronologia."
+    },
+    "bin": {
+      "loading": "Caricamento del cestino...",
+      "empty": "Il cestino è vuoto. Dettature e registrazioni eliminate restano qui finché non le elimini definitivamente.",
+      "loadFailed": "Impossibile caricare il cestino.",
+      "emptyBin": "Svuota cestino",
+      "emptyTitle": "Svuotare il cestino?",
+      "emptyDescription": "Tutto ciò che è nel cestino verrà eliminato definitivamente. L'operazione non può essere annullata.",
+      "emptyFailed": "Impossibile svuotare il cestino. Riprova.",
+      "emptyPartial": "Alcuni elementi non sono stati eliminati perché i loro file sono in uso. Sono ancora nel cestino.",
+      "dictation": "Dettatura",
+      "recording": "Registrazione",
+      "recordingNote": "Qui c'è solo la registrazione. Il suo testo è ancora nella cronologia.",
+      "deletedAt": "Eliminato il {{date}}",
+      "noText": "Nessun testo",
+      "restore": "Ripristina",
+      "restoreFailed": "Impossibile ripristinarlo. Riprova.",
+      "deletePermanently": "Elimina definitivamente",
+      "deleteTitle": "Eliminare definitivamente?",
+      "deleteDescription": "Questo elemento verrà eliminato definitivamente. L'operazione non può essere annullata.",
+      "deleteFailed": "Impossibile eliminarlo. Il suo file potrebbe essere in uso.",
+      "cancel": "Annulla"
     },
     "debug": {
       "logDirectory": {
@@ -786,15 +812,28 @@
         "entries": "elementi"
       },
       "recordingRetention": {
-        "title": "Eliminazione Automatica Registrazioni",
-        "description": "Elimina automaticamente le registrazioni vecchie per risparmiare spazio, oppure non salvarle affatto e conserva solo il testo",
+        "title": "Pulizia Cronologia",
+        "description": "Le voci vecchie finiscono automaticamente nel cestino, oppure smetti di salvare le registrazioni così la cronologia conserva solo il testo",
         "dontSave": "Non salvare le registrazioni",
         "never": "Mai",
         "preserveLimit": "Conserva le ultime {{count}}",
         "days3": "Dopo 3 giorni",
         "weeks2": "Dopo 2 settimane",
         "months3": "Dopo 3 mesi",
-        "placeholder": "Seleziona periodo di conservazione..."
+        "placeholder": "Seleziona periodo di conservazione...",
+        "stopSaving": {
+          "title": "Smettere di salvare le registrazioni?",
+          "description": "D'ora in poi le dettature conserveranno solo il testo. Registrazioni salvate ora: {{number}}.",
+          "keep": "Conservale",
+          "older": "Sposta nel cestino le registrazioni più vecchie di <days/> giorni",
+          "days": "Giorni",
+          "all": "Spostale tutte nel cestino",
+          "note": "Il loro testo resta nella cronologia, le voci con la stella conservano le registrazioni e tutto ciò che viene spostato può essere ripristinato dal cestino.",
+          "cancel": "Annulla",
+          "confirm": "Smetti di salvare",
+          "countFailed": "Impossibile contare le registrazioni salvate. Riprova.",
+          "moveFailed": "Impossibile spostare le registrazioni nel cestino. Riprova."
+        }
       },
       "alwaysOnMicrophone": {
         "label": "Microfono Sempre Attivo",

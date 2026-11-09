@@ -18,6 +18,7 @@
     "advanced": "Avanceret",
     "postProcessing": "Efterbehandling",
     "history": "Historik",
+    "bin": "Papirkurv",
     "debug": "Fejlfinding",
     "about": "Om"
   },
@@ -697,8 +698,11 @@
       "copyError": "Kunne ikke kopiere transskriptionen til udklipsholderen.",
       "save": "Gem transskription",
       "unsave": "Fjern fra gemte",
-      "delete": "Slet post",
-      "deleteError": "Kunne ikke slette posten. Prøv igen.",
+      "moveToBin": "Flyt til papirkurven",
+      "deleteError": "Posten kunne ikke flyttes til papirkurven. Prøv igen.",
+      "movedToBin": "Flyttet til papirkurven",
+      "undo": "Fortryd",
+      "undoFailed": "Posten kunne ikke gendannes. Den er stadig i papirkurven.",
       "retranscribe": "Transskribér igen",
       "cancelTranscription": "Annuller transskription",
       "transcribing": "Transskriberer...",
@@ -717,6 +721,28 @@
       "showLess": "Vis mindre",
       "dropTitle": "Slip for at transskribere",
       "dropDescription": "Den vises i historikken."
+    },
+    "bin": {
+      "loading": "Indlæser papirkurven...",
+      "empty": "Papirkurven er tom. Slettede dikteringer og optagelser bliver her, indtil du sletter dem permanent.",
+      "loadFailed": "Papirkurven kunne ikke indlæses.",
+      "emptyBin": "Tøm papirkurv",
+      "emptyTitle": "Tøm papirkurven?",
+      "emptyDescription": "Alt i papirkurven slettes permanent. Det kan ikke fortrydes.",
+      "emptyFailed": "Papirkurven kunne ikke tømmes. Prøv igen.",
+      "emptyPartial": "Nogle elementer kunne ikke slettes, fordi deres filer er i brug. De er stadig i papirkurven.",
+      "dictation": "Diktering",
+      "recording": "Optagelse",
+      "recordingNote": "Kun optagelsen er her. Teksten er stadig i historikken.",
+      "deletedAt": "Slettet {{date}}",
+      "noText": "Ingen tekst",
+      "restore": "Gendan",
+      "restoreFailed": "Det kunne ikke gendannes. Prøv igen.",
+      "deletePermanently": "Slet permanent",
+      "deleteTitle": "Slet permanent?",
+      "deleteDescription": "Dette element slettes permanent. Det kan ikke fortrydes.",
+      "deleteFailed": "Det kunne ikke slettes. Filen er måske i brug.",
+      "cancel": "Annuller"
     },
     "debug": {
       "logDirectory": {
@@ -786,15 +812,28 @@
         "entries": "poster"
       },
       "recordingRetention": {
-        "title": "Automatisk sletning af optagelser",
-        "description": "Slet automatisk gamle optagelser for at spare plads, eller gem slet ikke optagelser og behold kun teksten",
+        "title": "Oprydning i historik",
+        "description": "Gamle poster flyttes automatisk til papirkurven, eller stop med at gemme optagelser, så historikken kun beholder teksten",
         "dontSave": "Gem ikke optagelser",
         "never": "Aldrig",
         "preserveLimit": "Behold de seneste {{count}}",
         "days3": "Efter 3 dage",
         "weeks2": "Efter 2 uger",
         "months3": "Efter 3 måneder",
-        "placeholder": "Vælg opbevaringsperiode..."
+        "placeholder": "Vælg opbevaringsperiode...",
+        "stopSaving": {
+          "title": "Stop med at gemme optagelser?",
+          "description": "Fra nu af beholder dikteringer kun deres tekst. Gemte optagelser lige nu: {{number}}.",
+          "keep": "Behold dem",
+          "older": "Flyt optagelser ældre end <days/> dage til papirkurven",
+          "days": "Dage",
+          "all": "Flyt dem alle til papirkurven",
+          "note": "Teksten bliver i historikken, stjernemarkerede poster beholder deres optagelser, og alt, der flyttes, kan gendannes fra papirkurven.",
+          "cancel": "Annuller",
+          "confirm": "Stop med at gemme",
+          "countFailed": "De gemte optagelser kunne ikke tælles. Prøv igen.",
+          "moveFailed": "Optagelserne kunne ikke flyttes til papirkurven. Prøv igen."
+        }
       },
       "alwaysOnMicrophone": {
         "label": "Altid aktiv mikrofon",

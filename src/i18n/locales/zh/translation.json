@@ -18,6 +18,7 @@
     "advanced": "高级",
     "postProcessing": "后处理",
     "history": "历史记录",
+    "bin": "回收站",
     "debug": "调试",
     "about": "关于"
   },
@@ -697,8 +698,11 @@
       "copyError": "无法将转录复制到剪贴板。",
       "save": "保存转录",
       "unsave": "从已保存中移除",
-      "delete": "删除条目",
-      "deleteError": "删除条目失败，请重试。",
+      "moveToBin": "移到回收站",
+      "deleteError": "无法将条目移到回收站。请重试。",
+      "movedToBin": "已移到回收站",
+      "undo": "撤销",
+      "undoFailed": "无法恢复该条目。它仍在回收站中。",
       "retranscribe": "重新转录",
       "cancelTranscription": "取消转录",
       "transcribing": "转录中...",
@@ -717,6 +721,28 @@
       "showLess": "收起",
       "dropTitle": "拖放到此处进行转录",
       "dropDescription": "它会出现在历史记录中。"
+    },
+    "bin": {
+      "loading": "正在加载回收站...",
+      "empty": "回收站是空的。删除的听写和录音会一直保留在这里，直到你将其永久删除。",
+      "loadFailed": "无法加载回收站。",
+      "emptyBin": "清空回收站",
+      "emptyTitle": "清空回收站？",
+      "emptyDescription": "回收站中的所有内容都将被永久删除。此操作无法撤销。",
+      "emptyFailed": "无法清空回收站。请重试。",
+      "emptyPartial": "部分项目因文件正在使用而无法删除，它们仍在回收站中。",
+      "dictation": "听写",
+      "recording": "录音",
+      "recordingNote": "这里只有录音，其文本仍在历史记录中。",
+      "deletedAt": "删除于 {{date}}",
+      "noText": "无文本",
+      "restore": "恢复",
+      "restoreFailed": "无法恢复。请重试。",
+      "deletePermanently": "永久删除",
+      "deleteTitle": "永久删除？",
+      "deleteDescription": "此项目将被永久删除。此操作无法撤销。",
+      "deleteFailed": "无法删除，其文件可能正在使用。",
+      "cancel": "取消"
     },
     "debug": {
       "logDirectory": {
@@ -786,15 +812,28 @@
         "entries": "条"
       },
       "recordingRetention": {
-        "title": "自动删除录音",
-        "description": "自动删除旧录音以节省空间，或完全不保存录音，仅保留文字",
+        "title": "清理历史记录",
+        "description": "旧条目会自动移到回收站，或停止保存录音，让历史记录只保留文本",
         "dontSave": "不保存录音",
         "never": "从不",
         "preserveLimit": "保留最新 {{count}} 条",
         "days3": "3 天后",
         "weeks2": "2 周后",
         "months3": "3 个月后",
-        "placeholder": "选择保留期限..."
+        "placeholder": "选择保留期限...",
+        "stopSaving": {
+          "title": "停止保存录音？",
+          "description": "从现在起，听写将只保留文本。当前已保存的录音：{{number}}。",
+          "keep": "保留",
+          "older": "将超过 <days/> 天的录音移到回收站",
+          "days": "天数",
+          "all": "全部移到回收站",
+          "note": "其文本仍保留在历史记录中，已加星标的条目会保留录音，移走的任何内容都可以从回收站恢复。",
+          "cancel": "取消",
+          "confirm": "停止保存",
+          "countFailed": "无法统计已保存的录音。请重试。",
+          "moveFailed": "无法将录音移到回收站。请重试。"
+        }
       },
       "alwaysOnMicrophone": {
         "label": "麦克风常开",

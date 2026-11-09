@@ -39,7 +39,11 @@ const NoticeRow: React.FC<NoticeRowProps> = ({
         {action && (
           <button
             type="button"
-            onClick={action.onClick}
+            // Taking the action is the answer to the notice; it goes.
+            onClick={() => {
+              action.onClick();
+              onDismiss();
+            }}
             className="mt-1 cursor-pointer rounded-sm text-text underline underline-offset-2 focus:outline-none focus-visible:ring-1 focus-visible:ring-logo-primary"
           >
             {action.label}

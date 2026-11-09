@@ -18,6 +18,7 @@
     "advanced": "Erweitert",
     "postProcessing": "Nachbearbeitung",
     "history": "Verlauf",
+    "bin": "Papierkorb",
     "debug": "Debug",
     "about": "Info"
   },
@@ -697,8 +698,11 @@
       "copyError": "Transkription konnte nicht in die Zwischenablage kopiert werden.",
       "save": "Transkription speichern",
       "unsave": "Aus Gespeicherten entfernen",
-      "delete": "Eintrag löschen",
-      "deleteError": "Eintrag konnte nicht gelöscht werden. Bitte versuche es erneut.",
+      "moveToBin": "In den Papierkorb verschieben",
+      "deleteError": "Der Eintrag konnte nicht in den Papierkorb verschoben werden. Bitte versuche es erneut.",
+      "movedToBin": "In den Papierkorb verschoben",
+      "undo": "Rückgängig",
+      "undoFailed": "Der Eintrag konnte nicht wiederhergestellt werden. Er ist weiterhin im Papierkorb.",
       "retranscribe": "Erneut transkribieren",
       "cancelTranscription": "Transkription abbrechen",
       "transcribing": "Transkribiere...",
@@ -717,6 +721,28 @@
       "showLess": "Weniger anzeigen",
       "dropTitle": "Zum Transkribieren ablegen",
       "dropDescription": "Es erscheint im Verlauf."
+    },
+    "bin": {
+      "loading": "Papierkorb wird geladen...",
+      "empty": "Der Papierkorb ist leer. Gelöschte Diktate und Aufnahmen bleiben hier, bis du sie endgültig löschst.",
+      "loadFailed": "Der Papierkorb konnte nicht geladen werden.",
+      "emptyBin": "Papierkorb leeren",
+      "emptyTitle": "Papierkorb leeren?",
+      "emptyDescription": "Alles im Papierkorb wird endgültig gelöscht. Das kann nicht rückgängig gemacht werden.",
+      "emptyFailed": "Der Papierkorb konnte nicht geleert werden. Bitte versuche es erneut.",
+      "emptyPartial": "Einige Elemente konnten nicht gelöscht werden, weil ihre Dateien verwendet werden. Sie sind weiterhin im Papierkorb.",
+      "dictation": "Diktat",
+      "recording": "Aufnahme",
+      "recordingNote": "Hier ist nur die Aufnahme. Ihr Text ist weiterhin im Verlauf.",
+      "deletedAt": "Gelöscht am {{date}}",
+      "noText": "Kein Text",
+      "restore": "Wiederherstellen",
+      "restoreFailed": "Wiederherstellen fehlgeschlagen. Bitte versuche es erneut.",
+      "deletePermanently": "Endgültig löschen",
+      "deleteTitle": "Endgültig löschen?",
+      "deleteDescription": "Dieses Element wird endgültig gelöscht. Das kann nicht rückgängig gemacht werden.",
+      "deleteFailed": "Löschen fehlgeschlagen. Die Datei wird möglicherweise verwendet.",
+      "cancel": "Abbrechen"
     },
     "debug": {
       "logDirectory": {
@@ -786,15 +812,28 @@
         "entries": "Einträge"
       },
       "recordingRetention": {
-        "title": "Aufnahmen automatisch löschen",
-        "description": "Alte Aufnahmen automatisch löschen, um Speicherplatz zu sparen, oder Aufnahmen gar nicht speichern und nur den Text behalten",
+        "title": "Verlauf aufräumen",
+        "description": "Alte Einträge wandern automatisch in den Papierkorb, oder Aufnahmen werden nicht mehr gespeichert, sodass der Verlauf nur den Text behält",
         "dontSave": "Aufnahmen nicht speichern",
         "never": "Nie",
         "preserveLimit": "Neueste {{count}} behalten",
         "days3": "Nach 3 Tagen",
         "weeks2": "Nach 2 Wochen",
         "months3": "Nach 3 Monaten",
-        "placeholder": "Aufbewahrungszeitraum auswählen..."
+        "placeholder": "Aufbewahrungszeitraum auswählen...",
+        "stopSaving": {
+          "title": "Aufnahmen nicht mehr speichern?",
+          "description": "Ab jetzt behalten Diktate nur ihren Text. Derzeit gespeicherte Aufnahmen: {{number}}.",
+          "keep": "Behalten",
+          "older": "Aufnahmen älter als <days/> Tage in den Papierkorb verschieben",
+          "days": "Tage",
+          "all": "Alle in den Papierkorb verschieben",
+          "note": "Ihr Text bleibt im Verlauf, markierte Einträge behalten ihre Aufnahmen, und alles Verschobene lässt sich aus dem Papierkorb wiederherstellen.",
+          "cancel": "Abbrechen",
+          "confirm": "Nicht mehr speichern",
+          "countFailed": "Die gespeicherten Aufnahmen konnten nicht gezählt werden. Bitte versuche es erneut.",
+          "moveFailed": "Die Aufnahmen konnten nicht in den Papierkorb verschoben werden. Bitte versuche es erneut."
+        }
       },
       "alwaysOnMicrophone": {
         "label": "Mikrofon immer aktiv",

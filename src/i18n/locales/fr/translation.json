@@ -18,6 +18,7 @@
     "advanced": "Avancé",
     "postProcessing": "Post-traitement",
     "history": "Historique",
+    "bin": "Corbeille",
     "debug": "Débogage",
     "about": "À propos"
   },
@@ -697,8 +698,11 @@
       "copyError": "Impossible de copier la transcription dans le presse-papiers.",
       "save": "Enregistrer la transcription",
       "unsave": "Retirer des favoris",
-      "delete": "Supprimer l'entrée",
-      "deleteError": "Échec de la suppression de l'entrée. Veuillez réessayer.",
+      "moveToBin": "Placer dans la corbeille",
+      "deleteError": "Impossible de placer l'entrée dans la corbeille. Veuillez réessayer.",
+      "movedToBin": "Placé dans la corbeille",
+      "undo": "Annuler",
+      "undoFailed": "Impossible de restaurer l'entrée. Elle est toujours dans la corbeille.",
       "retranscribe": "Re-transcrire",
       "cancelTranscription": "Annuler la transcription",
       "transcribing": "Transcription en cours...",
@@ -717,6 +721,28 @@
       "showLess": "Afficher moins",
       "dropTitle": "Déposez pour transcrire",
       "dropDescription": "Il apparaîtra dans l'historique."
+    },
+    "bin": {
+      "loading": "Chargement de la corbeille...",
+      "empty": "La corbeille est vide. Les dictées et enregistrements supprimés restent ici jusqu'à leur suppression définitive.",
+      "loadFailed": "Impossible de charger la corbeille.",
+      "emptyBin": "Vider la corbeille",
+      "emptyTitle": "Vider la corbeille ?",
+      "emptyDescription": "Tout le contenu de la corbeille sera supprimé définitivement. Cette action est irréversible.",
+      "emptyFailed": "Impossible de vider la corbeille. Veuillez réessayer.",
+      "emptyPartial": "Certains éléments n'ont pas pu être supprimés car leurs fichiers sont en cours d'utilisation. Ils sont toujours dans la corbeille.",
+      "dictation": "Dictée",
+      "recording": "Enregistrement",
+      "recordingNote": "Seul l'enregistrement est ici. Son texte est toujours dans l'historique.",
+      "deletedAt": "Supprimé le {{date}}",
+      "noText": "Aucun texte",
+      "restore": "Restaurer",
+      "restoreFailed": "Impossible de le restaurer. Veuillez réessayer.",
+      "deletePermanently": "Supprimer définitivement",
+      "deleteTitle": "Supprimer définitivement ?",
+      "deleteDescription": "Cet élément sera supprimé définitivement. Cette action est irréversible.",
+      "deleteFailed": "Impossible de le supprimer. Son fichier est peut-être en cours d'utilisation.",
+      "cancel": "Annuler"
     },
     "debug": {
       "logDirectory": {
@@ -786,15 +812,28 @@
         "entries": "entrées"
       },
       "recordingRetention": {
-        "title": "Suppression automatique des enregistrements",
-        "description": "Supprimer automatiquement les anciens enregistrements pour gagner de la place, ou ne pas les conserver du tout et garder uniquement le texte",
+        "title": "Nettoyage de l'historique",
+        "description": "Les anciennes entrées passent automatiquement dans la corbeille, ou les enregistrements ne sont plus conservés et l'historique ne garde que le texte",
         "dontSave": "Ne pas conserver les enregistrements",
         "never": "Jamais",
         "preserveLimit": "Conserver les {{count}} plus récents",
         "days3": "Après 3 jours",
         "weeks2": "Après 2 semaines",
         "months3": "Après 3 mois",
-        "placeholder": "Sélectionner la période de conservation..."
+        "placeholder": "Sélectionner la période de conservation...",
+        "stopSaving": {
+          "title": "Ne plus conserver les enregistrements ?",
+          "description": "Désormais, les dictées ne garderont que leur texte. Enregistrements conservés actuellement : {{number}}.",
+          "keep": "Les conserver",
+          "older": "Placer les enregistrements de plus de <days/> jours dans la corbeille",
+          "days": "Jours",
+          "all": "Les placer tous dans la corbeille",
+          "note": "Leur texte reste dans l'historique, les entrées favorites gardent leurs enregistrements, et tout ce qui est déplacé peut être restauré depuis la corbeille.",
+          "cancel": "Annuler",
+          "confirm": "Ne plus conserver",
+          "countFailed": "Impossible de compter les enregistrements conservés. Veuillez réessayer.",
+          "moveFailed": "Impossible de placer les enregistrements dans la corbeille. Veuillez réessayer."
+        }
       },
       "alwaysOnMicrophone": {
         "label": "Microphone toujours actif",

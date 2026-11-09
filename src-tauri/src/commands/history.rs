@@ -1,5 +1,5 @@
 use crate::managers::{
-    history::{HistoryEntry, HistoryManager, PaginatedHistory},
+    history::{BinItem, BinItemKind, HistoryEntry, HistoryManager, PaginatedHistory},
     transcription_jobs::{TranscriptionJob, TranscriptionJobManager},
 };
 use std::path::PathBuf;
@@ -49,6 +49,8 @@ pub async fn get_audio_file_path(
         .map(|s| s.to_string())
 }
 
+/// Moves the entry to the Bin, its recording with it. It comes back with
+/// `restore_bin_item`.
 #[tauri::command]
 #[specta::specta]
 pub async fn delete_history_entry(
@@ -58,10 +60,7 @@ pub async fn delete_history_entry(
     id: i64,
 ) -> Result<(), String> {
     jobs.cancel(id);
-    history_manager
-        .delete_entry(id)
-        .await
-        .map_err(|e| e.to_string())
+    history_manager.bin_entry(id).map_err(|e| e.to_string())
 }
 
 /// Queues the entry to be transcribed again with the current model. Its
@@ -122,6 +121,74 @@ pub async fn update_history_limit(
         .map_err(|e| e.to_string())?;
 
     Ok(())
+}
+
+/// Everything in the Bin, most recently binned first.
+#[tauri::command]
+#[specta::specta]
+pub async fn get_bin_items(
+    history_manager: State<'_, Arc<HistoryManager>>,
+) -> Result<Vec<BinItem>, String> {
+    history_manager.bin_items().map_err(|e| e.to_string())
+}
+
+/// Puts a Bin item back: an entry returns to History, a recording to its
+/// entry.
+#[tauri::command]
+#[specta::specta]
+pub async fn restore_bin_item(
+    history_manager: State<'_, Arc<HistoryManager>>,
+    id: i64,
+    kind: BinItemKind,
+) -> Result<(), String> {
+    history_manager
+        .restore_bin_item(id, kind)
+        .map_err(|e| e.to_string())
+}
+
+/// Deletes a Bin item for good, its recording file included. Fails, keeping
+/// the item, when the file can't be deleted (another app has it open).
+#[tauri::command]
+#[specta::specta]
+pub async fn delete_bin_item(
+    history_manager: State<'_, Arc<HistoryManager>>,
+    id: i64,
+    kind: BinItemKind,
+) -> Result<(), String> {
+    history_manager
+        .delete_bin_item(id, kind)
+        .map_err(|e| e.to_string())
+}
+
+/// Deletes everything in the Bin for good; how many items went. An item
+/// whose file can't be deleted stays in the Bin.
+#[tauri::command]
+#[specta::specta]
+pub async fn empty_bin(history_manager: State<'_, Arc<HistoryManager>>) -> Result<u32, String> {
+    history_manager.empty_bin().map_err(|e| e.to_string())
+}
+
+/// The recordings `bin_recordings` can move: those of History entries that
+/// aren't starred and that no transcription job needs.
+#[tauri::command]
+#[specta::specta]
+pub async fn count_recordings(
+    jobs: State<'_, Arc<TranscriptionJobManager>>,
+) -> Result<u32, String> {
+    jobs.count_recordings().map_err(|e| e.to_string())
+}
+
+/// Moves recordings to the Bin, keeping their entries' text in History: all
+/// those `count_recordings` counts, or only the ones older than
+/// `older_than_days`. How many moved.
+#[tauri::command]
+#[specta::specta]
+pub async fn bin_recordings(
+    jobs: State<'_, Arc<TranscriptionJobManager>>,
+    older_than_days: Option<u32>,
+) -> Result<u32, String> {
+    jobs.bin_recordings(older_than_days)
+        .map_err(|e| e.to_string())
 }
 
 #[tauri::command]

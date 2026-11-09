@@ -138,11 +138,15 @@ export const HistorySettings: React.FC = () => {
   const sentinelRef = useRef<HTMLDivElement>(null);
   const entriesRef = useRef<HistoryEntry[]>([]);
   const loadingRef = useRef(false);
+  const hasMoreRef = useRef(true);
 
   // Keep ref in sync for use in IntersectionObserver callback
   useEffect(() => {
     entriesRef.current = entries;
   }, [entries]);
+  useEffect(() => {
+    hasMoreRef.current = hasMore;
+  }, [hasMore]);
 
   const loadPage = useCallback(async (cursor?: number) => {
     const isFirstPage = cursor === undefined;
@@ -210,10 +214,20 @@ export const HistorySettings: React.FC = () => {
     const unlisten = events.historyUpdatePayload.listen((event) => {
       const payload: HistoryUpdatePayload = event.payload;
       if (payload.action === "added") {
-        setEntries((prev) => [
-          payload.entry,
-          ...prev.filter((entry) => entry.id !== payload.entry.id),
-        ]);
+        // Usually the newest entry, but one restored from the Bin can be
+        // older: it goes in id order. Past the last loaded page it's left
+        // for pagination to load.
+        const added = payload.entry;
+        setEntries((prev) => {
+          const rest = prev.filter((entry) => entry.id !== added.id);
+          const oldest = rest[rest.length - 1];
+          if (hasMoreRef.current && oldest && added.id < oldest.id) {
+            return rest;
+          }
+          const at = rest.findIndex((entry) => entry.id < added.id);
+          if (at === -1) return [...rest, added];
+          return [...rest.slice(0, at), added, ...rest.slice(at)];
+        });
       } else if (payload.action === "updated") {
         setEntries((prev) =>
           prev.map((e) => (e.id === payload.entry.id ? payload.entry : e)),
@@ -283,6 +297,27 @@ export const HistorySettings: React.FC = () => {
       console.error("Failed to delete entry:", error);
       loadPage();
       throw error;
+    }
+    notify({
+      title: t("settings.history.movedToBin"),
+      level: "warning",
+      action: {
+        label: t("settings.history.undo"),
+        onClick: () => void undoDelete(id),
+      },
+    });
+  };
+
+  // The backend's "added" event puts the entry back in the list.
+  const undoDelete = async (id: number) => {
+    try {
+      const result = await commands.restoreBinItem(id, "entry");
+      if (result.status !== "ok") {
+        throw new Error(String(result.error));
+      }
+    } catch (error) {
+      console.error("Failed to restore entry:", error);
+      notify({ title: t("settings.history.undoFailed") });
     }
   };
 
@@ -534,7 +569,7 @@ const HistoryEntryComponent: React.FC<HistoryEntryProps> = ({
           ) : null}
           <IconButton
             onClick={handleDeleteEntry}
-            title={t("settings.history.delete")}
+            title={t("settings.history.moveToBin")}
           >
             <Trash2 width={16} height={16} />
           </IconButton>
