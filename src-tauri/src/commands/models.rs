@@ -248,14 +248,14 @@ pub async fn get_transcription_model_status(
     Ok(transcription_manager.get_current_model())
 }
 
+/// Whether a model load is in progress. Not whether one is loaded: that is
+/// `get_transcription_model_status`; models load lazily, on first use.
 #[tauri::command]
 #[specta::specta]
 pub async fn is_model_loading(
     transcription_manager: State<'_, Arc<TranscriptionManager>>,
 ) -> Result<bool, String> {
-    // Check if transcription manager has a loaded model
-    let current_model = transcription_manager.get_current_model();
-    Ok(current_model.is_none())
+    Ok(transcription_manager.is_loading())
 }
 
 #[tauri::command]

@@ -778,6 +778,10 @@ async getTranscriptionModelStatus() : Promise<Result<string | null, string>> {
     else return { status: "error", error: e  as any };
 }
 },
+/**
+ * Whether a model load is in progress. Not whether one is loaded: that is
+ * `get_transcription_model_status`; models load lazily, on first use.
+ */
 async isModelLoading() : Promise<Result<boolean, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("is_model_loading") };

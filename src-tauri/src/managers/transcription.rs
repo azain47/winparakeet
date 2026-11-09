@@ -417,6 +417,11 @@ impl TranscriptionManager {
         );
     }
 
+    /// Whether a model load is in progress right now.
+    pub fn is_loading(&self) -> bool {
+        *self.is_loading.lock().unwrap()
+    }
+
     /// Atomically check whether a model load is in progress and, if not, mark
     /// one as starting. Returns a [`LoadingGuard`] whose [`Drop`] impl will
     /// clear the flag and wake waiters. Returns `None` if a load is already in
