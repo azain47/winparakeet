@@ -42,7 +42,7 @@
       "title": "Enregistra una reunió",
       "sources": {
         "both": "Enregistra el micròfon (Jo) i tot el que reprodueix l'ordinador (Ells) i, després de la trucada, transcriu les dues parts.",
-        "microphone": "Enregistra només el micròfon (Jo) i el transcriu després de la trucada.",
+        "microphone": "Enregistra només el micròfon, per exemple tothom en una sala de reunions, i el transcriu després de la trucada.",
         "system": "Enregistra només el que reprodueix l'ordinador (Ells) i ho transcriu després de la trucada."
       },
       "start": "Enregistra la reunió",
@@ -52,7 +52,9 @@
       "sourceReconnecting": "S'està tornant a connectar...",
       "sourceFailed": "No disponible",
       "startFailed": "No s'ha pogut començar a enregistrar la reunió.",
-      "stopFailed": "No s'ha pogut aturar l'enregistrament de la reunió."
+      "stopFailed": "No s'ha pogut aturar l'enregistrament de la reunió.",
+      "microphoneLevel": "Micròfon",
+      "systemLevel": "Àudio de l'ordinador"
     },
     "status": {
       "recording": "Enregistrant",
@@ -137,7 +139,7 @@
       "description": "Què s'enregistra, com es transcriu i quant de temps se'n conserva l'àudio",
       "sources": {
         "title": "Enregistra",
-        "description": "Jo és el micròfon triat a General; Ells és tot el que reprodueix l'ordinador.",
+        "description": "Jo és el micròfon triat a General; Ells és tot el que reprodueix l'ordinador. Quan diverses persones parlen al micròfon, les etiquetes d'interlocutor les distingeixen.",
         "both": "Micròfon i àudio del sistema",
         "microphone": "Només el micròfon",
         "system": "Només l'àudio del sistema"
@@ -148,7 +150,7 @@
       },
       "speakerLabels": {
         "title": "Etiquetes d'interlocutor",
-        "description": "Distingeix qui parla a l'altra banda de la trucada, fins a 4 interlocutors.",
+        "description": "Distingeix qui parla, a l'altra banda de la trucada i al teu micròfon quan el comparteixen diverses persones. Fins a 4 interlocutors a cada banda.",
         "downloadHint": "En activar-ho, es baixa el model d'etiquetes d'interlocutor.",
         "downloadingHint": "S'està baixant el model d'etiquetes d'interlocutor.",
         "stopDownload": "Atura la baixada del model d'etiquetes d'interlocutor"

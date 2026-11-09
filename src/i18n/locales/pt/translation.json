@@ -42,7 +42,7 @@
       "title": "Gravar uma reunião",
       "sources": {
         "both": "Grava seu microfone (Eu) e tudo o que o seu PC reproduz (Outros) e transcreve os dois depois da chamada.",
-        "microphone": "Grava só o seu microfone (Eu) e transcreve depois da chamada.",
+        "microphone": "Grava só o seu microfone, por exemplo todos em uma sala de reunião, e transcreve depois da chamada.",
         "system": "Grava só o que o seu PC reproduz (Outros) e transcreve depois da chamada."
       },
       "start": "Gravar reunião",
@@ -52,7 +52,9 @@
       "sourceReconnecting": "Reconectando...",
       "sourceFailed": "Indisponível",
       "startFailed": "Não foi possível iniciar a gravação da reunião.",
-      "stopFailed": "Não foi possível parar a gravação da reunião."
+      "stopFailed": "Não foi possível parar a gravação da reunião.",
+      "microphoneLevel": "Microfone",
+      "systemLevel": "Áudio do PC"
     },
     "status": {
       "recording": "Gravando",
@@ -137,7 +139,7 @@
       "description": "O que é gravado, como é transcrito e por quanto tempo o áudio é mantido",
       "sources": {
         "title": "Gravar",
-        "description": "Eu é o microfone escolhido em Geral; Outros é tudo o que o seu PC reproduz.",
+        "description": "Eu é o microfone escolhido em Geral; Outros é tudo o que o seu PC reproduz. Quando várias pessoas falam no microfone, a identificação de participantes as distingue.",
         "both": "Microfone e áudio do sistema",
         "microphone": "Só microfone",
         "system": "Só áudio do sistema"
@@ -148,7 +150,7 @@
       },
       "speakerLabels": {
         "title": "Identificação de participantes",
-        "description": "Distingue quem está falando do outro lado da chamada, até 4 participantes.",
+        "description": "Distingue quem está falando, do outro lado da chamada e no seu microfone quando várias pessoas o compartilham. Até 4 participantes de cada lado.",
         "downloadHint": "Ativar isto baixa o modelo de identificação de participantes.",
         "downloadingHint": "Baixando o modelo de identificação de participantes.",
         "stopDownload": "Parar o download do modelo de identificação de participantes"

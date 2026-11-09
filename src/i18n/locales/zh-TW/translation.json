@@ -42,7 +42,7 @@
       "title": "錄製會議",
       "sources": {
         "both": "錄製你的麥克風（我）和電腦播放的所有聲音（對方），通話結束後轉錄兩者。",
-        "microphone": "僅錄製你的麥克風（我），通話結束後進行轉錄。",
+        "microphone": "僅錄製你的麥克風（例如會議室裡的所有人），通話結束後進行轉錄。",
         "system": "僅錄製電腦播放的聲音（對方），通話結束後進行轉錄。"
       },
       "start": "錄製會議",
@@ -52,7 +52,9 @@
       "sourceReconnecting": "正在重新連線...",
       "sourceFailed": "無法使用",
       "startFailed": "無法開始錄製會議。",
-      "stopFailed": "無法停止錄製會議。"
+      "stopFailed": "無法停止錄製會議。",
+      "microphoneLevel": "麥克風",
+      "systemLevel": "電腦音訊"
     },
     "status": {
       "recording": "錄製中",
@@ -137,7 +139,7 @@
       "description": "錄製內容、轉錄方式及音訊保留時間",
       "sources": {
         "title": "錄製",
-        "description": "「我」是在「一般」中選擇的麥克風；「對方」是電腦播放的所有聲音。",
+        "description": "「我」是在「一般」中選擇的麥克風；「對方」是電腦播放的所有聲音。多人對著麥克風說話時，說話者標籤會區分他們。",
         "both": "麥克風和系統音訊",
         "microphone": "僅麥克風",
         "system": "僅系統音訊"
@@ -148,7 +150,7 @@
       },
       "speakerLabels": {
         "title": "說話者標籤",
-        "description": "區分通話另一方的說話者，最多 4 位。",
+        "description": "區分誰在說話：通話另一方，以及多人共用你的麥克風時的麥克風一方。每一方最多 4 位。",
         "downloadHint": "開啟後將下載說話者標籤模型。",
         "downloadingHint": "正在下載說話者標籤模型。",
         "stopDownload": "停止下載說話者標籤模型"

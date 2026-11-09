@@ -42,7 +42,7 @@
       "title": "录制会议",
       "sources": {
         "both": "录制你的麦克风（我）和电脑播放的所有声音（对方），通话结束后转录两者。",
-        "microphone": "仅录制你的麦克风（我），通话结束后进行转录。",
+        "microphone": "仅录制你的麦克风（例如会议室里的所有人），通话结束后进行转录。",
         "system": "仅录制电脑播放的声音（对方），通话结束后进行转录。"
       },
       "start": "录制会议",
@@ -52,7 +52,9 @@
       "sourceReconnecting": "正在重新连接...",
       "sourceFailed": "不可用",
       "startFailed": "无法开始录制会议。",
-      "stopFailed": "无法停止录制会议。"
+      "stopFailed": "无法停止录制会议。",
+      "microphoneLevel": "麦克风",
+      "systemLevel": "电脑音频"
     },
     "status": {
       "recording": "录制中",
@@ -137,7 +139,7 @@
       "description": "录制内容、转录方式以及音频保留时长",
       "sources": {
         "title": "录制",
-        "description": "“我”是在“通用”中选择的麦克风；“对方”是电脑播放的所有声音。",
+        "description": "“我”是在“通用”中选择的麦克风；“对方”是电脑播放的所有声音。多人对着麦克风说话时，发言人标签会区分他们。",
         "both": "麦克风和系统音频",
         "microphone": "仅麦克风",
         "system": "仅系统音频"
@@ -148,7 +150,7 @@
       },
       "speakerLabels": {
         "title": "发言人标签",
-        "description": "区分通话另一方的发言人，最多 4 人。",
+        "description": "区分谁在说话：通话另一方，以及多人共用你的麦克风时的麦克风一方。每一方最多 4 人。",
         "downloadHint": "开启后将下载发言人标签模型。",
         "downloadingHint": "正在下载发言人标签模型。",
         "stopDownload": "停止下载发言人标签模型"

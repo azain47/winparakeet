@@ -1,6 +1,6 @@
-//! Who spoke when on a meeting's system track: Sortformer (up to four
-//! speakers) at its offline operating point, on the CPU in this process, the
-//! way VAD and language detection run.
+//! Who spoke when on one of a meeting's tracks: Sortformer (up to four
+//! speakers per track) at its offline operating point, on the CPU in this
+//! process, the way VAD and language detection run.
 
 use anyhow::{anyhow, Result};
 use log::info;
@@ -95,7 +95,7 @@ pub fn diarize(
     // Grouped by speaker as they come, not by time.
     turns.sort_by_key(|t| (t.start_ms, t.end_ms));
     info!(
-        "Diarized {:.1}s of system audio into {} turns in {:.1}s",
+        "Diarized {:.1}s of meeting audio into {} turns in {:.1}s",
         pcm.len() as f64 / 16_000.0,
         turns.len(),
         started.elapsed().as_secs_f64()

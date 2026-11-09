@@ -42,7 +42,7 @@
       "title": "Rekam rapat",
       "sources": {
         "both": "Merekam mikrofon Anda (Saya) dan semua yang diputar PC Anda (Mereka), lalu mentranskripsikan keduanya setelah panggilan.",
-        "microphone": "Hanya merekam mikrofon Anda (Saya), lalu mentranskripsikannya setelah panggilan.",
+        "microphone": "Hanya merekam mikrofon Anda, misalnya semua orang di ruang rapat, lalu mentranskripsikannya setelah panggilan.",
         "system": "Hanya merekam yang diputar PC Anda (Mereka), lalu mentranskripsikannya setelah panggilan."
       },
       "start": "Rekam rapat",
@@ -52,7 +52,9 @@
       "sourceReconnecting": "Menyambungkan ulang...",
       "sourceFailed": "Tidak tersedia",
       "startFailed": "Tidak dapat mulai merekam rapat.",
-      "stopFailed": "Tidak dapat menghentikan perekaman rapat."
+      "stopFailed": "Tidak dapat menghentikan perekaman rapat.",
+      "microphoneLevel": "Mikrofon",
+      "systemLevel": "Audio PC"
     },
     "status": {
       "recording": "Merekam",
@@ -137,7 +139,7 @@
       "description": "Apa yang direkam, cara mentranskripsikannya, dan berapa lama audionya disimpan",
       "sources": {
         "title": "Rekam",
-        "description": "Saya adalah mikrofon yang dipilih di Umum; Mereka adalah semua yang diputar PC Anda.",
+        "description": "Saya adalah mikrofon yang dipilih di Umum; Mereka adalah semua yang diputar PC Anda. Saat beberapa orang berbicara ke mikrofon, label pembicara membedakan mereka.",
         "both": "Mikrofon dan audio sistem",
         "microphone": "Hanya mikrofon",
         "system": "Hanya audio sistem"
@@ -148,7 +150,7 @@
       },
       "speakerLabels": {
         "title": "Label pembicara",
-        "description": "Bedakan siapa yang berbicara di sisi lain panggilan, hingga 4 pembicara.",
+        "description": "Membedakan siapa yang berbicara, di sisi lain panggilan dan di mikrofon Anda saat dipakai bersama beberapa orang. Hingga 4 pembicara di setiap sisi.",
         "downloadHint": "Mengaktifkan ini akan mengunduh model label pembicara.",
         "downloadingHint": "Mengunduh model label pembicara.",
         "stopDownload": "Hentikan pengunduhan model label pembicara"

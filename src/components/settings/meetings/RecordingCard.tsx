@@ -177,13 +177,13 @@ export const RecordingCard: React.FC = () => {
       </div>
       <div className="flex flex-col gap-2">
         <LevelMeter
-          label={t("meetings.speakers.me")}
+          label={t("meetings.record.microphoneLevel")}
           icon={Mic}
           state={recording.microphone}
           level={levels.microphone}
         />
         <LevelMeter
-          label={t("meetings.speakers.them")}
+          label={t("meetings.record.systemLevel")}
           icon={Speaker}
           state={recording.system_audio}
           level={levels.system_audio}

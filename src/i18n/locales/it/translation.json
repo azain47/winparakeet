@@ -42,7 +42,7 @@
       "title": "Registra una riunione",
       "sources": {
         "both": "Registra il tuo microfono (Io) e tutto ciò che riproduce il PC (Altri), poi trascrive entrambi dopo la chiamata.",
-        "microphone": "Registra solo il tuo microfono (Io), poi lo trascrive dopo la chiamata.",
+        "microphone": "Registra solo il tuo microfono, ad esempio tutti i presenti in una sala riunioni, poi lo trascrive dopo la chiamata.",
         "system": "Registra solo ciò che riproduce il PC (Altri), poi lo trascrive dopo la chiamata."
       },
       "start": "Registra riunione",
@@ -52,7 +52,9 @@
       "sourceReconnecting": "Riconnessione...",
       "sourceFailed": "Non disponibile",
       "startFailed": "Impossibile avviare la registrazione della riunione.",
-      "stopFailed": "Impossibile interrompere la registrazione della riunione."
+      "stopFailed": "Impossibile interrompere la registrazione della riunione.",
+      "microphoneLevel": "Microfono",
+      "systemLevel": "Audio del PC"
     },
     "status": {
       "recording": "Registrazione in corso",
@@ -137,7 +139,7 @@
       "description": "Cosa viene registrato, come viene trascritto e per quanto tempo viene conservato l'audio",
       "sources": {
         "title": "Registra",
-        "description": "Io è il microfono scelto in Generale; Altri è tutto ciò che riproduce il PC.",
+        "description": "Io è il microfono scelto in Generale; Altri è tutto ciò che riproduce il PC. Quando più persone parlano nel microfono, le etichette interlocutori le distinguono.",
         "both": "Microfono e audio di sistema",
         "microphone": "Solo microfono",
         "system": "Solo audio di sistema"
@@ -148,7 +150,7 @@
       },
       "speakerLabels": {
         "title": "Etichette interlocutori",
-        "description": "Distingue chi parla dall'altro lato della chiamata, fino a 4 interlocutori.",
+        "description": "Distingue chi parla, dall'altro lato della chiamata e al tuo microfono quando lo condividono più persone. Fino a 4 interlocutori per lato.",
         "downloadHint": "Attivandolo viene scaricato il modello delle etichette interlocutori.",
         "downloadingHint": "Download del modello delle etichette interlocutori in corso.",
         "stopDownload": "Interrompi il download del modello delle etichette interlocutori"

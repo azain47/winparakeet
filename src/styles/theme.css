@@ -124,19 +124,27 @@
     var(--dark-color-card)
   );
 
-  /* Meeting speakers: Me, Them, then the other side's Speaker 1-4. */
+  /* Meeting speakers: Me, Them, then Speaker 1-8 from either side. */
   --light-color-speaker-me: #005fb8;
   --light-color-speaker-them: #8764b8;
   --light-color-speaker-1: #b4009e;
   --light-color-speaker-2: #a35200;
   --light-color-speaker-3: #00796b;
   --light-color-speaker-4: #4f5bd5;
+  --light-color-speaker-5: #6b7a00;
+  --light-color-speaker-6: #8e562e;
+  --light-color-speaker-7: #c2185b;
+  --light-color-speaker-8: #8a6d00;
   --dark-color-speaker-me: #60cdff;
   --dark-color-speaker-them: #c5a7f2;
   --dark-color-speaker-1: #ee8fe4;
   --dark-color-speaker-2: #ffb366;
   --dark-color-speaker-3: #4fd6cc;
   --dark-color-speaker-4: #9ea8ff;
+  --dark-color-speaker-5: #c8d86a;
+  --dark-color-speaker-6: #e0a87c;
+  --dark-color-speaker-7: #ff8ab5;
+  --dark-color-speaker-8: #f2d264;
 
   /* Flyouts (menus, tooltips, popups) float on a soft shadow. */
   --light-shadow-flyout:
@@ -174,6 +182,10 @@
   --color-speaker-2: var(--light-color-speaker-2);
   --color-speaker-3: var(--light-color-speaker-3);
   --color-speaker-4: var(--light-color-speaker-4);
+  --color-speaker-5: var(--light-color-speaker-5);
+  --color-speaker-6: var(--light-color-speaker-6);
+  --color-speaker-7: var(--light-color-speaker-7);
+  --color-speaker-8: var(--light-color-speaker-8);
 
   /* Neutral steps, all derived from the text color so both themes stay in
      proportion: secondary text, hints/icons, control edges, dividers, hover fill. */
@@ -218,6 +230,10 @@
     --color-speaker-2: var(--dark-color-speaker-2);
     --color-speaker-3: var(--dark-color-speaker-3);
     --color-speaker-4: var(--dark-color-speaker-4);
+    --color-speaker-5: var(--dark-color-speaker-5);
+    --color-speaker-6: var(--dark-color-speaker-6);
+    --color-speaker-7: var(--dark-color-speaker-7);
+    --color-speaker-8: var(--dark-color-speaker-8);
   }
 }
 
@@ -260,6 +276,10 @@
   --color-speaker-2: var(--light-color-speaker-2);
   --color-speaker-3: var(--light-color-speaker-3);
   --color-speaker-4: var(--light-color-speaker-4);
+  --color-speaker-5: var(--light-color-speaker-5);
+  --color-speaker-6: var(--light-color-speaker-6);
+  --color-speaker-7: var(--light-color-speaker-7);
+  --color-speaker-8: var(--light-color-speaker-8);
 }
 
 :root[data-theme="dark"] {
@@ -291,4 +311,8 @@
   --color-speaker-2: var(--dark-color-speaker-2);
   --color-speaker-3: var(--dark-color-speaker-3);
   --color-speaker-4: var(--dark-color-speaker-4);
+  --color-speaker-5: var(--dark-color-speaker-5);
+  --color-speaker-6: var(--dark-color-speaker-6);
+  --color-speaker-7: var(--dark-color-speaker-7);
+  --color-speaker-8: var(--dark-color-speaker-8);
 }

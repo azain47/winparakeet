@@ -21,7 +21,7 @@ use crate::audio_toolkit::{decode_audio_file, read_wav_samples, save_wav_file};
 use crate::managers::history::{HistoryEntry, HistoryManager};
 use crate::managers::meeting::capture::{MICROPHONE_TRACK, SYSTEM_TRACK};
 use crate::managers::meeting::diarize::diarize;
-use crate::managers::meeting::transcribe::{utterances, ME};
+use crate::managers::meeting::transcribe::{utterances, Utterance};
 use crate::managers::meeting::{MeetingAudio, MeetingSegment, MeetingStatus, MeetingStore};
 use crate::managers::model::ModelManager;
 use crate::managers::transcription::{
@@ -33,8 +33,8 @@ use crate::settings::{get_settings, MeetingAudioRetention};
 /// How often a waiting chunk checks whether dictation has finished.
 const DICTATION_POLL: Duration = Duration::from_millis(200);
 
-/// The share of a meeting's progress its transcription takes when the other
-/// side is diarized after it.
+/// The share of a meeting's progress its transcription takes when its
+/// tracks are diarized after it (the diarization runs share the rest).
 const TRANSCRIBE_SHARE_WITH_DIARIZATION: usize = 90;
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Type)]
@@ -715,10 +715,12 @@ impl TranscriptionJobManager {
         if paths.is_empty() {
             return Err(anyhow!("The meeting has no recorded audio"));
         }
-        let diarizer = system
-            .as_ref()
-            .filter(|_| settings.meeting_speaker_labels)
-            .and_then(|_| model_manager.diarizer_path());
+        // Both sides are diarized: the other side may be several people,
+        // and so may the microphone (a meeting in a room).
+        let diarizer = settings
+            .meeting_speaker_labels
+            .then(|| model_manager.diarizer_path())
+            .flatten();
 
         let control = Control {
             manager: self,
@@ -738,15 +740,41 @@ impl TranscriptionJobManager {
         let mine = microphone.as_ref().and_then(|_| tracks.next());
         let theirs = system.as_ref().and_then(|_| tracks.next());
 
-        // Diarization only when the other side said something; a failure
-        // leaves it one speaker.
-        let mut turns = Vec::new();
-        if let (Some(diarizer), Some(system), Some(theirs)) = (&diarizer, &system, &theirs) {
-            if !theirs.units.is_empty() {
-                match diarize(diarizer, system, cancelled) {
-                    Ok(Some(found)) => turns = found,
+        // One run per track that said something (Sortformer numbers the
+        // speakers of each clip); a failure leaves that side undiarized.
+        let to_diarize: Vec<(bool, &PathBuf)> = [
+            (true, microphone.as_ref(), mine.as_ref()),
+            (false, system.as_ref(), theirs.as_ref()),
+        ]
+        .into_iter()
+        .filter_map(|(from_microphone, path, track)| {
+            let path = path?;
+            (!track?.units.is_empty()).then_some((from_microphone, path))
+        })
+        .collect();
+        let mut me_turns = Vec::new();
+        let mut them_turns = Vec::new();
+        if let Some(diarizer) = &diarizer {
+            let runs = to_diarize.len();
+            for (done, (from_microphone, path)) in to_diarize.into_iter().enumerate() {
+                if done > 0 {
+                    let share = TRANSCRIBE_SHARE_WITH_DIARIZATION;
+                    store.set_progress(id, (share + (100 - share) * done / runs) as u8);
+                }
+                match diarize(diarizer, path, cancelled) {
+                    Ok(Some(found)) if from_microphone => me_turns = found,
+                    Ok(Some(found)) => them_turns = found,
                     Ok(None) => return Ok(None),
-                    Err(e) => warn!("Meeting {}: {:#}; the other side stays one speaker", id, e),
+                    Err(e) => warn!(
+                        "Meeting {}: {:#}; the {} stays one speaker",
+                        id,
+                        e,
+                        if from_microphone {
+                            "microphone"
+                        } else {
+                            "other side"
+                        }
+                    ),
                 }
             }
         }
@@ -757,11 +785,16 @@ impl TranscriptionJobManager {
         let segments: Vec<MeetingSegment> = utterances(
             mine.as_ref().map_or(&[][..], |t| t.units.as_slice()),
             theirs.as_ref().map_or(&[][..], |t| t.units.as_slice()),
-            &turns,
+            &me_turns,
+            &them_turns,
         )
         .into_iter()
-        .filter_map(|mut segment| {
-            let track = if segment.speaker == ME {
+        .filter_map(|utterance| {
+            let Utterance {
+                from_microphone,
+                mut segment,
+            } = utterance;
+            let track = if from_microphone {
                 mine.as_ref()
             } else {
                 theirs.as_ref()

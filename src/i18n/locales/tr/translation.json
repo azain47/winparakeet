@@ -42,7 +42,7 @@
       "title": "Toplantı kaydet",
       "sources": {
         "both": "Mikrofonunuzu (Ben) ve bilgisayarınızın çaldığı her şeyi (Onlar) kaydeder, ardından görüşmeden sonra her ikisini de yazıya döker.",
-        "microphone": "Yalnızca mikrofonunuzu (Ben) kaydeder, ardından görüşmeden sonra yazıya döker.",
+        "microphone": "Yalnızca mikrofonunuzu kaydeder (örneğin toplantı odasındaki herkesi), ardından görüşmeden sonra yazıya döker.",
         "system": "Yalnızca bilgisayarınızın çaldığı sesi (Onlar) kaydeder, ardından görüşmeden sonra yazıya döker."
       },
       "start": "Toplantıyı kaydet",
@@ -52,7 +52,9 @@
       "sourceReconnecting": "Yeniden bağlanıyor...",
       "sourceFailed": "Kullanılamıyor",
       "startFailed": "Toplantı kaydı başlatılamadı.",
-      "stopFailed": "Toplantı kaydı durdurulamadı."
+      "stopFailed": "Toplantı kaydı durdurulamadı.",
+      "microphoneLevel": "Mikrofon",
+      "systemLevel": "Bilgisayar sesi"
     },
     "status": {
       "recording": "Kaydediliyor",
@@ -137,7 +139,7 @@
       "description": "Neyin kaydedileceği, nasıl yazıya döküleceği ve sesin ne kadar saklanacağı",
       "sources": {
         "title": "Kayıt",
-        "description": "Ben, Genel'de seçilen mikrofondur; Onlar, bilgisayarınızın çaldığı her şeydir.",
+        "description": "Ben, Genel'de seçilen mikrofondur; Onlar, bilgisayarınızın çaldığı her şeydir. Mikrofona birkaç kişi konuştuğunda konuşmacı etiketleri onları ayırt eder.",
         "both": "Mikrofon ve sistem sesi",
         "microphone": "Yalnızca mikrofon",
         "system": "Yalnızca sistem sesi"
@@ -148,7 +150,7 @@
       },
       "speakerLabels": {
         "title": "Konuşmacı etiketleri",
-        "description": "Görüşmenin diğer tarafında kimin konuştuğunu ayırt eder, en fazla 4 konuşmacı.",
+        "description": "Kimin konuştuğunu ayırt eder: görüşmenin diğer tarafında ve birkaç kişi paylaştığında mikrofonunuzda. Her tarafta en fazla 4 konuşmacı.",
         "downloadHint": "Bunu açmak konuşmacı etiketi modelini indirir.",
         "downloadingHint": "Konuşmacı etiketi modeli indiriliyor.",
         "stopDownload": "Konuşmacı etiketi modelinin indirilmesini durdur"

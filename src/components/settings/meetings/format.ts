@@ -68,6 +68,6 @@ export const speakerColor = (key: string): string => {
   if (key === "them") return "var(--color-speaker-them)";
   const number = Number(key.replace(/^s/, ""));
   const slot =
-    Number.isFinite(number) && number >= 1 ? ((number - 1) % 4) + 1 : 1;
+    Number.isFinite(number) && number >= 1 ? ((number - 1) % 8) + 1 : 1;
   return `var(--color-speaker-${slot})`;
 };

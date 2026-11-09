@@ -42,7 +42,7 @@
       "title": "Meeting aufnehmen",
       "sources": {
         "both": "Nimmt dein Mikrofon (Ich) und alles auf, was dein PC abspielt (Andere), und transkribiert beides nach dem Gespräch.",
-        "microphone": "Nimmt nur dein Mikrofon (Ich) auf und transkribiert es nach dem Gespräch.",
+        "microphone": "Nimmt nur dein Mikrofon auf, zum Beispiel alle in einem Besprechungsraum, und transkribiert es nach dem Gespräch.",
         "system": "Nimmt nur auf, was dein PC abspielt (Andere), und transkribiert es nach dem Gespräch."
       },
       "start": "Meeting aufnehmen",
@@ -52,7 +52,9 @@
       "sourceReconnecting": "Verbinde neu...",
       "sourceFailed": "Nicht verfügbar",
       "startFailed": "Die Meeting-Aufnahme konnte nicht gestartet werden.",
-      "stopFailed": "Die Meeting-Aufnahme konnte nicht beendet werden."
+      "stopFailed": "Die Meeting-Aufnahme konnte nicht beendet werden.",
+      "microphoneLevel": "Mikrofon",
+      "systemLevel": "PC-Audio"
     },
     "status": {
       "recording": "Aufnahme läuft",
@@ -137,7 +139,7 @@
       "description": "Was aufgenommen wird, wie es transkribiert wird und wie lange das Audio aufbewahrt wird",
       "sources": {
         "title": "Aufnehmen",
-        "description": "Ich ist das unter Allgemein gewählte Mikrofon; Andere ist alles, was dein PC abspielt.",
+        "description": "Ich ist das unter Allgemein gewählte Mikrofon; Andere ist alles, was dein PC abspielt. Sprechen mehrere Personen ins Mikrofon, unterscheidet die Sprecherkennzeichnung sie.",
         "both": "Mikrofon und Systemaudio",
         "microphone": "Nur Mikrofon",
         "system": "Nur Systemaudio"
@@ -148,7 +150,7 @@
       },
       "speakerLabels": {
         "title": "Sprecherkennzeichnung",
-        "description": "Unterscheidet, wer auf der anderen Seite des Gesprächs spricht, bis zu 4 Sprecher.",
+        "description": "Unterscheidet, wer spricht – auf der anderen Seite des Gesprächs und an deinem Mikrofon, wenn mehrere Personen es teilen. Bis zu 4 Sprecher je Seite.",
         "downloadHint": "Beim Einschalten wird das Modell für die Sprecherkennzeichnung heruntergeladen.",
         "downloadingHint": "Das Modell für die Sprecherkennzeichnung wird heruntergeladen.",
         "stopDownload": "Download des Modells für die Sprecherkennzeichnung abbrechen"

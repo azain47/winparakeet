@@ -42,7 +42,7 @@
       "title": "Spela in ett möte",
       "sources": {
         "both": "Spelar in din mikrofon (Jag) och allt som datorn spelar upp (De) och transkriberar båda efter samtalet.",
-        "microphone": "Spelar bara in din mikrofon (Jag) och transkriberar den efter samtalet.",
+        "microphone": "Spelar bara in din mikrofon, till exempel alla i ett mötesrum, och transkriberar den efter samtalet.",
         "system": "Spelar bara in det som datorn spelar upp (De) och transkriberar det efter samtalet."
       },
       "start": "Spela in möte",
@@ -52,7 +52,9 @@
       "sourceReconnecting": "Ansluter igen...",
       "sourceFailed": "Inte tillgänglig",
       "startFailed": "Det gick inte att börja spela in mötet.",
-      "stopFailed": "Det gick inte att stoppa inspelningen av mötet."
+      "stopFailed": "Det gick inte att stoppa inspelningen av mötet.",
+      "microphoneLevel": "Mikrofon",
+      "systemLevel": "Datorljud"
     },
     "status": {
       "recording": "Spelar in",
@@ -137,7 +139,7 @@
       "description": "Vad som spelas in, hur det transkriberas och hur länge ljudet sparas",
       "sources": {
         "title": "Spela in",
-        "description": "Jag är mikrofonen som valts under Allmänt; De är allt som datorn spelar upp.",
+        "description": "Jag är mikrofonen som valts under Allmänt; De är allt som datorn spelar upp. När flera personer talar i mikrofonen skiljer talaretiketter dem åt.",
         "both": "Mikrofon och systemljud",
         "microphone": "Bara mikrofon",
         "system": "Bara systemljud"
@@ -148,7 +150,7 @@
       },
       "speakerLabels": {
         "title": "Talaretiketter",
-        "description": "Skilj på vem som talar på andra sidan samtalet, upp till 4 talare.",
+        "description": "Skiljer på vem som talar, på andra sidan samtalet och i din mikrofon när flera delar den. Upp till 4 talare på varje sida.",
         "downloadHint": "Om du aktiverar detta laddas modellen för talaretiketter ner.",
         "downloadingHint": "Laddar ner modellen för talaretiketter.",
         "stopDownload": "Sluta ladda ner modellen för talaretiketter"

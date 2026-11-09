@@ -1,7 +1,7 @@
-//! A meeting's transcript from its tracks' timed units: the microphone's
-//! units grouped into `me` utterances, the system audio's split by who spoke
-//! (diarization) and grouped likewise, and the microphone's echo of the other
-//! side dropped.
+//! A meeting's transcript from its tracks' timed units. Each side is grouped
+//! into utterances; a side the diarizer found two or more people on is split
+//! by who spoke. The microphone's echo of the other side is dropped first, so
+//! it never passes for someone in the room.
 
 use log::info;
 use std::collections::{HashMap, HashSet};
@@ -10,9 +10,9 @@ use super::store::MeetingSegment;
 use crate::audio_toolkit::chunking::join_transcripts;
 use crate::managers::transcription::TimedUnit;
 
-/// The microphone's speaker.
+/// The microphone's side when one person speaks on it.
 pub const ME: &str = "me";
-/// The other side, when it isn't split into speakers.
+/// The other side when it isn't split into speakers.
 pub const THEM: &str = "them";
 
 /// A pause this long ends an utterance.
@@ -30,9 +30,12 @@ const BLEED_MIN_WORDS: usize = 3;
 /// The share of an utterance's words heard from the other side that makes
 /// it an echo.
 const BLEED_SHARE: f64 = 0.6;
+/// A microphone speaker with less speech than this is a diarization
+/// fragment of someone else: their words go to the main speaker.
+const MIN_MICROPHONE_SPEAKER_MS: i64 = 5_000;
 
-/// A diarized speaker turn of the system track; `speaker` as the diarizer
-/// numbers them.
+/// A diarized speaker turn of one track; `speaker` as the diarizer numbers
+/// them (per track).
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Turn {
     pub start_ms: i64,
@@ -40,37 +43,34 @@ pub struct Turn {
     pub speaker: i32,
 }
 
-/// The transcript's utterances, by start, `me` first on a tie. Texts are as
-/// transcribed; the caller polishes them per side. `me` and `them` are the
-/// tracks' units (empty for a side not recorded); `turns` the system track's
-/// diarization (empty when not run).
-pub fn utterances(me: &[TimedUnit], them: &[TimedUnit], turns: &[Turn]) -> Vec<MeetingSegment> {
-    let mine = group(me.iter().map(|unit| (unit, None)));
+/// One utterance of the transcript, with the track it came from: the caller
+/// polishes its text with that track's settings.
+#[derive(Clone, Debug, PartialEq)]
+pub struct Utterance {
+    pub from_microphone: bool,
+    pub segment: MeetingSegment,
+}
 
-    let theirs = group(them.iter().map(|unit| (unit, speaker_for(unit, turns))));
-    // Diarizer ids become s1..s4 in order of first appearance.
-    let mut keys: HashMap<i32, String> = HashMap::new();
-    let mut theirs: Vec<MeetingSegment> = theirs
-        .into_iter()
-        .map(|group| {
-            let speaker = match group.speaker {
-                Some(id) => {
-                    let next = format!("s{}", keys.len() + 1);
-                    keys.entry(id).or_insert(next).clone()
-                }
-                None => THEM.to_string(),
-            };
-            group.into_segment(speaker)
-        })
-        .collect();
-
-    let mut mine: Vec<MeetingSegment> = mine
-        .into_iter()
-        .map(|group| group.into_segment(ME.to_string()))
-        .collect();
+/// The transcript's utterances, by start, the microphone's first on a tie.
+/// Texts are as transcribed. `me` and `them` are the microphone's and system
+/// audio's units (empty for a side not recorded); `me_turns` and
+/// `them_turns` their diarization (empty when not run).
+///
+/// Speakers: a side with one diarized speaker (or none) is `me` / `them`.
+/// Otherwise every diarized speaker of either side gets `s1`, `s2`, ... in
+/// order of first appearance in the transcript.
+pub fn utterances(
+    me: &[TimedUnit],
+    them: &[TimedUnit],
+    me_turns: &[Turn],
+    them_turns: &[Turn],
+) -> Vec<Utterance> {
+    // The microphone undiarized first, exactly as with one person on it,
+    // and its echo of the other side dropped.
+    let mut mine = group(me.iter().map(|unit| (unit, None)));
     if !them.is_empty() {
         let before = mine.len();
-        mine.retain(|utterance| !is_echo(utterance, them));
+        mine.retain(|group| !is_echo(group, them));
         let dropped = before - mine.len();
         if dropped > 0 {
             info!(
@@ -79,14 +79,83 @@ pub fn utterances(me: &[TimedUnit], them: &[TimedUnit], turns: &[Turn]) -> Vec<M
             );
         }
     }
+    // Then who in the room said the rest.
+    let kept: Vec<&TimedUnit> = mine.iter().flat_map(|g| g.units.iter().copied()).collect();
+    if let Some(speakers) = microphone_speakers(&kept, me_turns) {
+        mine = group(kept.into_iter().zip(speakers.into_iter().map(Some)));
+    }
 
-    mine.append(&mut theirs);
-    mine.sort_by(|a, b| {
-        a.start_ms
-            .cmp(&b.start_ms)
-            .then_with(|| (a.speaker != ME).cmp(&(b.speaker != ME)))
+    let assigned: Vec<Option<i32>> = them.iter().map(|u| speaker_for(u, them_turns)).collect();
+    let distinct: HashSet<i32> = assigned.iter().flatten().copied().collect();
+    let theirs = if distinct.len() >= 2 {
+        group(them.iter().zip(assigned))
+    } else {
+        group(them.iter().map(|unit| (unit, None)))
+    };
+
+    let mut all: Vec<(bool, Group)> = mine
+        .into_iter()
+        .map(|g| (true, g))
+        .chain(theirs.into_iter().map(|g| (false, g)))
+        .collect();
+    all.sort_by(|(a_mic, a), (b_mic, b)| {
+        a.start_ms.cmp(&b.start_ms).then_with(|| b_mic.cmp(a_mic))
     });
-    mine
+
+    // One numbering for both sides, by first appearance.
+    let mut keys: HashMap<(bool, i32), String> = HashMap::new();
+    all.into_iter()
+        .map(|(from_microphone, group)| {
+            let speaker = match group.speaker {
+                Some(id) => {
+                    let next = format!("s{}", keys.len() + 1);
+                    keys.entry((from_microphone, id)).or_insert(next).clone()
+                }
+                None if from_microphone => ME.to_string(),
+                None => THEM.to_string(),
+            };
+            Utterance {
+                from_microphone,
+                segment: group.into_segment(speaker),
+            }
+        })
+        .collect()
+}
+
+/// The diarized speaker of each microphone unit (echo already left out),
+/// or `None` when the microphone had one speaker: then the side stays `me`.
+/// Speakers with less than [`MIN_MICROPHONE_SPEAKER_MS`] of speech, and
+/// units outside every turn, go to the speaker with the most speech.
+fn microphone_speakers(units: &[&TimedUnit], turns: &[Turn]) -> Option<Vec<i32>> {
+    let assigned: Vec<Option<i32>> = units.iter().map(|u| speaker_for(u, turns)).collect();
+    let mut speech: HashMap<i32, i64> = HashMap::new();
+    for (unit, speaker) in units.iter().zip(&assigned) {
+        if let Some(speaker) = speaker {
+            *speech.entry(*speaker).or_default() += (unit.end_ms - unit.start_ms).max(0);
+        }
+    }
+    let real: HashSet<i32> = speech
+        .iter()
+        .filter(|(_, ms)| **ms >= MIN_MICROPHONE_SPEAKER_MS)
+        .map(|(id, _)| *id)
+        .collect();
+    if real.len() < 2 {
+        return None;
+    }
+    // Most speech; the lower id on a tie, so the choice is stable.
+    let main = speech
+        .iter()
+        .max_by_key(|(id, ms)| (**ms, -**id))
+        .map(|(id, _)| *id)?;
+    Some(
+        assigned
+            .into_iter()
+            .map(|speaker| match speaker {
+                Some(speaker) if real.contains(&speaker) => speaker,
+                _ => main,
+            })
+            .collect(),
+    )
 }
 
 /// Units being grouped into one utterance.
@@ -94,16 +163,20 @@ struct Group<'a> {
     speaker: Option<i32>,
     start_ms: i64,
     end_ms: i64,
-    texts: Vec<&'a str>,
+    units: Vec<&'a TimedUnit>,
 }
 
 impl Group<'_> {
+    fn text(&self) -> String {
+        join_units(self.units.iter().map(|unit| unit.text.as_str()))
+    }
+
     fn into_segment(self, speaker: String) -> MeetingSegment {
         MeetingSegment {
             speaker,
             start_ms: self.start_ms,
             end_ms: self.end_ms,
-            text: join_units(&self.texts),
+            text: self.text(),
         }
     }
 
@@ -113,7 +186,10 @@ impl Group<'_> {
             || unit.start_ms - self.end_ms >= MAX_GAP_MS
             || unit.end_ms - self.start_ms > MAX_UTTERANCE_MS
             || (self.end_ms - self.start_ms >= SENTENCE_BREAK_AFTER_MS
-                && self.texts.last().is_some_and(|text| ends_sentence(text)))
+                && self
+                    .units
+                    .last()
+                    .is_some_and(|last| ends_sentence(&last.text)))
     }
 }
 
@@ -126,13 +202,13 @@ fn group<'a>(units: impl Iterator<Item = (&'a TimedUnit, Option<i32>)>) -> Vec<G
         match groups.last_mut() {
             Some(group) if !group.breaks_before(unit, speaker) => {
                 group.end_ms = group.end_ms.max(unit.end_ms);
-                group.texts.push(&unit.text);
+                group.units.push(unit);
             }
             _ => groups.push(Group {
                 speaker,
                 start_ms: unit.start_ms,
                 end_ms: unit.end_ms,
-                texts: vec![&unit.text],
+                units: vec![unit],
             }),
         }
     }
@@ -146,7 +222,7 @@ fn ends_sentence(text: &str) -> bool {
 
 /// Joins units' texts with spaces, except before punctuation and around
 /// unspaced scripts.
-fn join_units(texts: &[&str]) -> String {
+fn join_units<'a>(texts: impl Iterator<Item = &'a str>) -> String {
     let mut joined = String::new();
     for text in texts {
         let text = text.trim();
@@ -205,8 +281,8 @@ fn normalized_words(text: &str) -> Vec<String> {
 
 /// Whether a microphone utterance is the other side heard through the
 /// speakers: most of its words are said by them around the same time.
-fn is_echo(utterance: &MeetingSegment, them: &[TimedUnit]) -> bool {
-    let words = normalized_words(&utterance.text);
+fn is_echo(utterance: &Group, them: &[TimedUnit]) -> bool {
+    let words = normalized_words(&utterance.text());
     if words.len() < BLEED_MIN_WORDS {
         return false;
     }
@@ -233,12 +309,38 @@ mod tests {
         }
     }
 
+    /// `count` words, one every 500 ms from `start_ms`, named `{name}{i}`.
+    fn words(start_ms: i64, count: i64, name: &str) -> Vec<TimedUnit> {
+        (0..count)
+            .map(|i| {
+                let start = start_ms + i * 500;
+                unit(start, start + 400, &format!("{name}{i}"))
+            })
+            .collect()
+    }
+
     fn turn(start_ms: i64, end_ms: i64, speaker: i32) -> Turn {
         Turn {
             start_ms,
             end_ms,
             speaker,
         }
+    }
+
+    fn run(me: &[TimedUnit], them: &[TimedUnit], turns: &[Turn]) -> Vec<MeetingSegment> {
+        both(me, them, &[], turns)
+    }
+
+    fn both(
+        me: &[TimedUnit],
+        them: &[TimedUnit],
+        me_turns: &[Turn],
+        them_turns: &[Turn],
+    ) -> Vec<MeetingSegment> {
+        utterances(me, them, me_turns, them_turns)
+            .into_iter()
+            .map(|u| u.segment)
+            .collect()
     }
 
     fn texts(segments: &[MeetingSegment]) -> Vec<(&str, &str)> {
@@ -248,6 +350,10 @@ mod tests {
             .collect()
     }
 
+    fn speakers(segments: &[MeetingSegment]) -> Vec<&str> {
+        segments.iter().map(|s| s.speaker.as_str()).collect()
+    }
+
     #[test]
     fn a_pause_of_a_second_ends_an_utterance() {
         let me = [
@@ -255,7 +361,7 @@ mod tests {
             unit(500, 900, "there"),
             unit(1_900, 2_300, "again"),
         ];
-        let out = utterances(&me, &[], &[]);
+        let out = run(&me, &[], &[]);
         assert_eq!(texts(&out), vec![("me", "hello there"), ("me", "again")]);
         assert_eq!((out[0].start_ms, out[0].end_ms), (0, 900));
     }
@@ -269,7 +375,7 @@ mod tests {
                 unit(i * 500, i * 500 + 400, text)
             })
             .collect();
-        let out = utterances(&me, &[], &[]);
+        let out = run(&me, &[], &[]);
         assert_eq!(out[0].end_ms, 16_400);
         assert_eq!(out[1].start_ms, 16_500);
         // No sentence end after: cut before 30 s.
@@ -284,7 +390,7 @@ mod tests {
             unit(100, 150, ","),
             unit(200, 300, "you"),
         ];
-        assert_eq!(utterances(&me, &[], &[])[0].text, "Hi, you");
+        assert_eq!(run(&me, &[], &[])[0].text, "Hi, you");
     }
 
     #[test]
@@ -299,7 +405,7 @@ mod tests {
         ];
         // Diarizer id 3 speaks first, then 1; turns come unsorted.
         let turns = [turn(950, 2_000, 1), turn(0, 950, 3)];
-        let out = utterances(&[], &them, &turns);
+        let out = run(&[], &them, &turns);
         assert_eq!(
             texts(&out),
             vec![
@@ -327,8 +433,15 @@ mod tests {
     #[test]
     fn a_speaker_change_ends_an_utterance() {
         let them = [unit(0, 400, "a"), unit(500, 900, "b")];
-        let out = utterances(&[], &them, &[turn(0, 450, 1), turn(450, 1_000, 2)]);
+        let out = run(&[], &them, &[turn(0, 450, 1), turn(450, 1_000, 2)]);
         assert_eq!(texts(&out), vec![("s1", "a"), ("s2", "b")]);
+    }
+
+    #[test]
+    fn one_diarized_speaker_on_the_other_side_stays_them() {
+        let them = words(0, 4, "w");
+        let out = run(&[], &them, &[turn(0, 2_000, 1)]);
+        assert_eq!(speakers(&out), vec!["them"]);
     }
 
     #[test]
@@ -350,20 +463,96 @@ mod tests {
             unit(5_300, 5_600, "I"),
             unit(5_600, 5_900, "can"),
         ];
-        let out = utterances(&me, &them, &[]);
+        let out = run(&me, &them, &[]);
         assert_eq!(
             texts(&out),
             vec![("them", "Can you hear me?"), ("me", "yes I can")]
         );
 
         // Short replies are never taken for an echo.
-        let out = utterances(&[unit(1_000, 1_300, "you")], &them, &[]);
+        let out = run(&[unit(1_000, 1_300, "you")], &them, &[]);
         assert_eq!(out[0].speaker, "me");
     }
 
     #[test]
-    fn me_comes_first_on_a_tie() {
-        let out = utterances(&[unit(0, 100, "mine")], &[unit(0, 100, "theirs")], &[]);
+    fn the_microphone_comes_first_on_a_tie() {
+        let out = run(&[unit(0, 100, "mine")], &[unit(0, 100, "theirs")], &[]);
         assert_eq!(texts(&out), vec![("me", "mine"), ("them", "theirs")]);
+    }
+
+    #[test]
+    fn one_speaker_on_the_microphone_stays_me() {
+        let me = words(0, 40, "w");
+        let diarized = both(&me, &[], &[turn(0, 20_000, 1)], &[]);
+        assert_eq!(diarized, both(&me, &[], &[], &[]));
+        assert!(diarized.iter().all(|s| s.speaker == "me"));
+    }
+
+    #[test]
+    fn two_people_on_the_microphone_are_split() {
+        let mut me = words(0, 20, "a");
+        me.extend(words(12_000, 20, "b"));
+        let turns = [turn(0, 10_000, 1), turn(12_000, 22_000, 2)];
+        let out = both(&me, &[], &turns, &[]);
+        assert_eq!(speakers(&out), vec!["s1", "s2"]);
+        assert!(out[1].text.starts_with("b0"));
+    }
+
+    #[test]
+    fn a_short_second_microphone_speaker_folds_into_the_main_one() {
+        // 20 s of one voice; the diarizer splits 2 s of it off.
+        let me = words(0, 40, "w");
+        let turns = [
+            turn(0, 9_000, 1),
+            turn(9_000, 11_000, 2),
+            turn(11_000, 20_000, 1),
+        ];
+        let out = both(&me, &[], &turns, &[]);
+        assert_eq!(out, both(&me, &[], &[], &[]));
+        assert!(out.iter().all(|s| s.speaker == "me"));
+    }
+
+    #[test]
+    fn echo_never_makes_a_microphone_speaker() {
+        // 10 s of me, then 6 s of the other side echoed on the microphone,
+        // which the diarizer takes for a second person.
+        let mut me = words(0, 20, "a");
+        let them = words(30_000, 12, "e");
+        me.extend(them.iter().cloned());
+        let me_turns = [turn(0, 10_000, 1), turn(30_000, 36_000, 2)];
+        let out = both(&me, &them, &me_turns, &[]);
+        assert_eq!(speakers(&out), vec!["me", "them"]);
+    }
+
+    #[test]
+    fn speakers_of_both_sides_share_one_numbering_by_first_appearance() {
+        let mut me = words(0, 20, "a");
+        me.extend(words(20_000, 20, "b"));
+        let me_turns = [turn(0, 10_000, 1), turn(20_000, 30_000, 2)];
+        let mut them = words(12_000, 4, "c");
+        them.extend(words(15_000, 4, "d"));
+        let them_turns = [turn(12_000, 14_500, 1), turn(14_500, 17_000, 2)];
+        let out = both(&me, &them, &me_turns, &them_turns);
+        assert_eq!(speakers(&out), vec!["s1", "s2", "s3", "s4"]);
+        assert!(out[1].text.starts_with('c'));
+        assert!(out[3].text.starts_with('b'));
+    }
+
+    #[test]
+    fn a_microphone_only_meeting_with_three_people() {
+        // 5.6 s of speech each (14 words of 400 ms), over the 5 s floor.
+        let mut me = words(0, 14, "a");
+        me.extend(words(8_000, 14, "b"));
+        me.extend(words(16_000, 14, "c"));
+        me.extend(words(24_000, 14, "a"));
+        // The diarizer numbers them 3, 1, 2.
+        let turns = [
+            turn(0, 7_000, 3),
+            turn(8_000, 15_000, 1),
+            turn(16_000, 23_000, 2),
+            turn(24_000, 31_000, 3),
+        ];
+        let out = both(&me, &[], &turns, &[]);
+        assert_eq!(speakers(&out), vec!["s1", "s2", "s3", "s1"]);
     }
 }

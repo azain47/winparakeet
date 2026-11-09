@@ -42,7 +42,7 @@
       "title": "Record a meeting",
       "sources": {
         "both": "Records your microphone (Me) and everything your PC plays (Them), then transcribes both after the call.",
-        "microphone": "Records only your microphone (Me), then transcribes it after the call.",
+        "microphone": "Records only your microphone, for example everyone in a meeting room, then transcribes it after the call.",
         "system": "Records only what your PC plays (Them), then transcribes it after the call."
       },
       "start": "Record meeting",
@@ -52,7 +52,9 @@
       "sourceReconnecting": "Reconnecting...",
       "sourceFailed": "Unavailable",
       "startFailed": "Couldn't start recording the meeting.",
-      "stopFailed": "Couldn't stop recording the meeting."
+      "stopFailed": "Couldn't stop recording the meeting.",
+      "microphoneLevel": "Microphone",
+      "systemLevel": "PC audio"
     },
     "status": {
       "recording": "Recording",
@@ -137,7 +139,7 @@
       "description": "What's recorded, how it's transcribed and how long its audio is kept",
       "sources": {
         "title": "Record",
-        "description": "Me is the microphone chosen in General; Them is everything your PC plays.",
+        "description": "Me is the microphone chosen in General; Them is everything your PC plays. When several people speak into the microphone, speaker labels tell them apart.",
         "both": "Microphone and system audio",
         "microphone": "Microphone only",
         "system": "System audio only"
@@ -148,7 +150,7 @@
       },
       "speakerLabels": {
         "title": "Speaker labels",
-        "description": "Tell apart who is speaking on the other side of the call, up to 4 speakers.",
+        "description": "Tells apart who is speaking, on the other side of the call and on your microphone when several people share it. Up to 4 speakers on each.",
         "downloadHint": "Turning this on downloads the speaker-label model.",
         "downloadingHint": "Downloading the speaker-label model.",
         "stopDownload": "Stop downloading the speaker-label model"

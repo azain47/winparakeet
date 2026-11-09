@@ -42,7 +42,7 @@
       "title": "Ghi âm cuộc họp",
       "sources": {
         "both": "Ghi âm micrô của bạn (Tôi) và mọi âm thanh máy tính phát ra (Họ), rồi chép lời cả hai sau cuộc gọi.",
-        "microphone": "Chỉ ghi âm micrô của bạn (Tôi), rồi chép lời sau cuộc gọi.",
+        "microphone": "Chỉ ghi âm micrô của bạn, ví dụ mọi người trong phòng họp, rồi chép lời sau cuộc gọi.",
         "system": "Chỉ ghi âm những gì máy tính phát ra (Họ), rồi chép lời sau cuộc gọi."
       },
       "start": "Ghi âm cuộc họp",
@@ -52,7 +52,9 @@
       "sourceReconnecting": "Đang kết nối lại...",
       "sourceFailed": "Không khả dụng",
       "startFailed": "Không thể bắt đầu ghi âm cuộc họp.",
-      "stopFailed": "Không thể dừng ghi âm cuộc họp."
+      "stopFailed": "Không thể dừng ghi âm cuộc họp.",
+      "microphoneLevel": "Micrô",
+      "systemLevel": "Âm thanh máy tính"
     },
     "status": {
       "recording": "Đang ghi âm",
@@ -137,7 +139,7 @@
       "description": "Những gì được ghi âm, cách chép lời và thời gian giữ âm thanh",
       "sources": {
         "title": "Ghi âm",
-        "description": "Tôi là micrô đã chọn trong Chung; Họ là mọi âm thanh máy tính phát ra.",
+        "description": "Tôi là micrô đã chọn trong Chung; Họ là mọi âm thanh máy tính phát ra. Khi nhiều người nói vào micrô, nhãn người nói sẽ phân biệt họ.",
         "both": "Micrô và âm thanh hệ thống",
         "microphone": "Chỉ micrô",
         "system": "Chỉ âm thanh hệ thống"
@@ -148,7 +150,7 @@
       },
       "speakerLabels": {
         "title": "Nhãn người nói",
-        "description": "Phân biệt ai đang nói ở phía bên kia cuộc gọi, tối đa 4 người.",
+        "description": "Phân biệt ai đang nói, ở phía bên kia cuộc gọi và trên micrô của bạn khi nhiều người dùng chung. Tối đa 4 người mỗi phía.",
         "downloadHint": "Bật tùy chọn này sẽ tải xuống mô hình nhãn người nói.",
         "downloadingHint": "Đang tải xuống mô hình nhãn người nói.",
         "stopDownload": "Dừng tải xuống mô hình nhãn người nói"

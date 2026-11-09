@@ -42,7 +42,7 @@
       "title": "Enregistrer une réunion",
       "sources": {
         "both": "Enregistre votre micro (Moi) et tout ce que votre PC diffuse (Eux), puis transcrit les deux après l'appel.",
-        "microphone": "Enregistre uniquement votre micro (Moi), puis le transcrit après l'appel.",
+        "microphone": "Enregistre uniquement votre micro, par exemple toutes les personnes d'une salle de réunion, puis le transcrit après l'appel.",
         "system": "Enregistre uniquement ce que votre PC diffuse (Eux), puis le transcrit après l'appel."
       },
       "start": "Enregistrer la réunion",
@@ -52,7 +52,9 @@
       "sourceReconnecting": "Reconnexion...",
       "sourceFailed": "Indisponible",
       "startFailed": "Impossible de démarrer l'enregistrement de la réunion.",
-      "stopFailed": "Impossible d'arrêter l'enregistrement de la réunion."
+      "stopFailed": "Impossible d'arrêter l'enregistrement de la réunion.",
+      "microphoneLevel": "Micro",
+      "systemLevel": "Audio du PC"
     },
     "status": {
       "recording": "Enregistrement",
@@ -137,7 +139,7 @@
       "description": "Ce qui est enregistré, comment c'est transcrit et combien de temps l'audio est conservé",
       "sources": {
         "title": "Enregistrer",
-        "description": "Moi est le micro choisi dans Général ; Eux est tout ce que votre PC diffuse.",
+        "description": "Moi est le micro choisi dans Général ; Eux est tout ce que votre PC diffuse. Lorsque plusieurs personnes parlent dans le micro, l'identification des intervenants les distingue.",
         "both": "Micro et audio système",
         "microphone": "Micro uniquement",
         "system": "Audio système uniquement"
@@ -148,7 +150,7 @@
       },
       "speakerLabels": {
         "title": "Identification des intervenants",
-        "description": "Distingue qui parle de l'autre côté de l'appel, jusqu'à 4 intervenants.",
+        "description": "Distingue qui parle, de l'autre côté de l'appel et dans votre micro lorsque plusieurs personnes le partagent. Jusqu'à 4 intervenants de chaque côté.",
         "downloadHint": "L'activation télécharge le modèle d'identification des intervenants.",
         "downloadingHint": "Téléchargement du modèle d'identification des intervenants.",
         "stopDownload": "Arrêter le téléchargement du modèle d'identification des intervenants"

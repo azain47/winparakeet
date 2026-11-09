@@ -119,8 +119,9 @@ pub struct MeetingSpeaker {
 }
 
 /// One utterance of the transcript, times from the start of the meeting.
-/// `speaker` is `me`, `them` (the other side, not split into speakers) or
-/// `s1`..`s4`.
+/// `speaker` is `me` (the microphone, one person), `them` (the other side,
+/// not split into speakers) or `s1`..`s8` (diarized speakers of either side,
+/// numbered in order of first appearance).
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Type)]
 pub struct MeetingSegment {
     pub speaker: String,

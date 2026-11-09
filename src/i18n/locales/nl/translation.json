@@ -42,7 +42,7 @@
       "title": "Een vergadering opnemen",
       "sources": {
         "both": "Neemt je microfoon (Ik) en alles wat je pc afspeelt (Zij) op, en transcribeert beide na het gesprek.",
-        "microphone": "Neemt alleen je microfoon (Ik) op en transcribeert die na het gesprek.",
+        "microphone": "Neemt alleen je microfoon op, bijvoorbeeld iedereen in een vergaderruimte, en transcribeert die na het gesprek.",
         "system": "Neemt alleen op wat je pc afspeelt (Zij) en transcribeert dat na het gesprek."
       },
       "start": "Vergadering opnemen",
@@ -52,7 +52,9 @@
       "sourceReconnecting": "Opnieuw verbinden...",
       "sourceFailed": "Niet beschikbaar",
       "startFailed": "Kan de opname van de vergadering niet starten.",
-      "stopFailed": "Kan de opname van de vergadering niet stoppen."
+      "stopFailed": "Kan de opname van de vergadering niet stoppen.",
+      "microphoneLevel": "Microfoon",
+      "systemLevel": "Pc-geluid"
     },
     "status": {
       "recording": "Opnemen",
@@ -137,7 +139,7 @@
       "description": "Wat er wordt opgenomen, hoe het wordt getranscribeerd en hoelang de audio wordt bewaard",
       "sources": {
         "title": "Opnemen",
-        "description": "Ik is de microfoon die in Algemeen is gekozen; Zij is alles wat je pc afspeelt.",
+        "description": "Ik is de microfoon die in Algemeen is gekozen; Zij is alles wat je pc afspeelt. Als meerdere mensen in de microfoon spreken, houden sprekerlabels ze uit elkaar.",
         "both": "Microfoon en systeemaudio",
         "microphone": "Alleen microfoon",
         "system": "Alleen systeemaudio"
@@ -148,7 +150,7 @@
       },
       "speakerLabels": {
         "title": "Sprekerlabels",
-        "description": "Onderscheid wie er aan de andere kant van het gesprek spreekt, tot 4 sprekers.",
+        "description": "Onderscheidt wie er spreekt, aan de andere kant van het gesprek en op je microfoon als meerdere mensen die delen. Tot 4 sprekers per kant.",
         "downloadHint": "Als je dit inschakelt, wordt het sprekerlabelmodel gedownload.",
         "downloadingHint": "Het sprekerlabelmodel wordt gedownload.",
         "stopDownload": "Download van het sprekerlabelmodel stoppen"

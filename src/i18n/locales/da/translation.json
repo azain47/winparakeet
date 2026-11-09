@@ -42,7 +42,7 @@
       "title": "Optag et møde",
       "sources": {
         "both": "Optager din mikrofon (Mig) og alt, hvad din pc afspiller (Dem), og transskriberer begge efter opkaldet.",
-        "microphone": "Optager kun din mikrofon (Mig) og transskriberer den efter opkaldet.",
+        "microphone": "Optager kun din mikrofon, for eksempel alle i et mødelokale, og transskriberer den efter opkaldet.",
         "system": "Optager kun det, din pc afspiller (Dem), og transskriberer det efter opkaldet."
       },
       "start": "Optag møde",
@@ -52,7 +52,9 @@
       "sourceReconnecting": "Genopretter forbindelse...",
       "sourceFailed": "Ikke tilgængelig",
       "startFailed": "Kunne ikke starte optagelsen af mødet.",
-      "stopFailed": "Kunne ikke stoppe optagelsen af mødet."
+      "stopFailed": "Kunne ikke stoppe optagelsen af mødet.",
+      "microphoneLevel": "Mikrofon",
+      "systemLevel": "Pc-lyd"
     },
     "status": {
       "recording": "Optager",
@@ -137,7 +139,7 @@
       "description": "Hvad der optages, hvordan det transskriberes, og hvor længe lyden gemmes",
       "sources": {
         "title": "Optag",
-        "description": "Mig er mikrofonen, der er valgt under Generelt; Dem er alt, hvad din pc afspiller.",
+        "description": "Mig er mikrofonen, der er valgt under Generelt; Dem er alt, hvad din pc afspiller. Når flere taler i mikrofonen, skelner talermærkater mellem dem.",
         "both": "Mikrofon og systemlyd",
         "microphone": "Kun mikrofon",
         "system": "Kun systemlyd"
@@ -148,7 +150,7 @@
       },
       "speakerLabels": {
         "title": "Talermærkater",
-        "description": "Skeln mellem, hvem der taler i den anden ende af opkaldet, op til 4 talere.",
+        "description": "Skelner mellem, hvem der taler – i den anden ende af opkaldet og i din mikrofon, når flere deler den. Op til 4 talere på hver side.",
         "downloadHint": "Når du slår dette til, downloades modellen til talermærkater.",
         "downloadingHint": "Downloader modellen til talermærkater.",
         "stopDownload": "Stop download af modellen til talermærkater"

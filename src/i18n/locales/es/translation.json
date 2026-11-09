@@ -42,7 +42,7 @@
       "title": "Grabar una reunión",
       "sources": {
         "both": "Graba tu micrófono (Yo) y todo lo que reproduce tu PC (Ellos), y transcribe ambos después de la llamada.",
-        "microphone": "Graba solo tu micrófono (Yo) y lo transcribe después de la llamada.",
+        "microphone": "Graba solo tu micrófono, por ejemplo a todos en una sala de reuniones, y lo transcribe después de la llamada.",
         "system": "Graba solo lo que reproduce tu PC (Ellos) y lo transcribe después de la llamada."
       },
       "start": "Grabar reunión",
@@ -52,7 +52,9 @@
       "sourceReconnecting": "Reconectando...",
       "sourceFailed": "No disponible",
       "startFailed": "No se pudo iniciar la grabación de la reunión.",
-      "stopFailed": "No se pudo detener la grabación de la reunión."
+      "stopFailed": "No se pudo detener la grabación de la reunión.",
+      "microphoneLevel": "Micrófono",
+      "systemLevel": "Audio del PC"
     },
     "status": {
       "recording": "Grabando",
@@ -137,7 +139,7 @@
       "description": "Qué se graba, cómo se transcribe y cuánto tiempo se conserva su audio",
       "sources": {
         "title": "Grabar",
-        "description": "Yo es el micrófono elegido en General; Ellos es todo lo que reproduce tu PC.",
+        "description": "Yo es el micrófono elegido en General; Ellos es todo lo que reproduce tu PC. Cuando varias personas hablan al micrófono, las etiquetas de hablantes las distinguen.",
         "both": "Micrófono y audio del sistema",
         "microphone": "Solo micrófono",
         "system": "Solo audio del sistema"
@@ -148,7 +150,7 @@
       },
       "speakerLabels": {
         "title": "Etiquetas de hablantes",
-        "description": "Distingue quién habla al otro lado de la llamada, hasta 4 hablantes.",
+        "description": "Distingue quién habla, al otro lado de la llamada y en tu micrófono cuando lo comparten varias personas. Hasta 4 hablantes en cada lado.",
         "downloadHint": "Al activarlo se descarga el modelo de etiquetas de hablantes.",
         "downloadingHint": "Descargando el modelo de etiquetas de hablantes.",
         "stopDownload": "Detener la descarga del modelo de etiquetas de hablantes"

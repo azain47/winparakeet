@@ -42,7 +42,7 @@
       "title": "Nagraj spotkanie",
       "sources": {
         "both": "Nagrywa Twój mikrofon (Ja) i wszystko, co odtwarza komputer (Oni), a po rozmowie transkrybuje oba źródła.",
-        "microphone": "Nagrywa tylko Twój mikrofon (Ja), a po rozmowie go transkrybuje.",
+        "microphone": "Nagrywa tylko Twój mikrofon, na przykład wszystkich w sali konferencyjnej, a po rozmowie go transkrybuje.",
         "system": "Nagrywa tylko to, co odtwarza komputer (Oni), a po rozmowie to transkrybuje."
       },
       "start": "Nagraj spotkanie",
@@ -52,7 +52,9 @@
       "sourceReconnecting": "Ponowne łączenie...",
       "sourceFailed": "Niedostępne",
       "startFailed": "Nie udało się rozpocząć nagrywania spotkania.",
-      "stopFailed": "Nie udało się zatrzymać nagrywania spotkania."
+      "stopFailed": "Nie udało się zatrzymać nagrywania spotkania.",
+      "microphoneLevel": "Mikrofon",
+      "systemLevel": "Dźwięk z komputera"
     },
     "status": {
       "recording": "Nagrywanie",
@@ -137,7 +139,7 @@
       "description": "Co jest nagrywane, jak jest transkrybowane i jak długo przechowywany jest dźwięk",
       "sources": {
         "title": "Nagrywaj",
-        "description": "Ja to mikrofon wybrany w sekcji Ogólne; Oni to wszystko, co odtwarza komputer.",
+        "description": "Ja to mikrofon wybrany w sekcji Ogólne; Oni to wszystko, co odtwarza komputer. Gdy do mikrofonu mówi kilka osób, oznaczanie mówców je rozróżnia.",
         "both": "Mikrofon i dźwięk systemowy",
         "microphone": "Tylko mikrofon",
         "system": "Tylko dźwięk systemowy"
@@ -148,7 +150,7 @@
       },
       "speakerLabels": {
         "title": "Oznaczanie mówców",
-        "description": "Rozróżniaj, kto mówi po drugiej stronie rozmowy (do 4 mówców).",
+        "description": "Rozróżnia, kto mówi – po drugiej stronie rozmowy oraz przy Twoim mikrofonie, gdy korzysta z niego kilka osób. Do 4 mówców po każdej stronie.",
         "downloadHint": "Włączenie tej opcji pobierze model oznaczania mówców.",
         "downloadingHint": "Pobieranie modelu oznaczania mówców.",
         "stopDownload": "Zatrzymaj pobieranie modelu oznaczania mówców"

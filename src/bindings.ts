@@ -1651,8 +1651,9 @@ export type MeetingRecording = { meeting_id: number; started_at: number; elapsed
 export type MeetingRecordingChanged = { recording: MeetingRecording | null }
 /**
  * One utterance of the transcript, times from the start of the meeting.
- * `speaker` is `me`, `them` (the other side, not split into speakers) or
- * `s1`..`s4`.
+ * `speaker` is `me` (the microphone, one person), `them` (the other side,
+ * not split into speakers) or `s1`..`s8`: speakers told apart on either
+ * side, numbered in order of first appearance.
  */
 export type MeetingSegment = { speaker: string; start_ms: number; end_ms: number; text: string }
 export type MeetingSourceState = 

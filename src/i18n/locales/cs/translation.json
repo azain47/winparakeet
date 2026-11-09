@@ -42,7 +42,7 @@
       "title": "Nahrát schůzku",
       "sources": {
         "both": "Nahrává váš mikrofon (Já) a vše, co přehrává počítač (Oni), a po hovoru obojí přepíše.",
-        "microphone": "Nahrává jen váš mikrofon (Já) a po hovoru ho přepíše.",
+        "microphone": "Nahrává jen váš mikrofon, například všechny v zasedací místnosti, a po hovoru ho přepíše.",
         "system": "Nahrává jen to, co přehrává počítač (Oni), a po hovoru to přepíše."
       },
       "start": "Nahrát schůzku",
@@ -52,7 +52,9 @@
       "sourceReconnecting": "Opětovné připojování...",
       "sourceFailed": "Nedostupné",
       "startFailed": "Nahrávání schůzky se nepodařilo spustit.",
-      "stopFailed": "Nahrávání schůzky se nepodařilo zastavit."
+      "stopFailed": "Nahrávání schůzky se nepodařilo zastavit.",
+      "microphoneLevel": "Mikrofon",
+      "systemLevel": "Zvuk počítače"
     },
     "status": {
       "recording": "Nahrává se",
@@ -137,7 +139,7 @@
       "description": "Co se nahrává, jak se to přepisuje a jak dlouho se uchovává zvuk",
       "sources": {
         "title": "Nahrávat",
-        "description": "Já je mikrofon vybraný v sekci Obecné; Oni je vše, co přehrává počítač.",
+        "description": "Já je mikrofon vybraný v sekci Obecné; Oni je vše, co přehrává počítač. Když do mikrofonu mluví více lidí, označení mluvčích je od sebe rozliší.",
         "both": "Mikrofon a zvuk systému",
         "microphone": "Jen mikrofon",
         "system": "Jen zvuk systému"
@@ -148,7 +150,7 @@
       },
       "speakerLabels": {
         "title": "Označení mluvčích",
-        "description": "Rozlišit, kdo mluví na druhé straně hovoru, až 4 mluvčí.",
+        "description": "Rozlišuje, kdo mluví – na druhé straně hovoru i do vašeho mikrofonu, když ho sdílí více lidí. Až 4 mluvčí na každé straně.",
         "downloadHint": "Zapnutím se stáhne model pro označení mluvčích.",
         "downloadingHint": "Stahuje se model pro označení mluvčích.",
         "stopDownload": "Zastavit stahování modelu pro označení mluvčích"
