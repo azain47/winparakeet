@@ -11,24 +11,23 @@ Private, offline speech-to-text for Windows. Dictate into any app with a global 
 
 WinParakeet is built on [Handy](https://github.com/cjpais/Handy) by CJ Pais and contributors. See [Built on Handy](#built-on-handy).
 
-## Status
-
-Today WinParakeet does what Handy 0.10 does, with a Windows-first focus:
+## Dictation
 
 - Hold or tap a shortcut, speak, and the text is pasted where your cursor is.
 - Local models through [transcribe.cpp](https://github.com/handy-computer/transcribe.cpp) (ggml/GGUF): NVIDIA Parakeet TDT v3 and v2, Whisper, Moonshine, SenseVoice and more, with Vulkan GPU acceleration.
+- The Live overlay (the default) shows your words while you talk, with any model: streaming models update as you speak, the others decode the recording again every 0.7 s or so. On a machine too slow for that, the text shows when you stop.
 - Transcribe audio and video files by dropping them on the window; history with playback.
-- Nothing is deleted behind your back: deleted entries, entries cleaned up from History and recordings you let go all land in the **Bin**, where you can restore them or delete them for good.
-- Keep only the text if you like: **Advanced → Clean Up History → Don't save recordings** stops writing dictation audio to disk, and asks what to do with the recordings you already have (keep them, or move all or the older ones to the Bin).
+- Deleted entries, entries removed by History cleanup, and recordings you stop keeping go to the **Bin**, where you can restore them or delete them for good.
+- **Advanced → Clean Up History → Don't save recordings** stops saving dictation audio, and asks what to do with the recordings you already have: keep them, or move all or the older ones to the Bin.
 - Optional LLM clean-up of transcripts through OpenAI-compatible endpoints (Ollama, LM Studio, or a cloud provider).
 
-While you hold the shortcut, a small pill at the bottom of the screen shows that it's listening:
+While you dictate, a pill shows the microphone level and a cancel button:
 
 <p align="center"><img src="docs/screenshots/recording-pill.png" alt="The recording pill: a green dot, the microphone level, and a cancel button" width="217"></p>
 
 ## Meetings
 
-The **Meetings** tab records a call without joining it: your microphone ("Me") and whatever the computer plays (the other side of a Teams, Zoom or Meet call) are recorded as two separate tracks. After the call both are transcribed on your machine, with timestamps, and the other side is split into speakers.
+The **Meetings** tab records a call without joining it: your microphone ("Me") and whatever the computer plays (the other side of a Teams, Zoom or Meet call) are recorded as two separate tracks. After the call both are transcribed on your machine, with timestamps.
 
 <p align="center">
   <picture>
@@ -37,24 +36,29 @@ The **Meetings** tab records a call without joining it: your microphone ("Me") a
   </picture>
 </p>
 
-- Start and stop from the Meetings tab, the tray menu, or `winparakeet.exe --toggle-meeting`. While a meeting records, a red bar sits where the dictation pill does, with the time, both sides' levels and a Stop button. Dictation keeps working during a meeting.
-- Speaker labels come from NVIDIA's Sortformer (an optional 139 MB download): up to four speakers on the other side of the call, and on your microphone too when several people in the room share it (for an in-person meeting, record only the microphone). Click a speaker to name them.
-- On speakers instead of headphones, your microphone also hears the other side; those lines are dropped from "Me" when the other side said them at the same time.
-- The audio is saved as you go: if WinParakeet or Windows crashes mid-call, the recording is recovered on the next launch.
-- Meetings have their own settings: what to record (both sides, only the microphone, or only system audio), which model transcribes them, and how long to keep the audio. It's kept by default, so you can **re-transcribe** a meeting later with a bigger model; or it can move to the Bin after transcription or after 7, 30 or 90 days. Transcripts always stay.
-- Export the transcript as text, Markdown, SRT or WebVTT subtitles, or JSON; save the audio as one WAV with both sides mixed (to transcribe it elsewhere), or open the folder with each side's own track.
+While a meeting records, a red bar shows the elapsed time, the microphone and PC audio levels, and a Stop button:
+
+<p align="center"><img src="docs/screenshots/meeting-bar.png" alt="The meeting bar: a red dot, Recording, the elapsed time, the microphone and PC audio levels, and a Stop button" width="359"></p>
+
+- Start and stop from the Meetings tab, the tray menu, or `winparakeet.exe --toggle-meeting`. You can dictate during a meeting.
+- Speaker labels (optional, a 139 MB download of NVIDIA's Sortformer) tell apart up to four speakers on each side. Click a speaker to name them.
+- The audio is written to disk while it records; if WinParakeet crashes or is killed mid-call, the recording is recovered on its next launch.
+- Meetings have their own settings: what to record (both sides, only the microphone, or only system audio), which model transcribes them, and how long to keep the audio. It's kept by default, so you can **re-transcribe** a meeting later with another model; or it can move to the Bin after transcription or after 7, 30 or 90 days. Transcripts stay.
+- Export the transcript as text, Markdown, SRT or WebVTT subtitles, or JSON; save the audio as one WAV with both sides mixed, or open the folder with each side's track.
 - Deleting a meeting, or only its audio, moves it to the Bin.
 
 Not yet: a live transcript during the call, summaries and chat through your own LLM endpoint.
 
 ## Screenshots
 
-|                                                                                                              |                                                                                                                     |
-| ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
-| <img src="docs/screenshots/bin.png" alt="The Bin page with a deleted dictation and a recording" width="420"> | <img src="docs/screenshots/models.png" alt="The Models page, grading each model for English and Hindi" width="420"> |
-| **Bin:** deleted dictations and recordings wait here until you restore them or delete them for good.         | **Models:** graded for the languages you speak, with sizes, speed, and which ones show live text.                   |
-| <img src="docs/screenshots/stop-saving-recordings.png" alt="The Stop saving recordings dialog" width="420">  | <img src="docs/screenshots/general.png" alt="The General settings page" width="420">                                |
-| **Stop saving recordings:** keep the ones you have, or move all or the older ones to the Bin.                | **General:** the shortcut, how it behaves, and your languages.                                                      |
+|                                                                                                                  |                                                                                                                        |
+| ---------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| <img src="docs/screenshots/bin.png" alt="The Bin page with a deleted dictation and a recording" width="420">     | <img src="docs/screenshots/models.png" alt="The Models page, grading each model for English and Hindi" width="420">    |
+| **Bin:** deleted dictations and recordings, until you restore them or delete them for good.                      | **Models:** graded for the languages you speak, with size, speed, and which ones stream.                               |
+| <img src="docs/screenshots/stop-saving-recordings.png" alt="The Stop saving recordings dialog" width="420">      | <img src="docs/screenshots/general.png" alt="The General settings page" width="420">                                   |
+| **Stop saving recordings:** keep the ones you have, or move all or the older ones to the Bin.                    | **General:** the shortcut, how it behaves, and your languages.                                                         |
+| <img src="docs/screenshots/meeting-recording.png" alt="The Meetings tab while a meeting records" width="420">    | <img src="docs/screenshots/meeting-settings.png" alt="The meeting settings" width="420">                               |
+| **Meetings:** a recording in progress, with the elapsed time and both sides' levels, above the list of meetings. | **Meeting settings:** what to record, which model transcribes meetings, speaker labels, and whether to keep the audio. |
 
 ## Install
 
