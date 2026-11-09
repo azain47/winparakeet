@@ -39,7 +39,15 @@ jobs:
           VERSION=$(grep -o '"version": "[^"]*"' src-tauri/tauri.conf.json | cut -d'"' -f4)
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
+      # GitHub release downloads (Bun, vcpkg ports, Tauri's WiX and NSIS)
+      # sometimes answer 504; the setup and build steps get one retry.
       - name: Setup Bun
+        id: setup-bun
+        continue-on-error: true
+        uses: oven-sh/setup-bun@v2
+
+      - name: Setup Bun (retry)
+        if: steps.setup-bun.outcome == 'failure'
         uses: oven-sh/setup-bun@v2
 
       - name: Install Rust stable
@@ -47,11 +55,20 @@ jobs:
 
       - name: Rust cache
         # Releases compile from scratch so no stale cached native library ships.
+        # Saved even when a later step fails, so a retry skips the compile.
         if: ${{ !inputs.release }}
         uses: swatinem/rust-cache@v2
         with:
           workspaces: "./src-tauri -> target"
           cache-bin: false
+          cache-on-failure: true
+
+      - name: Cache Tauri bundler tools
+        uses: actions/cache@v5
+        with:
+          path: ~/AppData/Local/tauri
+          key: tauri-bundler-tools-${{ hashFiles('bun.lock') }}
+          restore-keys: tauri-bundler-tools-
 
       - name: Install Vulkan SDK
         uses: humbletim/install-vulkan-sdk@v1.2
@@ -65,8 +82,12 @@ jobs:
       - name: Install SPIRV-Headers
         shell: pwsh
         run: |
-          vcpkg install spirv-headers:x64-windows
-          if ($LASTEXITCODE -ne 0) { throw "vcpkg install spirv-headers failed" }
+          foreach ($attempt in 1..3) {
+            vcpkg install spirv-headers:x64-windows
+            if ($LASTEXITCODE -eq 0) { break }
+            if ($attempt -eq 3) { throw "vcpkg install spirv-headers failed" }
+            Start-Sleep -Seconds 30
+          }
           $prefix = "$env:VCPKG_INSTALLATION_ROOT/installed/x64-windows" -replace '\\','/'
           $combined = if ($env:CMAKE_PREFIX_PATH) { "$prefix;$env:CMAKE_PREFIX_PATH" } else { $prefix }
           Add-Content $env:GITHUB_ENV "CMAKE_PREFIX_PATH=$combined"
@@ -111,16 +132,26 @@ jobs:
         run: echo "TAURI_BUILD_ARGS=--config '{\"bundle\":{\"createUpdaterArtifacts\":false}}'" >> "$GITHUB_ENV"
 
       - name: Build with Tauri
+        id: tauri-build
+        continue-on-error: true
         uses: tauri-apps/tauri-action@v0
-        env:
+        env: &tauri-env
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-        with:
+        with: &tauri-with
           tagName: ${{ inputs.release && format('v{0}', steps.version.outputs.version) || '' }}
           releaseName: ${{ inputs.release && format('WinParakeet v{0}', steps.version.outputs.version) || '' }}
           releaseDraft: true
           args: ${{ env.TAURI_BUILD_ARGS }}
+
+      # The compile output is still in target/, so the retry only re-bundles.
+      # A real build error fails again.
+      - name: Build with Tauri (retry)
+        if: steps.tauri-build.outcome == 'failure'
+        uses: tauri-apps/tauri-action@v0
+        env: *tauri-env
+        with: *tauri-with
 
       # Both installers must contain winparakeet.exe and every staged DLL, and
       # the installed app must start far enough to enumerate compute devices.
