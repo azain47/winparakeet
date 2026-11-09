@@ -1,6 +1,6 @@
 [package]
 name = "winparakeet"
-version = "0.1.0"
+version = "0.1.1"
 description = "WinParakeet: local dictation and meeting transcription for Windows, built on Handy"
 authors = ["Azain", "cjpais and the Handy contributors"]
 edition = "2021"
