@@ -119,9 +119,13 @@ bun tauri build --target "$TARGET" --no-bundle
 
 OUT="$REPO/dist-windows"
 EXE="$CARGO_TARGET_DIR/$TARGET/release/winparakeet.exe"
-# A running copy keeps the exe and its DLLs locked.
+# A running copy keeps the exe and its DLLs locked. One running as administrator
+# can only be closed from an elevated shell.
 if command -v taskkill.exe >/dev/null && tasklist.exe /FI "IMAGENAME eq winparakeet.exe" 2>/dev/null | grep -qi winparakeet.exe; then
-    taskkill.exe /IM winparakeet.exe /F >/dev/null
+    taskkill.exe /IM winparakeet.exe /F >/dev/null || {
+        echo "error: couldn't close the running WinParakeet; quit it from the tray (or run this from an elevated terminal) and build again" >&2
+        exit 1
+    }
     sleep 1
 fi
 mkdir -p "$OUT"

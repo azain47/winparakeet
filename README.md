@@ -64,6 +64,12 @@ Press `Ctrl+Shift+D` in the settings window to show the Debug section.
 
 ## Troubleshooting
 
+### The shortcut does nothing in an administrator window
+
+Windows doesn't let a normal app see keys typed into a window running as administrator, or paste into it (User Interface Privilege Isolation). With WinParakeet running normally, dictation therefore does nothing in an elevated terminal (for example Windows Terminal with `"elevate": true`) or any other admin app.
+
+Either run that app without administrator rights, or run WinParakeet as administrator: right-click `winparakeet.exe` → **Properties → Compatibility → Run this program as an administrator**. Windows then asks for permission (UAC) at every launch, and dragging files from Explorer onto WinParakeet stops working; use **History → Transcribe File** instead.
+
 ### Your previous clipboard content is pasted instead of the transcription
 
 With the default clipboard paste method, the previous clipboard is restored after a fixed delay. A busy application may read the clipboard only after that. Open the Debug section (`Ctrl+Shift+D`) and try **Reliable Paste (Beta)**, or raise **Paste Delay (After)**.
