@@ -30,6 +30,13 @@ While you hold the shortcut, a small pill at the bottom of the screen shows that
 
 The **Meetings** tab records a call without joining it: your microphone ("Me") and whatever the computer plays (the other side of a Teams, Zoom or Meet call) are recorded as two separate tracks. After the call both are transcribed on your machine, with timestamps, and the other side is split into speakers.
 
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/meeting-dark.png">
+    <img src="docs/screenshots/meeting-light.png" alt="A meeting's transcript in WinParakeet: three named speakers with their talk time, the audio player, and timestamped lines" width="640">
+  </picture>
+</p>
+
 - Start and stop from the Meetings tab, the tray menu, or `winparakeet.exe --toggle-meeting`. Dictation keeps working during a meeting.
 - Speaker labels come from NVIDIA's Sortformer (an optional 139 MB download): up to four speakers on the other side of the call, and on your microphone too when several people in the room share it (for an in-person meeting, record only the microphone). Click a speaker to name them.
 - On speakers instead of headphones, your microphone also hears the other side; those lines are dropped from "Me" when the other side said them at the same time.
@@ -51,7 +58,11 @@ Not yet: a live transcript during the call, summaries and chat through your own 
 
 ## Install
 
-There are no releases yet. Every push to `main` builds Windows installers: open the latest run of the [Windows build](https://github.com/azain47/winparakeet/actions/workflows/windows.yml) workflow and download the `winparakeet-windows-x64` artifact (NSIS `.exe` and `.msi`). The builds are not code-signed, so SmartScreen warns before the first launch.
+Download the installer from the [latest release](https://github.com/azain47/winparakeet/releases/latest): `WinParakeet_<version>_x64-setup.exe`, or the `.msi` for managed installs. WinParakeet checks for new releases and offers to install them.
+
+The installers aren't code-signed yet, so Windows SmartScreen warns before the first launch: choose **More info → Run anyway**.
+
+Every push to `main` also builds installers: the latest run of the [Windows build](https://github.com/azain47/winparakeet/actions/workflows/windows.yml) workflow has them as the `winparakeet-windows-x64` artifact.
 
 ## Build from source
 
