@@ -328,7 +328,6 @@
       "title": "{{model}}-inställningar"
     },
     "general": {
-      "title": "Allmänt",
       "shortcut": {
         "title": "WinParakeet-kortkommandon",
         "description": "Konfigurera kortkommandon för att starta tal-till-text-inspelning",
@@ -691,7 +690,6 @@
       }
     },
     "history": {
-      "title": "Historik",
       "openFolder": "Öppna mapp för inspelningar",
       "loading": "Laddar historik...",
       "empty": "Inga transkriptioner ännu. Börja spela in för att bygga upp din historik!",
@@ -721,7 +719,6 @@
       "dropDescription": "Den visas i historiken."
     },
     "debug": {
-      "title": "Felsökning",
       "logDirectory": {
         "title": "Loggmapp",
         "description": "Plats där loggfiler lagras"
@@ -870,7 +867,6 @@
       }
     },
     "about": {
-      "title": "Om",
       "version": {
         "title": "Version",
         "description": "Nuvarande version av WinParakeet"

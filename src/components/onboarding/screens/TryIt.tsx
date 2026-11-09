@@ -437,7 +437,6 @@ export const TryIt: React.FC<TryItProps> = ({
               >
                 <MicrophoneDropdown
                   placement="above"
-                  tone="neutral"
                   onPicked={() => {
                     e.dismiss();
                     e.field.current?.focus({ preventScroll: true });

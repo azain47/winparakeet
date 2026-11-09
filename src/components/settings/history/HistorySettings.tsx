@@ -352,26 +352,20 @@ export const HistorySettings: React.FC = () => {
   return (
     <div className="max-w-3xl w-full mx-auto space-y-6">
       <div className="space-y-2">
-        <div className="px-4 flex items-center justify-between">
-          <div>
-            <h2 className="text-xs font-medium text-ink-3 uppercase tracking-wide">
-              {t("settings.history.title")}
-            </h2>
-          </div>
-          <div className="flex items-center gap-2">
-            <HeaderButton
-              onClick={transcribeFile}
-              label={t("settings.history.transcribeFile")}
-              icon={FilePlus}
-            />
-            <HeaderButton
-              onClick={openRecordingsFolder}
-              label={t("settings.history.openFolder")}
-              icon={FolderOpen}
-            />
-          </div>
+        {/* The page title (Sidebar label) heads the list; its actions sit above it. */}
+        <div className="flex items-center justify-end gap-2 px-1">
+          <HeaderButton
+            onClick={transcribeFile}
+            label={t("settings.history.transcribeFile")}
+            icon={FilePlus}
+          />
+          <HeaderButton
+            onClick={openRecordingsFolder}
+            label={t("settings.history.openFolder")}
+            icon={FolderOpen}
+          />
         </div>
-        <div className="bg-background border border-line rounded-lg overflow-visible">
+        <div className="bg-card border border-line rounded-[8px] overflow-visible">
           {content}
         </div>
       </div>

@@ -328,7 +328,6 @@
       "title": "Instellingen voor {{model}}"
     },
     "general": {
-      "title": "Algemeen",
       "shortcut": {
         "title": "Sneltoetsen",
         "description": "Configureer sneltoetsen om spraak-naar-tekst-opnames te starten",
@@ -691,7 +690,6 @@
       }
     },
     "history": {
-      "title": "Geschiedenis",
       "openFolder": "Opnamemap openen",
       "loading": "Geschiedenis laden...",
       "empty": "Nog geen transcripties. Start met opnemen om je geschiedenis op te bouwen!",
@@ -721,7 +719,6 @@
       "dropDescription": "Het verschijnt in de geschiedenis."
     },
     "debug": {
-      "title": "Probleemoplossing",
       "logDirectory": {
         "title": "Logboekmap",
         "description": "Locatie waar logbestanden worden opgeslagen"
@@ -870,7 +867,6 @@
       }
     },
     "about": {
-      "title": "Over WinParakeet",
       "version": {
         "title": "Versie",
         "description": "Huidige versie van WinParakeet"

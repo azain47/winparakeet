@@ -328,7 +328,6 @@
       "title": "Nastavení {{model}}"
     },
     "general": {
-      "title": "Obecné",
       "shortcut": {
         "title": "Zkratky WinParakeet",
         "description": "Nastavte klávesové zkratky pro spuštění nahrávání řeči na text",
@@ -691,7 +690,6 @@
       }
     },
     "history": {
-      "title": "Historie",
       "openFolder": "Otevřít složku nahrávek",
       "loading": "Načítám historii...",
       "empty": "Zatím žádné přepisy. Začněte nahrávat a vytvořte si historii!",
@@ -721,7 +719,6 @@
       "dropDescription": "Zobrazí se v historii."
     },
     "debug": {
-      "title": "Ladění",
       "logDirectory": {
         "title": "Složka protokolů",
         "description": "Umístění, kde jsou uloženy soubory protokolu"
@@ -870,7 +867,6 @@
       }
     },
     "about": {
-      "title": "O aplikaci",
       "version": {
         "title": "Verze",
         "description": "Aktuální verze WinParakeet"

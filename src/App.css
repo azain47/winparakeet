@@ -8,7 +8,11 @@
 @theme inline {
   --color-text: var(--color-text);
   --color-background: var(--color-background);
+  --color-card: var(--color-card);
+  --color-card-hover: var(--color-card-hover);
+  --color-flyout: var(--color-flyout);
   --color-background-ui: var(--color-background-ui);
+  --color-on-accent: var(--color-on-accent);
   --color-logo-primary: var(--color-logo-primary);
   --color-warning: var(--color-warning);
   --color-error: var(--color-error);
@@ -16,7 +20,6 @@
   --color-plum: var(--color-plum);
   --color-plum-pick: var(--color-plum-pick);
   --color-demo-window: var(--color-demo-window);
-  --color-mascot-line: var(--color-mascot-line);
   --color-wash: var(--color-wash);
   --color-moss-wash: var(--color-moss-wash);
   --color-warning-wash: var(--color-warning-wash);
@@ -25,6 +28,7 @@
   --color-ink-3: var(--color-ink-3);
   --color-line: var(--color-line);
   --color-line-strong: var(--color-line-strong);
+  --shadow-flyout: var(--shadow-flyout);
 }
 
 /* Noto Sans CJK subset (see src/lib/utils/cjkFont.ts): Windows' CJK fonts
@@ -39,11 +43,12 @@
 /* Onboarding's scale in px (rem steps land on fractions at a 15px root).
    Names avoid Tailwind's defaults, which Settings still uses. */
 @theme {
+  /* Windows 11's type families; the Display cut for titles. */
   --font-display:
-    ui-rounded, "SF Pro Rounded", system-ui, -apple-system,
-    "Segoe UI Variable Display", "Segoe UI", sans-serif;
+    "Segoe UI Variable Display", "Segoe UI", system-ui, -apple-system,
+    sans-serif;
   --font-ui:
-    system-ui, -apple-system, "Segoe UI Variable Text", "Segoe UI", Roboto,
+    "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, Roboto,
     "Noto Sans", sans-serif;
   --font-cjk-subset:
     "Handy CJK Subset", -apple-system, "Segoe UI Variable Text", "Segoe UI",
@@ -57,10 +62,10 @@
   --text-label: 12px; /* labels */
   --text-tag: 11px; /* tags, column codes, small grade chips */
 
-  --radius-panel: 16px; /* panels, the selected card */
-  --radius-card: 12px;
-  --radius-control: 10px; /* buttons, fields, table rows */
-  --radius-chip: 6px; /* grade chips */
+  --radius-panel: 8px; /* panels, the selected card */
+  --radius-card: 8px;
+  --radius-control: 4px; /* buttons, fields, table rows */
+  --radius-chip: 4px; /* grade chips */
 
   /* Onboarding's side gutter. */
   --spacing-gutter: 64px;
@@ -70,7 +75,7 @@
 
   --ease-glide: cubic-bezier(0.22, 1, 0.36, 1);
 
-  /* The mascot waves once on arrival (it rests tilted -8deg) */
+  /* The mascot waves once on arrival */
   --animate-wave: wave 1100ms var(--ease-glide) 250ms both;
   /* A high five: lunge, squash, settle; the burst over it */
   --animate-slap: slap 420ms var(--ease-glide);
@@ -86,39 +91,39 @@
 
   @keyframes wave {
     0% {
-      rotate: -8deg;
+      rotate: 0deg;
     }
     20% {
-      rotate: 10deg;
+      rotate: 12deg;
     }
     40% {
-      rotate: -14deg;
-    }
-    60% {
-      rotate: 8deg;
-    }
-    80% {
       rotate: -10deg;
     }
+    60% {
+      rotate: 7deg;
+    }
+    80% {
+      rotate: -4deg;
+    }
     100% {
-      rotate: -8deg;
+      rotate: 0deg;
     }
   }
   @keyframes slap {
     0% {
-      rotate: -8deg;
+      rotate: 0deg;
       scale: 1;
     }
     30% {
-      rotate: 4deg;
+      rotate: 8deg;
       scale: 1.16 1.08;
     }
     45% {
-      rotate: 2deg;
+      rotate: 4deg;
       scale: 0.94 1.02;
     }
     100% {
-      rotate: -8deg;
+      rotate: 0deg;
       scale: 1;
     }
   }
@@ -175,6 +180,7 @@
 
 :root {
   /* Typography */
+  font-family: var(--font-ui);
   font-size: 15px;
   line-height: 24px;
   font-weight: 400;
@@ -261,12 +267,20 @@
   background-color: var(--scrollbar-thumb-hover);
 }
 
-.logo-primary {
-  fill: var(--color-wordmark);
+/* Slider thumb (ui/Slider.tsx), Windows 11 style: an accent dot in a ring. */
+.wp-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--color-background-ui);
+  border: 5px solid var(--color-card);
+  box-shadow: 0 0 0 1px var(--color-line-strong);
+  transition: border-width 100ms ease;
 }
-
-.logo-stroke {
-  fill: var(--color-wordmark-stroke);
-  stroke: var(--color-wordmark-stroke);
-  stroke-width: 1;
+.wp-slider:hover::-webkit-slider-thumb {
+  border-width: 4px;
+}
+.wp-slider:active::-webkit-slider-thumb {
+  border-width: 6px;
 }

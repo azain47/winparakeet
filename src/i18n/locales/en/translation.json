@@ -328,7 +328,6 @@
       "title": "{{model}} Settings"
     },
     "general": {
-      "title": "General",
       "shortcut": {
         "title": "WinParakeet Shortcuts",
         "description": "Configure keyboard shortcuts to trigger speech-to-text recording",
@@ -691,7 +690,6 @@
       }
     },
     "history": {
-      "title": "History",
       "openFolder": "Open Recordings Folder",
       "loading": "Loading history...",
       "empty": "No transcriptions yet. Start recording to build your history!",
@@ -721,7 +719,6 @@
       "dropDescription": "It'll show up in History."
     },
     "debug": {
-      "title": "Debug",
       "logDirectory": {
         "title": "Log Directory",
         "description": "Location where log files are stored"
@@ -870,7 +867,6 @@
       }
     },
     "about": {
-      "title": "About",
       "version": {
         "title": "Version",
         "description": "Current version of WinParakeet"

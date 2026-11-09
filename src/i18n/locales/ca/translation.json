@@ -328,7 +328,6 @@
       "title": "Configuració de {{model}}"
     },
     "general": {
-      "title": "General",
       "shortcut": {
         "title": "Dreceres del WinParakeet",
         "description": "Configura les dreceres de teclat per iniciar l'enregistrament de veu per a la transcripció",
@@ -691,7 +690,6 @@
       }
     },
     "history": {
-      "title": "Historial",
       "openFolder": "Obriu la carpeta d'enregistraments",
       "loading": "S'està carregant l'historial...",
       "empty": "Encara no hi ha transcripcions. Comenceu a enregistrar per crear l'historial!",
@@ -721,7 +719,6 @@
       "dropDescription": "Apareixerà a l'historial."
     },
     "debug": {
-      "title": "Depuració",
       "logDirectory": {
         "title": "Directori de registres",
         "description": "Ubicació on es desen els fitxers de registre"
@@ -870,7 +867,6 @@
       }
     },
     "about": {
-      "title": "Quant a",
       "version": {
         "title": "Versió",
         "description": "Versió actual del WinParakeet"

@@ -7,6 +7,7 @@ import {
   applyTheme,
   getStoredTheme,
   syncThemeFromSettings,
+  watchWindowChrome,
 } from "./lib/utils/theme";
 
 installCompatShims();
@@ -18,6 +19,8 @@ document.documentElement.dataset.platform = platform();
 // the wrong palette, then reconcile with the persisted setting once it loads.
 applyTheme(getStoredTheme());
 syncThemeFromSettings();
+// The native title bar follows whichever palette is active.
+watchWindowChrome();
 
 // Initialize i18n
 import "./i18n";

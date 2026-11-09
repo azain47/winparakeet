@@ -328,7 +328,6 @@
       "title": "{{model}}-Einstellungen"
     },
     "general": {
-      "title": "Allgemein",
       "shortcut": {
         "title": "WinParakeet-Tastenkürzel",
         "description": "Tastenkürzel für die Sprachaufnahme konfigurieren",
@@ -691,7 +690,6 @@
       }
     },
     "history": {
-      "title": "Verlauf",
       "openFolder": "Aufnahmeordner öffnen",
       "loading": "Verlauf wird geladen...",
       "empty": "Noch keine Transkriptionen. Starte eine Aufnahme, um deinen Verlauf aufzubauen!",
@@ -721,7 +719,6 @@
       "dropDescription": "Es erscheint im Verlauf."
     },
     "debug": {
-      "title": "Debug",
       "logDirectory": {
         "title": "Log-Verzeichnis",
         "description": "Speicherort der Log-Dateien"
@@ -870,7 +867,6 @@
       }
     },
     "about": {
-      "title": "Info",
       "version": {
         "title": "Version",
         "description": "Aktuelle Version von WinParakeet"

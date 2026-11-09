@@ -279,7 +279,7 @@ export const Model: React.FC<ModelProps> = ({
         role="radio"
         aria-checked="true"
         tabIndex={0}
-        className="flex w-full min-w-0 flex-col items-stretch rounded-panel border-[1.5px] border-plum-pick bg-background px-5 py-4 text-start text-small text-text [view-transition-class:mf-row_mf-box]"
+        className="flex w-full min-w-0 flex-col items-stretch rounded-panel border border-plum-pick bg-card px-5 py-4 text-start text-small text-text [view-transition-class:mf-row_mf-box]"
       >
         <span className="flex min-w-0 items-center gap-[10px] whitespace-nowrap">
           {mark(id, true)}
@@ -382,7 +382,7 @@ export const Model: React.FC<ModelProps> = ({
         {...vt(id)}
         data-vt-row=""
         onClick={() => choose(id, true)}
-        className={`relative grid w-full min-w-0 cursor-pointer grid-cols-[18px_minmax(0,1fr)_auto] items-center gap-x-[10px] rounded-card border-[1.5px] border-line bg-background px-5 text-start text-small leading-[1.5] text-text hover:border-ink-3 hover:bg-wash [view-transition-class:mf-row_mf-box] ${line ? "pt-[8px] pb-[15px]" : "py-[8px]"}`}
+        className={`relative grid w-full min-w-0 cursor-pointer grid-cols-[18px_minmax(0,1fr)_auto] items-center gap-x-[10px] rounded-card border border-line bg-card px-5 text-start text-small leading-[1.5] text-text hover:bg-card-hover [view-transition-class:mf-row_mf-box] ${line ? "pt-[8px] pb-[15px]" : "py-[8px]"}`}
       >
         {mark(id, false)}
         <span className="flex min-w-0 flex-col items-start">
@@ -429,7 +429,7 @@ export const Model: React.FC<ModelProps> = ({
         {...vt(id)}
         data-vt-row=""
         onClick={() => choose(id, true)}
-        className={`relative flex w-full min-w-0 cursor-pointer items-center gap-[10px] whitespace-nowrap rounded-card border-[1.5px] border-line bg-background px-5 text-start text-small text-text hover:border-ink-3 hover:bg-wash [view-transition-class:mf-row_mf-box] ${line ? "pt-[8px] pb-[15px]" : "py-[8px]"}`}
+        className={`relative flex w-full min-w-0 cursor-pointer items-center gap-[10px] whitespace-nowrap rounded-card border border-line bg-card px-5 text-start text-small text-text hover:bg-card-hover [view-transition-class:mf-row_mf-box] ${line ? "pt-[8px] pb-[15px]" : "py-[8px]"}`}
       >
         {mark(id, false)}
         <b {...vt(id, "r")} className={`${roleBase} text-label text-text`}>
@@ -552,7 +552,7 @@ export const Model: React.FC<ModelProps> = ({
           <button
             type="button"
             onClick={() => open()}
-            className="mt-[8px] flex h-[38px] flex-none cursor-pointer items-center gap-[8px] self-stretch rounded-card border-[1.5px] border-dashed border-line-strong px-[20px] text-start text-small font-semibold text-ink-2 hover:border-solid hover:bg-wash hover:text-text"
+            className="mt-[8px] flex h-[38px] flex-none cursor-pointer items-center gap-[8px] self-stretch rounded-card border border-dashed border-line-strong px-[20px] text-start text-small font-semibold text-ink-2 hover:border-solid hover:bg-wash hover:text-text"
           >
             {t("onboarding.model.showAll", { count: models.offered.length })}
             <Chevron />

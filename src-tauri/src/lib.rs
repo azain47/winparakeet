@@ -32,6 +32,7 @@ mod tray;
 mod tray_i18n;
 mod utils;
 pub mod webkit_renderer;
+mod window_chrome;
 
 pub use cli::CliArgs;
 #[cfg(debug_assertions)]
@@ -816,6 +817,7 @@ pub fn run(cli_args: CliArgs) {
             notices::get_active_notices,
             notices::dismiss_notice,
             notices::dismiss_overlay_notice,
+            window_chrome::set_window_chrome,
         ])
         .events(collect_events![
             managers::history::HistoryUpdatePayload,

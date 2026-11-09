@@ -328,7 +328,6 @@
       "title": "Impostazioni di {{model}}"
     },
     "general": {
-      "title": "Generale",
       "shortcut": {
         "title": "Scorciatoie di WinParakeet",
         "description": "Configura le scorciatoie per attivare la trascrizione vocale",
@@ -691,7 +690,6 @@
       }
     },
     "history": {
-      "title": "Cronologia",
       "openFolder": "Apri la cartella delle registrazioni",
       "loading": "Caricamento cronologia...",
       "empty": "Non ci sono ancora trascrizioni. Comincia a registrare per costruire la tua cronologia!",
@@ -721,7 +719,6 @@
       "dropDescription": "Comparirà nella cronologia."
     },
     "debug": {
-      "title": "Debug",
       "logDirectory": {
         "title": "Cartella dei Log",
         "description": "Cartella dove vengono salvati i file di log"
@@ -870,7 +867,6 @@
       }
     },
     "about": {
-      "title": "Informazioni",
       "version": {
         "title": "Versione",
         "description": "Versione attuale di WinParakeet"

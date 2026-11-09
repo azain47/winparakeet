@@ -263,8 +263,8 @@ export const ModelTable: React.FC<ModelTableProps> = ({
     <ModelTableContext.Provider value={{ grading, actions, highlighted }}>
       <div
         ref={panelRef}
-        className={`group/list flex min-h-0 w-full flex-1 flex-col overflow-hidden rounded-panel bg-background text-start ${
-          thinEdge ? "border border-line" : "border-[1.5px] border-line-strong"
+        className={`group/list flex min-h-0 w-full flex-1 flex-col overflow-hidden rounded-panel bg-card text-start border ${
+          thinEdge ? "border-line" : "border-line-strong"
         }`}
       >
         {/* The magnifier and input align with the marks and names columns. */}
@@ -312,7 +312,7 @@ export const ModelTable: React.FC<ModelTableProps> = ({
         {!empty && (
           // Heads sit outside the list so rows only clip at the list's edge. The
           // fade starts 1px up so no row sliver shows at fractional pixels.
-          <div className="relative z-[1] flex-none bg-background px-[6px] after:pointer-events-none after:absolute after:inset-x-0 after:top-[calc(100%-1px)] after:h-[21px] after:bg-linear-to-b after:from-background after:to-transparent after:opacity-0 after:transition-opacity group-data-scrolled/list:after:opacity-100">
+          <div className="relative z-[1] flex-none bg-card px-[6px] after:pointer-events-none after:absolute after:inset-x-0 after:top-[calc(100%-1px)] after:h-[21px] after:bg-linear-to-b after:from-card after:to-transparent after:opacity-0 after:transition-opacity group-data-scrolled/list:after:opacity-100">
             <div
               ref={headsRef}
               className={`${rowGrid(actions)} h-[32px] px-[14px]`}

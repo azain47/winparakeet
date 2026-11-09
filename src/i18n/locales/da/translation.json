@@ -328,7 +328,6 @@
       "title": "{{model}}-indstillinger"
     },
     "general": {
-      "title": "Generelt",
       "shortcut": {
         "title": "WinParakeet-genveje",
         "description": "Konfigurer tastaturgenveje til at udløse tale-til-tekst-optagelse",
@@ -691,7 +690,6 @@
       }
     },
     "history": {
-      "title": "Historik",
       "openFolder": "Åbn optagelsesmappe",
       "loading": "Indlæser historik...",
       "empty": "Ingen transskriptioner endnu. Start optagelse for at opbygge din historik!",
@@ -721,7 +719,6 @@
       "dropDescription": "Den vises i historikken."
     },
     "debug": {
-      "title": "Fejlfinding",
       "logDirectory": {
         "title": "Logmappe",
         "description": "Placering af logfiler"
@@ -870,7 +867,6 @@
       }
     },
     "about": {
-      "title": "Om",
       "version": {
         "title": "Version",
         "description": "Nuværende version af WinParakeet"

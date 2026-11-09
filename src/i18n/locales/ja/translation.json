@@ -328,7 +328,6 @@
       "title": "{{model}} の設定"
     },
     "general": {
-      "title": "一般",
       "shortcut": {
         "title": "WinParakeet ショートカット",
         "description": "音声録音を開始するキーボードショートカットを設定",
@@ -691,7 +690,6 @@
       }
     },
     "history": {
-      "title": "履歴",
       "openFolder": "録音フォルダを開く",
       "loading": "履歴を読み込み中…",
       "empty": "まだ文字起こしがありません。録音を開始して履歴を作成しましょう!",
@@ -721,7 +719,6 @@
       "dropDescription": "履歴に表示されます。"
     },
     "debug": {
-      "title": "デバッグ",
       "logDirectory": {
         "title": "ログディレクトリ",
         "description": "ログファイルの保存場所"
@@ -870,7 +867,6 @@
       }
     },
     "about": {
-      "title": "概要",
       "version": {
         "title": "バージョン",
         "description": "WinParakeet の現在のバージョン"

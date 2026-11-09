@@ -1,44 +1,55 @@
-/* Handy Colors: every color the app uses comes from here. Pick by job:
- * greys (ink-2, ink-3, line-strong, line, wash) for text, edges and fills;
- * logo-primary / background-ui for brand and primary actions; plum for keys
- * and picks (onboarding); moss / warning / error (+ -wash) for status.
- * demo-*, wordmark and mascot are illustration, not UI.
+/* WinParakeet colors: every color the app uses comes from here. Pick by job:
+ * text, ink-2 (secondary) and ink-3 (hints, icons) for text;
+ * card / card-hover for setting rows, flyout for menus and popups, wash for
+ * subtle fills, line / line-strong for edges;
+ * logo-primary is the accent (selection, focus, links); background-ui is the
+ * accent fill behind on-accent text; plum is the ink for keycaps and picked
+ * items (onboarding); moss / warning / error (+ -wash) for status.
+ * demo-* are illustration, not UI.
+ *
+ * The neutrals follow Windows 11's Settings app; the accent is one muted
+ * parakeet green, used sparingly.
  */
 
 :root {
   /* Palette source of truth. Each themed color is defined once as a
      light/dark pair; the active tokens below and the `data-theme` overrides
-     in App.css reference these, so a hex value lives in exactly one place. */
-  --light-color-text: #0f0f0f;
-  --light-color-background: #fbfbfb;
-  --light-color-logo-primary: #6ee7a8;
-  --light-color-logo-stroke: #173a2a;
+     reference these, so a hex value lives in exactly one place. */
+  --light-color-text: #1b1b1b;
+  --light-color-background: #f3f3f3;
+  --light-color-card: #fbfbfb;
+  --light-color-card-hover: #f6f6f6;
+  --light-color-flyout: #f9f9f9;
+  --light-color-logo-primary: #0f7b4a;
+  --light-color-background-ui: #0f7b4a;
+  --light-color-on-accent: #ffffff;
 
-  --dark-color-text: #fbfbfb;
-  --dark-color-background: #2c2b29;
-  --dark-color-logo-primary: #4ade80;
+  --dark-color-text: #ffffff;
+  --dark-color-background: #202020;
+  --dark-color-card: #2b2b2b;
+  --dark-color-card-hover: #323232;
+  --dark-color-flyout: #2c2c2c;
+  --dark-color-logo-primary: #5ccf95;
+  --dark-color-background-ui: #5ccf95;
+  --dark-color-on-accent: #0b1f14;
 
   /* Status colors. Each has a -wash tint below. */
-  --light-color-warning: #d97706;
-  --light-color-error: #dc2626;
-  --dark-color-warning: #fbbf24;
-  --dark-color-error: #f87171;
+  --light-color-warning: #c25e00;
+  --light-color-error: #c42b1c;
+  --dark-color-warning: #fcb94a;
+  --dark-color-error: #ff99a4;
 
-  /* Success. The brand green already means "recording", so success gets a darker moss. */
+  /* Success: a darker moss, so it never reads as the accent. */
   --light-color-moss: #2f7d5b;
   --dark-color-moss: #86c9a4;
 
   /* Plum: the ink for keycaps and picked items. */
-  --light-color-plum: var(--light-color-logo-stroke);
+  --light-color-plum: var(--light-color-text);
   --dark-color-plum: var(--dark-color-text);
 
   /* Demo's drawn app window. */
-  --light-color-demo-window: var(--light-color-background);
-  --dark-color-demo-window: color-mix(
-    in srgb,
-    #fff 4%,
-    var(--dark-color-background)
-  );
+  --light-color-demo-window: var(--light-color-card);
+  --dark-color-demo-window: var(--dark-color-card);
 
   /* Demo's laptop: lid, base gradient and wallpaper. */
   --light-color-demo-lid: #1f1e21;
@@ -50,88 +61,84 @@
   --light-demo-wallpaper:
     radial-gradient(
       110% 80% at 90% 105%,
-      color-mix(in srgb, var(--light-color-logo-primary) 50%, #fbfbfb) 0%,
+      color-mix(in srgb, var(--light-color-logo-primary) 28%, #f3f3f3) 0%,
       transparent 60%
     ),
     radial-gradient(
       90% 80% at 5% -5%,
-      color-mix(in srgb, #c7b9ef 55%, #fbfbfb) 0%,
+      color-mix(in srgb, #9fd3e6 45%, #f3f3f3) 0%,
       transparent 62%
     ),
-    color-mix(in srgb, #e9e1f3 60%, #fbfbfb);
+    #e9eeec;
   --dark-demo-wallpaper:
     radial-gradient(
       110% 80% at 90% 105%,
-      color-mix(in srgb, var(--dark-color-logo-primary) 26%, #1b1719) 0%,
+      color-mix(in srgb, var(--dark-color-logo-primary) 22%, #161a19) 0%,
       transparent 60%
     ),
     radial-gradient(
       90% 80% at 5% -5%,
-      color-mix(in srgb, #7c68c0 38%, #1b1719) 0%,
+      color-mix(in srgb, #2f6e8a 38%, #161a19) 0%,
       transparent 62%
     ),
-    #1f1a1e;
-
-  /* The wordmark. Dark mode outlines it in white. */
-  --light-color-wordmark: var(--light-color-logo-primary);
-  --light-color-wordmark-stroke: var(--light-color-logo-stroke);
-  --dark-color-wordmark: var(--dark-color-logo-primary);
-  --dark-color-wordmark-stroke: var(--dark-color-text);
-
-  /* Mascot outline and face; dark mode uses the background, not muddy plum. */
-  --light-color-mascot-line: var(--light-color-logo-stroke);
-  --dark-color-mascot-line: var(--dark-color-background);
+    #171b1a;
 
   /* Demo's recording pill ring and shadow. */
   --light-demo-pill-shadow:
-    0 0 0 1px color-mix(in srgb, var(--color-background-ui) 16%, transparent),
-    0 10px 26px -10px rgba(0, 0, 0, 0.35);
+    0 0 0 1px color-mix(in srgb, var(--light-color-text) 10%, transparent),
+    0 10px 26px -10px rgba(0, 0, 0, 0.3);
   --dark-demo-pill-shadow:
-    0 0 0 1px
-      color-mix(in srgb, var(--dark-color-logo-primary) 20%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--dark-color-text) 10%, transparent),
     0 10px 26px -10px rgba(0, 0, 0, 0.6);
 
   /* Status tints for the box behind a status color. */
   --light-color-moss-wash: color-mix(
     in srgb,
     var(--light-color-moss) 12%,
-    var(--light-color-background)
+    var(--light-color-card)
   );
   --dark-color-moss-wash: color-mix(
     in srgb,
     var(--dark-color-moss) 14%,
-    var(--dark-color-background)
+    var(--dark-color-card)
   );
   --light-color-warning-wash: color-mix(
     in srgb,
     var(--light-color-warning) 12%,
-    var(--light-color-background)
+    var(--light-color-card)
   );
   --dark-color-warning-wash: color-mix(
     in srgb,
     var(--dark-color-warning) 14%,
-    var(--dark-color-background)
+    var(--dark-color-card)
   );
   --light-color-error-wash: color-mix(
     in srgb,
     var(--light-color-error) 12%,
-    var(--light-color-background)
+    var(--light-color-card)
   );
   --dark-color-error-wash: color-mix(
     in srgb,
     var(--dark-color-error) 14%,
-    var(--dark-color-background)
+    var(--dark-color-card)
   );
 
-  /* Tokens that do not change between light and dark */
-  --color-background-ui: #15803d;
-  --color-mid-gray: #808080;
+  /* Flyouts (menus, tooltips, popups) float on a soft shadow. */
+  --light-shadow-flyout:
+    0 8px 16px rgba(0, 0, 0, 0.14), 0 0 2px rgba(0, 0, 0, 0.12);
+  --dark-shadow-flyout:
+    0 8px 16px rgba(0, 0, 0, 0.36), 0 0 2px rgba(0, 0, 0, 0.3);
 
   /* Active palette — defaults to light, follows the OS via the media query
      below, or is forced by `data-theme` (see the overrides below). */
   --color-text: var(--light-color-text);
   --color-background: var(--light-color-background);
+  --color-card: var(--light-color-card);
+  --color-card-hover: var(--light-color-card-hover);
+  --color-flyout: var(--light-color-flyout);
   --color-logo-primary: var(--light-color-logo-primary);
+  --color-background-ui: var(--light-color-background-ui);
+  --color-on-accent: var(--light-color-on-accent);
   --color-warning: var(--light-color-warning);
   --color-error: var(--light-color-error);
   --color-moss: var(--light-color-moss);
@@ -142,23 +149,18 @@
   --color-demo-alu-hi: var(--light-color-demo-alu-hi);
   --color-demo-alu-lo: var(--light-color-demo-alu-lo);
   --demo-wallpaper: var(--light-demo-wallpaper);
-  --color-wordmark: var(--light-color-wordmark);
-  --color-wordmark-stroke: var(--light-color-wordmark-stroke);
-  --color-mascot-line: var(--light-color-mascot-line);
   --color-moss-wash: var(--light-color-moss-wash);
   --color-warning-wash: var(--light-color-warning-wash);
   --color-error-wash: var(--light-color-error-wash);
+  --shadow-flyout: var(--light-shadow-flyout);
 
-  /* Grey steps: secondary text, hints/icons, control edges, dividers, hover fill. */
-  --color-ink-2: color-mix(in srgb, var(--color-text) 60%, transparent);
-  --color-ink-3: var(--color-mid-gray);
-  --color-line-strong: color-mix(
-    in srgb,
-    var(--color-mid-gray) 80%,
-    transparent
-  );
-  --color-line: color-mix(in srgb, var(--color-mid-gray) 20%, transparent);
-  --color-wash: color-mix(in srgb, var(--color-mid-gray) 10%, transparent);
+  /* Neutral steps, all derived from the text color so both themes stay in
+     proportion: secondary text, hints/icons, control edges, dividers, hover fill. */
+  --color-ink-2: color-mix(in srgb, var(--color-text) 72%, transparent);
+  --color-ink-3: color-mix(in srgb, var(--color-text) 52%, transparent);
+  --color-line-strong: color-mix(in srgb, var(--color-text) 18%, transparent);
+  --color-line: color-mix(in srgb, var(--color-text) 9%, transparent);
+  --color-wash: color-mix(in srgb, var(--color-text) 6%, transparent);
   /* Edge of a picked card or option. */
   --color-plum-pick: color-mix(in srgb, var(--color-plum) 60%, transparent);
   /* The far end of a capture slot's breathing edge (KeySlot). */
@@ -169,7 +171,12 @@
   :root {
     --color-text: var(--dark-color-text);
     --color-background: var(--dark-color-background);
+    --color-card: var(--dark-color-card);
+    --color-card-hover: var(--dark-color-card-hover);
+    --color-flyout: var(--dark-color-flyout);
     --color-logo-primary: var(--dark-color-logo-primary);
+    --color-background-ui: var(--dark-color-background-ui);
+    --color-on-accent: var(--dark-color-on-accent);
     --color-warning: var(--dark-color-warning);
     --color-error: var(--dark-color-error);
     --color-moss: var(--dark-color-moss);
@@ -180,12 +187,10 @@
     --color-demo-alu-hi: var(--dark-color-demo-alu-hi);
     --color-demo-alu-lo: var(--dark-color-demo-alu-lo);
     --demo-wallpaper: var(--dark-demo-wallpaper);
-    --color-wordmark: var(--dark-color-wordmark);
-    --color-wordmark-stroke: var(--dark-color-wordmark-stroke);
-    --color-mascot-line: var(--dark-color-mascot-line);
     --color-moss-wash: var(--dark-color-moss-wash);
     --color-warning-wash: var(--dark-color-warning-wash);
     --color-error-wash: var(--dark-color-error-wash);
+    --shadow-flyout: var(--dark-shadow-flyout);
   }
 }
 
@@ -193,7 +198,7 @@
  * Explicit theme override, driven by the `theme` setting via
  * `document.documentElement.dataset.theme`. When set, the higher-specificity
  * attribute selectors win over the `prefers-color-scheme` media query above,
- * so a user can keep Handy light or dark regardless of the OS setting.
+ * so a user can keep WinParakeet light or dark regardless of the OS setting.
  * `system` (or no attribute) leaves the OS in charge.
  *
  * Lives here (not in App.css) so every window that imports the shared palette —
@@ -202,7 +207,12 @@
 :root[data-theme="light"] {
   --color-text: var(--light-color-text);
   --color-background: var(--light-color-background);
+  --color-card: var(--light-color-card);
+  --color-card-hover: var(--light-color-card-hover);
+  --color-flyout: var(--light-color-flyout);
   --color-logo-primary: var(--light-color-logo-primary);
+  --color-background-ui: var(--light-color-background-ui);
+  --color-on-accent: var(--light-color-on-accent);
   --color-warning: var(--light-color-warning);
   --color-error: var(--light-color-error);
   --color-moss: var(--light-color-moss);
@@ -213,18 +223,21 @@
   --color-demo-alu-hi: var(--light-color-demo-alu-hi);
   --color-demo-alu-lo: var(--light-color-demo-alu-lo);
   --demo-wallpaper: var(--light-demo-wallpaper);
-  --color-wordmark: var(--light-color-wordmark);
-  --color-wordmark-stroke: var(--light-color-wordmark-stroke);
-  --color-mascot-line: var(--light-color-mascot-line);
   --color-moss-wash: var(--light-color-moss-wash);
   --color-warning-wash: var(--light-color-warning-wash);
   --color-error-wash: var(--light-color-error-wash);
+  --shadow-flyout: var(--light-shadow-flyout);
 }
 
 :root[data-theme="dark"] {
   --color-text: var(--dark-color-text);
   --color-background: var(--dark-color-background);
+  --color-card: var(--dark-color-card);
+  --color-card-hover: var(--dark-color-card-hover);
+  --color-flyout: var(--dark-color-flyout);
   --color-logo-primary: var(--dark-color-logo-primary);
+  --color-background-ui: var(--dark-color-background-ui);
+  --color-on-accent: var(--dark-color-on-accent);
   --color-warning: var(--dark-color-warning);
   --color-error: var(--dark-color-error);
   --color-moss: var(--dark-color-moss);
@@ -235,10 +248,8 @@
   --color-demo-alu-hi: var(--dark-color-demo-alu-hi);
   --color-demo-alu-lo: var(--dark-color-demo-alu-lo);
   --demo-wallpaper: var(--dark-demo-wallpaper);
-  --color-wordmark: var(--dark-color-wordmark);
-  --color-wordmark-stroke: var(--dark-color-wordmark-stroke);
-  --color-mascot-line: var(--dark-color-mascot-line);
   --color-moss-wash: var(--dark-color-moss-wash);
   --color-warning-wash: var(--dark-color-warning-wash);
   --color-error-wash: var(--dark-color-error-wash);
+  --shadow-flyout: var(--dark-shadow-flyout);
 }

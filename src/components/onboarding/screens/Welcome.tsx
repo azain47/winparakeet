@@ -8,7 +8,7 @@ import {
   LanguageSearchField,
   useLanguagePicker,
 } from "../../shared/LanguagePicker";
-import WinParakeetTextLogo from "../../icons/WinParakeetTextLogo";
+import { PRODUCT_NAME } from "@/lib/brand";
 import { OnboardingShell, ScreenHeader } from "../OnboardingShell";
 import { AppLanguageMenu } from "../AppLanguageMenu";
 import { useOnboardingStore } from "../onboardingStore";
@@ -93,16 +93,18 @@ export const Welcome: React.FC<WelcomeProps> = ({ progress, onContinue }) => {
       }
     >
       <div className="flex h-full min-h-0 flex-col items-center px-gutter pt-[6px] pb-[4px] text-center">
-        <div className="mb-[10px] inline-flex items-end gap-[8px] leading-none">
-          <Mascot size={54} animation={wave ? "wave" : null} />
-          <WinParakeetTextLogo width={112} className="mb-[4px] block" />
+        <div className="mb-[14px] inline-flex items-center gap-[10px] leading-none">
+          <Mascot size={36} animation={wave ? "wave" : null} />
+          <span className="font-display text-[20px] font-semibold tracking-[-0.01em]">
+            {PRODUCT_NAME}
+          </span>
         </div>
         <ScreenHeader
           title={t("onboarding.welcome.title")}
           sub={t("onboarding.welcome.subtitle")}
         />
 
-        <div className="mt-lead flex min-h-0 w-full flex-1 flex-col overflow-hidden rounded-panel border-[1.5px] border-line-strong bg-background">
+        <div className="mt-lead flex min-h-0 w-full flex-1 flex-col overflow-hidden rounded-panel border border-line bg-card">
           <LanguageSearchField
             picker={picker}
             className="border-b border-line"
@@ -144,7 +146,7 @@ export const Welcome: React.FC<WelcomeProps> = ({ progress, onContinue }) => {
                     role="radio"
                     aria-checked={picked}
                     onClick={() => set({ script: s.id })}
-                    className={`inline-flex h-[34px] cursor-pointer items-center gap-[8px] rounded-control border-[1.5px] bg-background ps-[10px] pe-[14px] text-small font-semibold text-text ${
+                    className={`inline-flex h-[34px] cursor-pointer items-center gap-[8px] rounded-control border bg-card ps-[10px] pe-[14px] text-small font-semibold text-text ${
                       picked
                         ? "border-plum-pick"
                         : "border-line-strong hover:border-ink-3"

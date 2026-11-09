@@ -61,11 +61,11 @@ export const Slider: React.FC<SliderProps> = ({
             value={value}
             onChange={handleChange}
             disabled={disabled}
-            className="flex-grow h-2 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-logo-primary disabled:opacity-50 disabled:cursor-not-allowed"
+            className="wp-slider flex-grow h-1 rounded-full appearance-none cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-logo-primary focus-visible:ring-offset-4 focus-visible:ring-offset-card disabled:opacity-40 disabled:cursor-not-allowed"
             style={{
               background: `linear-gradient(to right, var(--color-background-ui) ${
                 ((value - min) / (max - min)) * 100
-              }%, var(--color-line) ${((value - min) / (max - min)) * 100}%)`,
+              }%, var(--color-line-strong) ${((value - min) / (max - min)) * 100}%)`,
             }}
           />
           {showValue && (

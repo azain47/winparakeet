@@ -210,10 +210,10 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
         <div className="relative" ref={dropdownRef}>
           <button
             type="button"
-            className={`px-2 py-1 text-sm font-semibold bg-wash border border-line-strong rounded min-w-[200px] text-start flex items-center justify-between transition-all duration-150 ${
+            className={`px-3 py-[5px] text-sm bg-wash border border-line rounded-[4px] min-w-[200px] text-start flex items-center justify-between transition-colors duration-100 ${
               isUpdating("selected_language")
-                ? "opacity-50 cursor-not-allowed"
-                : "hover:bg-logo-primary/10 cursor-pointer hover:border-logo-primary"
+                ? "opacity-40 cursor-not-allowed"
+                : "hover:bg-line cursor-pointer"
             }`}
             onClick={handleToggle}
             disabled={isUpdating("selected_language")}
@@ -237,9 +237,9 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
           </button>
 
           {isOpen && !isUpdating("selected_language") && (
-            <div className="absolute top-full left-0 right-0 mt-1 bg-background border border-line-strong rounded shadow-lg z-50 max-h-60 overflow-hidden">
+            <div className="absolute top-full left-0 right-0 mt-1 bg-flyout border border-line rounded-[8px] shadow-flyout z-50 max-h-60 overflow-hidden animate-drop">
               {/* Search input */}
-              <div className="p-2 border-b border-line-strong">
+              <div className="p-2 border-b border-line">
                 <input
                   ref={searchInputRef}
                   type="text"
@@ -285,7 +285,7 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
                           <button
                             type="button"
                             onClick={detector.download}
-                            className="group flex w-full items-center justify-between gap-2 px-2 py-1 text-sm text-ink-3 transition-colors duration-150 hover:bg-logo-primary/10 hover:text-text"
+                            className="group flex w-full items-center justify-between gap-2 px-2 py-1 text-sm text-ink-3 transition-colors duration-100 hover:bg-wash hover:text-text"
                           >
                             <span className="truncate">{language.label}</span>
                             <LanguageDetectorDownload
@@ -316,8 +316,8 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
                         type="button"
                         className={`w-full px-2 py-1 text-sm text-start transition-colors duration-150 ${
                           selectedLanguage === language.value
-                            ? "bg-logo-primary/20 text-logo-primary font-semibold"
-                            : "hover:bg-logo-primary/10"
+                            ? "bg-wash font-semibold"
+                            : "hover:bg-wash"
                         }`}
                         onClick={() => handleLanguageSelect(language.value)}
                       >

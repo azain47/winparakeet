@@ -31,7 +31,8 @@ export const AboutSettings: React.FC = () => {
 
   return (
     <div className="max-w-3xl w-full mx-auto space-y-6">
-      <SettingsGroup title={t("settings.about.title")}>
+      {/* The page title (Sidebar label) heads this first group. */}
+      <SettingsGroup>
         <AppLanguageSelector descriptionMode="tooltip" grouped={true} />
         <ThemeSelector descriptionMode="tooltip" grouped={true} />
         <SettingContainer

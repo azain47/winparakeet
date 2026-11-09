@@ -39,7 +39,7 @@ export const Legend: React.FC<{ tier: "accelerated" | "cpu" }> = ({ tier }) => {
         <div
           role="dialog"
           aria-label={t("settings.models.legend.open")}
-          className="absolute end-0 top-[28px] z-30 w-[330px] animate-rise rounded-card border border-line-strong bg-background p-[14px] text-start text-small leading-[1.45] shadow-[0_12px_32px_-12px_rgba(0,0,0,0.35)]"
+          className="absolute end-0 top-[28px] z-30 w-[330px] animate-rise rounded-card border border-line bg-flyout p-[14px] text-start text-small leading-[1.45] shadow-flyout"
         >
           <p className="font-semibold text-text">{t("modelTable.accuracy")}</p>
           <p className="mt-[2px] text-ink-2">

@@ -109,7 +109,7 @@ export const ShortcutInput: React.FC<ShortcutInputProps> = ({
         {capturing ? (
           <div
             ref={shortcutRef}
-            className="px-2 py-1 text-sm font-semibold border border-logo-primary bg-logo-primary/20 rounded-md"
+            className="px-2 py-1 text-sm font-semibold border border-logo-primary bg-card shadow-[inset_0_0_0_1px_var(--color-logo-primary)] rounded-[4px]"
           >
             {partial
               ? formatKeyCombination(partial, osType)
@@ -117,7 +117,7 @@ export const ShortcutInput: React.FC<ShortcutInputProps> = ({
           </div>
         ) : (
           <div
-            className="px-2 py-1 text-sm font-semibold bg-wash border border-line-strong hover:bg-logo-primary/10 rounded-md cursor-pointer hover:border-logo-primary"
+            className="px-2 py-1 text-sm font-semibold bg-wash border border-line hover:bg-line rounded-[4px] cursor-pointer transition-colors duration-100"
             onClick={start}
           >
             {formatKeyCombination(binding.current_binding, osType)}

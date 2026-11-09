@@ -11,11 +11,12 @@ export const Input: React.FC<InputProps> = ({
   ...props
 }) => {
   const baseClasses =
-    "px-2 py-1 text-sm font-semibold bg-wash border border-line-strong rounded-md text-start transition-all duration-150";
+    "px-2 py-1 text-sm bg-wash border border-line border-b-line-strong rounded-[4px] text-start transition-[background-color,border-color,box-shadow] duration-100 placeholder:text-ink-3";
 
+  // Fluent text box: neutral at rest, an accent underline while focused.
   const interactiveClasses = disabled
-    ? "opacity-60 cursor-not-allowed bg-wash border-line"
-    : "hover:bg-logo-primary/10 hover:border-logo-primary focus:outline-none focus:bg-logo-primary/20 focus:border-logo-primary";
+    ? "opacity-40 cursor-not-allowed"
+    : "hover:bg-line focus:outline-none focus:bg-card focus:border-b-logo-primary focus:shadow-[inset_0_-1px_0_var(--color-logo-primary)]";
 
   const variantClasses = {
     default: "px-3 py-2",

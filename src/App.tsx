@@ -29,6 +29,7 @@ import { DebugSettings, ModelsSettings } from "./components/settings";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { FileDropOverlay } from "./components/FileDropOverlay";
 import { Sidebar, SidebarSection, SECTIONS_CONFIG } from "./components/Sidebar";
+import { PageTitle } from "./components/ui/PageTitle";
 import { WhatsNewGate } from "./components/whats-new";
 import { useSettings } from "./hooks/useSettings";
 import { useSettingsStore } from "./stores/settingsStore";
@@ -286,7 +287,7 @@ function App() {
         <button
           type="button"
           onClick={() => setOnboardingPreview(null)}
-          className="fixed top-4 end-4 z-50 rounded-lg border border-line bg-background px-4 py-2 text-sm font-medium text-text shadow-lg hover:bg-logo-primary/20 cursor-pointer"
+          className="fixed top-4 end-4 z-50 rounded-[4px] border border-line bg-flyout px-4 py-2 text-sm font-medium text-text shadow-flyout hover:bg-card-hover cursor-pointer"
         >
           {t("settings.debug.onboardingPreview.exitButton")}
         </button>
@@ -335,8 +336,14 @@ function App() {
             <div ref={settingsScrollRef} className="flex-1 overflow-y-auto">
               {/* Models fills the window: its table scrolls, not the page. */}
               <div
-                className={`flex flex-col items-center p-4 gap-4 ${currentSection === "models" ? "h-full" : ""}`}
+                className={`flex flex-col items-center gap-4 px-6 pt-4 pb-6 ${currentSection === "models" ? "h-full" : ""}`}
               >
+                {/* Models titles itself, beside its language link. */}
+                {currentSection !== "models" && (
+                  <PageTitle className="w-full max-w-3xl px-1 pt-1">
+                    {t(SECTIONS_CONFIG[currentSection].labelKey)}
+                  </PageTitle>
+                )}
                 <SecureInputWarning />
                 {renderSettingsContent(
                   currentSection,

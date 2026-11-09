@@ -168,7 +168,7 @@ export const Dialog: React.FC<DialogProps> = ({
         aria-labelledby={titleId}
         aria-describedby={description ? descriptionId : undefined}
         tabIndex={-1}
-        className={`flex max-h-[calc(100dvh-2rem)] w-full max-w-lg flex-col overflow-hidden rounded-lg border border-line bg-background shadow-xl outline-none sm:max-h-[calc(100dvh-3rem)] ${className}`}
+        className={`flex max-h-[calc(100dvh-2rem)] w-full max-w-lg flex-col overflow-hidden rounded-[8px] border border-line bg-flyout shadow-flyout outline-none sm:max-h-[calc(100dvh-3rem)] ${className}`}
       >
         <div className="flex shrink-0 items-start justify-between gap-3 border-b border-line px-4 py-2.5">
           <div className="min-w-0">

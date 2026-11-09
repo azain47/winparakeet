@@ -13,10 +13,9 @@ interface MicrophoneSelectorProps {
 /** The microphone list, as a dropdown: Settings' selector, and Try it's. */
 export const MicrophoneDropdown: React.FC<{
   placement?: "below" | "above";
-  tone?: "brand" | "neutral";
   /** After a microphone is picked and saved. */
   onPicked?: () => void;
-}> = ({ placement, tone, onPicked }) => {
+}> = ({ placement, onPicked }) => {
   const { t } = useTranslation();
   const {
     getSetting,
@@ -59,7 +58,6 @@ export const MicrophoneDropdown: React.FC<{
       }
       onOpen={refreshAudioDevices}
       placement={placement}
-      tone={tone}
     />
   );
 };

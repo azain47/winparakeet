@@ -1058,6 +1058,19 @@ async dismissNotice(source: NoticeSource, code: NoticeCode) : Promise<void> {
  */
 async dismissOverlayNotice() : Promise<void> {
     await TAURI_INVOKE("dismiss_overlay_notice");
+},
+/**
+ * Paint the main window's title bar with the UI's background and text colors.
+ * Both are `#rrggbb`. Windows 11 only; a no-op on other platforms and on older
+ * Windows builds, which ignore these DWM attributes.
+ */
+async setWindowChrome(background: string, text: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("set_window_chrome", { background, text }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 }
 }
 

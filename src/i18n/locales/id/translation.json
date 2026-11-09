@@ -328,7 +328,6 @@
       "title": "Pengaturan {{model}}"
     },
     "general": {
-      "title": "Umum",
       "shortcut": {
         "title": "Pintasan WinParakeet",
         "description": "Atur pintasan keyboard untuk memulai perekaman ucapan-ke-teks",
@@ -691,7 +690,6 @@
       }
     },
     "history": {
-      "title": "Riwayat",
       "openFolder": "Buka Folder Rekaman",
       "loading": "Memuat riwayat...",
       "empty": "Belum ada transkripsi. Mulai merekam untuk mengisi riwayat Anda!",
@@ -721,7 +719,6 @@
       "dropDescription": "Akan muncul di Riwayat."
     },
     "debug": {
-      "title": "Debug",
       "logDirectory": {
         "title": "Direktori Log",
         "description": "Lokasi penyimpanan file log"
@@ -870,7 +867,6 @@
       }
     },
     "about": {
-      "title": "Tentang",
       "version": {
         "title": "Versi",
         "description": "Versi WinParakeet saat ini"

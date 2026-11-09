@@ -328,7 +328,6 @@
       "title": "Paramètres de {{model}}"
     },
     "general": {
-      "title": "Général",
       "shortcut": {
         "title": "Raccourcis WinParakeet",
         "description": "Configurer les raccourcis clavier pour déclencher l'enregistrement de la reconnaissance vocale",
@@ -691,7 +690,6 @@
       }
     },
     "history": {
-      "title": "Historique",
       "openFolder": "Ouvrir le dossier des enregistrements",
       "loading": "Chargement de l'historique...",
       "empty": "Pas encore de transcriptions. Commencez à enregistrer pour créer votre historique !",
@@ -721,7 +719,6 @@
       "dropDescription": "Il apparaîtra dans l'historique."
     },
     "debug": {
-      "title": "Débogage",
       "logDirectory": {
         "title": "Répertoire des journaux",
         "description": "Emplacement où les fichiers journaux sont stockés"
@@ -870,7 +867,6 @@
       }
     },
     "about": {
-      "title": "À propos",
       "version": {
         "title": "Version",
         "description": "Version actuelle de WinParakeet"

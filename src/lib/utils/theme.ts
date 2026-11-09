@@ -61,3 +61,42 @@ export const syncThemeFromSettings = async (): Promise<void> => {
     console.warn("Failed to sync theme from settings:", e);
   }
 };
+
+/** `rgb(r, g, b)` or `#rrggbb` (a computed color) to `#rrggbb`. */
+const toHex = (color: string): string | null => {
+  const value = color.trim();
+  if (/^#[0-9a-f]{6}$/i.test(value)) return value;
+  const rgb = value.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
+  if (!rgb) return null;
+  return `#${rgb
+    .slice(1, 4)
+    .map((c) => Number(c).toString(16).padStart(2, "0"))
+    .join("")}`;
+};
+
+/**
+ * Keep the main window's native title bar in the UI's colors (Windows 11
+ * otherwise paints it with the system accent). Re-applies whenever the theme
+ * attribute or the OS color scheme changes. Main window only.
+ */
+export const watchWindowChrome = (): void => {
+  const sync = () => {
+    // The root element carries the palette's background and text colors.
+    const style = getComputedStyle(document.documentElement);
+    const background = toHex(style.backgroundColor);
+    const text = toHex(style.color);
+    if (!background || !text) return;
+    commands.setWindowChrome(background, text).then((result) => {
+      if (result.status === "error") {
+        console.warn("Failed to color the window chrome:", result.error);
+      }
+    });
+  };
+  sync();
+  new MutationObserver(sync).observe(document.documentElement, {
+    attributeFilter: ["data-theme"],
+  });
+  window
+    .matchMedia("(prefers-color-scheme: dark)")
+    .addEventListener("change", sync);
+};

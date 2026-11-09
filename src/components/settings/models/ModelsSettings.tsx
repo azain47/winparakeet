@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { RefreshCw } from "lucide-react";
 import { Tooltip } from "@/components/ui/Tooltip";
+import { PageTitle } from "@/components/ui/PageTitle";
 import { useModelStore } from "@/stores/modelStore";
 import {
   ModelTable,
@@ -139,8 +140,8 @@ export const ModelsSettings: React.FC<ModelsSettingsProps> = ({
     <div className="mx-auto flex min-h-0 w-full max-w-3xl flex-1 flex-col">
       {/* The title, and across from it where to change the languages the
           grades are for. */}
-      <div className="mb-[16px] flex flex-none items-center justify-between gap-[12px] px-[12px]">
-        <h1 className="text-xl font-semibold">{t("settings.models.title")}</h1>
+      <div className="mb-[16px] flex flex-none items-center justify-between gap-[12px] px-1 pt-1">
+        <PageTitle>{t("settings.models.title")}</PageTitle>
         {onChangeLanguages && (
           <button
             type="button"

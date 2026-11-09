@@ -328,7 +328,6 @@
       "title": "إعدادات {{model}}"
     },
     "general": {
-      "title": "عام",
       "shortcut": {
         "title": "اختصارات WinParakeet",
         "description": "إعداد اختصارات لوحة المفاتيح لبدء تسجيل التفريغ الصوتي",
@@ -691,7 +690,6 @@
       }
     },
     "history": {
-      "title": "السجل",
       "openFolder": "فتح مجلد التسجيلات",
       "loading": "جاري تحميل السجل...",
       "empty": "!لا يوجد تفريغ صوتي بعد. ابدأ التسجيل لبناء سجلك",
@@ -721,7 +719,6 @@
       "dropDescription": "سيظهر في السجل."
     },
     "debug": {
-      "title": "تصحيح الأخطاء",
       "logDirectory": {
         "title": "مجلد السجلات",
         "description": "الموقع الذي يتم فيه تخزين ملفات السجل"
@@ -870,7 +867,6 @@
       }
     },
     "about": {
-      "title": "حول",
       "version": {
         "title": "الإصدار",
         "description": "الإصدار الحالي من WinParakeet"

@@ -46,8 +46,6 @@ export const Tooltip: React.FC<TooltipProps> = ({
   const [place, setPlace] = useState<{
     top: number;
     left: number;
-    arrow: number;
-    below: boolean;
   } | null>(null);
 
   const show = (now = false) => {
@@ -105,8 +103,6 @@ export const Tooltip: React.FC<TooltipProps> = ({
     setPlace({
       top: below ? a.bottom + GAP : a.top - GAP - h,
       left,
-      arrow: Math.min(Math.max(center - left, 12), w - 12),
-      below,
     });
     if (!prefersReducedMotion())
       tip.animate(
@@ -143,19 +139,12 @@ export const Tooltip: React.FC<TooltipProps> = ({
               left: place?.left ?? -9999,
               visibility: place ? "visible" : "hidden",
             }}
-            className="pointer-events-none fixed z-[9999] w-max max-w-[248px] rounded-[9px] bg-plum px-[11px] py-[7px] text-start font-ui text-label leading-[17px] text-background shadow-[0_8px_24px_-10px_rgba(0,0,0,0.45)]"
+            className="pointer-events-none fixed z-[9999] w-max max-w-[260px] rounded-[4px] border border-line bg-flyout px-[9px] py-[6px] text-start font-ui text-label leading-[17px] text-text shadow-flyout"
           >
             {title && <b className="block font-semibold">{title}</b>}
             {/* Block, not inline: WebKit applies a grid's margin in an inline span only
                 after the entrance animation, so the tooltip grows onto its element. */}
-            <span className={`block ${title ? "opacity-75" : ""}`}>{text}</span>
-            <span
-              aria-hidden="true"
-              style={{ left: place?.arrow ?? 0 }}
-              className={`absolute size-[8px] -translate-x-1/2 rotate-45 rounded-[1.5px] bg-plum ${
-                place?.below ? "-top-[3.5px]" : "-bottom-[3.5px]"
-              }`}
-            />
+            <span className={`block ${title ? "text-ink-2" : ""}`}>{text}</span>
           </div>,
           document.body,
         )}

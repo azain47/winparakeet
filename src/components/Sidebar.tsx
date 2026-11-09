@@ -9,7 +9,8 @@ import {
   Sparkles,
   Cpu,
 } from "lucide-react";
-import WinParakeetTextLogo from "./icons/WinParakeetTextLogo";
+import AppMark from "./icons/AppMark";
+import { PRODUCT_NAME } from "../lib/brand";
 import { useSettings } from "../hooks/useSettings";
 import {
   GeneralSettings,
@@ -100,34 +101,45 @@ export const Sidebar: React.FC<SidebarProps> = ({
     .map(([id, config]) => ({ id: id as SidebarSection, ...config }));
 
   return (
-    <div className="flex flex-col w-40 h-full border-e border-line items-center px-2">
-      <WinParakeetTextLogo width={120} className="m-4" />
-      <div className="flex flex-col w-full items-center gap-1 pt-2 border-t border-line">
+    <nav className="flex h-full w-52 shrink-0 flex-col px-2 pb-2">
+      <div className="flex h-14 items-center gap-2.5 px-3">
+        <AppMark className="size-[22px] shrink-0" />
+        <span className="truncate font-display text-[15px] font-semibold tracking-[-0.01em]">
+          {PRODUCT_NAME}
+        </span>
+      </div>
+      <div className="flex flex-col gap-0.5">
         {availableSections.map((section) => {
           const Icon = section.icon;
           const isActive = activeSection === section.id;
 
           return (
-            <div
+            <button
               key={section.id}
-              className={`flex gap-2 items-center p-2 w-full rounded-lg cursor-pointer transition-colors ${
+              type="button"
+              aria-current={isActive ? "page" : undefined}
+              title={t(section.labelKey)}
+              className={`relative flex h-9 w-full cursor-pointer items-center gap-3 rounded-[4px] px-3 text-start text-sm transition-colors duration-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-logo-primary ${
                 isActive
-                  ? "bg-logo-primary/80"
-                  : "hover:bg-line hover:opacity-100 opacity-85"
+                  ? "bg-wash font-medium text-text"
+                  : "text-ink-2 hover:bg-wash hover:text-text"
               }`}
               onClick={() => onSectionChange(section.id)}
             >
-              <Icon width={24} height={24} className="shrink-0" />
-              <p
-                className="text-sm font-medium truncate"
-                title={t(section.labelKey)}
-              >
-                {t(section.labelKey)}
-              </p>
-            </div>
+              {isActive && (
+                <span className="absolute start-0 top-1/2 h-4 w-[3px] -translate-y-1/2 rounded-full bg-logo-primary" />
+              )}
+              <Icon
+                width={18}
+                height={18}
+                strokeWidth={1.75}
+                className="shrink-0"
+              />
+              <span className="truncate">{t(section.labelKey)}</span>
+            </button>
           );
         })}
       </div>
-    </div>
+    </nav>
   );
 };

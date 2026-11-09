@@ -328,7 +328,6 @@
       "title": "Ustawienia {{model}}"
     },
     "general": {
-      "title": "Ogólne",
       "shortcut": {
         "title": "Skróty WinParakeet",
         "description": "Skonfiguruj skróty klawiaturowe do uruchamiania nagrywania mowy",
@@ -691,7 +690,6 @@
       }
     },
     "history": {
-      "title": "Historia",
       "openFolder": "Otwórz folder nagrań",
       "loading": "Wczytywanie historii...",
       "empty": "Brak transkrypcji. Rozpocznij nagrywanie, aby zbudować historię!",
@@ -721,7 +719,6 @@
       "dropDescription": "Pojawi się w historii."
     },
     "debug": {
-      "title": "Debugowanie",
       "logDirectory": {
         "title": "Katalog logów",
         "description": "Miejsce przechowywania plików logów"
@@ -870,7 +867,6 @@
       }
     },
     "about": {
-      "title": "O programie",
       "version": {
         "title": "Wersja",
         "description": "Aktualna wersja WinParakeet"

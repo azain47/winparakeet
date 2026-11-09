@@ -6,26 +6,25 @@ interface SettingsGroupProps {
   children: React.ReactNode;
 }
 
+/** A titled list of setting rows, each drawn as its own card (Windows Settings style). */
 export const SettingsGroup: React.FC<SettingsGroupProps> = ({
   title,
   description,
   children,
 }) => {
   return (
-    <div className="space-y-2">
+    <section className="space-y-2">
       {title && (
-        <div className="px-4">
-          <h2 className="text-xs font-medium text-ink-3 uppercase tracking-wide">
-            {title}
-          </h2>
+        <div className="px-1">
+          <h2 className="text-[14px] font-semibold text-text">{title}</h2>
           {description && (
-            <p className="text-xs text-ink-3 mt-1">{description}</p>
+            <p className="mt-0.5 text-xs text-ink-2">{description}</p>
           )}
         </div>
       )}
-      <div className="bg-background border border-line rounded-lg overflow-visible">
-        <div className="divide-y divide-line">{children}</div>
+      <div className="flex flex-col gap-[3px] *:rounded-[6px] *:border *:border-line *:bg-card">
+        {children}
       </div>
-    </div>
+    </section>
   );
 };

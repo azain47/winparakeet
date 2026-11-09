@@ -1,0 +1,47 @@
+import { useId } from "react";
+
+/** The app icon (src-tauri/icons/app-icon.svg), drawn inline and cropped to its tile. */
+const AppMark = ({ className = "" }: { className?: string }) => {
+  // useId's colons are not valid in a url(#…) reference.
+  const gradient = `app-mark-${useId().replace(/:/g, "")}`;
+  return (
+    <svg
+      viewBox="4 4 92 92"
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <defs>
+        <linearGradient id={gradient} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#21B36B" />
+          <stop offset="1" stopColor="#0B6E50" />
+        </linearGradient>
+      </defs>
+      <rect
+        x="4"
+        y="4"
+        width="92"
+        height="92"
+        rx="22"
+        fill={`url(#${gradient})`}
+      />
+      <g transform="translate(6 3) scale(0.88)">
+        <path
+          d="M 82 52 C 84 51, 86 49, 87 46 C 88 37, 83 31, 77 30 C 74 22, 66 16, 57 16 C 46 16, 38 24, 37 35 C 36 46, 33 56, 29 66 L 12 94 L 33 80 C 40 80, 50 80, 58 74 C 68 67, 73 58, 75 52 C 76 50, 77 49, 78 48 C 80 48, 82 49, 82 52 Z"
+          fill="#FFFFFF"
+        />
+        <path
+          d="M 44 40 C 54 44, 58 56, 54 66 C 46 66, 38 60, 36 52 C 38 47, 40 43, 44 40 Z"
+          fill="#DDF5E8"
+        />
+        <path
+          d="M 77 30 C 83 31, 88 37, 87 46 C 86 49, 84 51, 82 52 C 82 49, 80 48, 78 48 C 77 42, 77 36, 77 30 Z"
+          fill="#F5B83D"
+        />
+        <circle cx="64" cy="31" r="3.8" fill="#0B2E22" />
+      </g>
+    </svg>
+  );
+};
+
+export default AppMark;

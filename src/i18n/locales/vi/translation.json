@@ -328,7 +328,6 @@
       "title": "Cài đặt {{model}}"
     },
     "general": {
-      "title": "Chung",
       "shortcut": {
         "title": "Phím tắt WinParakeet",
         "description": "Cấu hình phím tắt để kích hoạt ghi âm chuyển đổi giọng nói thành văn bản",
@@ -691,7 +690,6 @@
       }
     },
     "history": {
-      "title": "Lịch sử",
       "openFolder": "Mở thư mục ghi âm",
       "loading": "Đang tải lịch sử...",
       "empty": "Chưa có bản ghi nào. Bắt đầu ghi âm để xây dựng lịch sử của bạn!",
@@ -721,7 +719,6 @@
       "dropDescription": "Nó sẽ xuất hiện trong Lịch sử."
     },
     "debug": {
-      "title": "Gỡ lỗi",
       "logDirectory": {
         "title": "Thư mục nhật ký",
         "description": "Vị trí lưu trữ các tệp nhật ký"
@@ -870,7 +867,6 @@
       }
     },
     "about": {
-      "title": "Giới thiệu",
       "version": {
         "title": "Phiên bản",
         "description": "Phiên bản hiện tại của WinParakeet"

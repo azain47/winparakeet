@@ -28,8 +28,8 @@ const Footer: React.FC<FooterProps> = ({ onShowHistory }) => {
   }, []);
 
   return (
-    <div className="w-full border-t border-line pt-3">
-      <div className="flex justify-between items-center text-xs px-4 pb-3 text-ink-2">
+    <div className="w-full border-t border-line">
+      <div className="flex h-9 justify-between items-center text-xs px-4 text-ink-2">
         <div className="flex items-center gap-4">
           <ModelSelector />
           <TranscriptionStatus onShowHistory={onShowHistory} />

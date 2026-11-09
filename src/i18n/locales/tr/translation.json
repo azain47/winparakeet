@@ -328,7 +328,6 @@
       "title": "{{model}} Ayarları"
     },
     "general": {
-      "title": "Genel",
       "shortcut": {
         "title": "WinParakeet Kısayolları",
         "description": "Sesle yazma kaydını başlatmak için klavye kısayollarını yapılandırın",
@@ -691,7 +690,6 @@
       }
     },
     "history": {
-      "title": "Geçmiş",
       "openFolder": "Kayıtlar Klasörünü Aç",
       "loading": "Geçmiş yükleniyor...",
       "empty": "Henüz transkripsiyon yok. Geçmişinizi oluşturmak için kayda başlayın!",
@@ -721,7 +719,6 @@
       "dropDescription": "Geçmiş'te görünecek."
     },
     "debug": {
-      "title": "Hata Ayıklama",
       "logDirectory": {
         "title": "Log Dizini",
         "description": "Log dosyalarının saklandığı konum"
@@ -870,7 +867,6 @@
       }
     },
     "about": {
-      "title": "Hakkında",
       "version": {
         "title": "Sürüm",
         "description": "WinParakeet'nin mevcut sürümü"

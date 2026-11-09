@@ -328,7 +328,6 @@
       "title": "Configuración de {{model}}"
     },
     "general": {
-      "title": "General",
       "shortcut": {
         "title": "Atajos de WinParakeet",
         "description": "Configura atajos de teclado para activar la grabación de voz a texto",
@@ -691,7 +690,6 @@
       }
     },
     "history": {
-      "title": "Historial",
       "openFolder": "Abrir carpeta de grabaciones",
       "loading": "Cargando historial...",
       "empty": "Aún no hay transcripciones. ¡Comienza a grabar para crear tu historial!",
@@ -721,7 +719,6 @@
       "dropDescription": "Aparecerá en el historial."
     },
     "debug": {
-      "title": "Depuración",
       "logDirectory": {
         "title": "Directorio de registros",
         "description": "Ubicación donde se almacenan los archivos de registro"
@@ -870,7 +867,6 @@
       }
     },
     "about": {
-      "title": "Acerca de",
       "version": {
         "title": "Versión",
         "description": "Versión actual de WinParakeet"

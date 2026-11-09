@@ -10,7 +10,7 @@ interface SwitchProps {
   ariaLabelledBy?: string;
 }
 
-/** The on/off switch on its own; ToggleSwitch puts it in a settings row. */
+/** The on/off switch on its own (Windows 11 toggle); ToggleSwitch puts it in a settings row. */
 export const Switch: React.FC<SwitchProps> = ({
   checked,
   onChange,
@@ -20,7 +20,7 @@ export const Switch: React.FC<SwitchProps> = ({
 }) => {
   return (
     <label
-      className={`flex items-center ${disabled ? "cursor-not-allowed" : "cursor-pointer"}`}
+      className={`group flex items-center ${disabled ? "cursor-not-allowed" : "cursor-pointer"}`}
     >
       <input
         type="checkbox"
@@ -32,7 +32,19 @@ export const Switch: React.FC<SwitchProps> = ({
         disabled={disabled}
         onChange={(e) => onChange(e.target.checked)}
       />
-      <div className="relative w-11 h-6 bg-line peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-logo-primary rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-line-strong after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-background-ui peer-disabled:opacity-50"></div>
+      <span
+        className={`relative h-5 w-10 shrink-0 rounded-full border transition-colors duration-150 peer-focus-visible:ring-2 peer-focus-visible:ring-logo-primary peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-background peer-disabled:opacity-40 ${
+          checked
+            ? "border-background-ui bg-background-ui group-hover:brightness-110"
+            : "border-ink-2 bg-transparent group-hover:bg-wash"
+        }`}
+      >
+        <span
+          className={`absolute top-1/2 size-3 -translate-y-1/2 rounded-full transition-[inset-inline-start,background-color] duration-150 ${
+            checked ? "start-[23px] bg-on-accent" : "start-[3px] bg-ink-2"
+          }`}
+        />
+      </span>
     </label>
   );
 };

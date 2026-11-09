@@ -328,7 +328,6 @@
       "title": "{{model}} 設定"
     },
     "general": {
-      "title": "一般",
       "shortcut": {
         "title": "WinParakeet 快捷鍵",
         "description": "設定啟動語音轉文字錄製的鍵盤快捷鍵",
@@ -691,7 +690,6 @@
       }
     },
     "history": {
-      "title": "歷史紀錄",
       "openFolder": "開啟錄音資料夾",
       "loading": "載入歷史紀錄中...",
       "empty": "還沒有轉錄紀錄。開始錄製以建立您的歷史紀錄！",
@@ -721,7 +719,6 @@
       "dropDescription": "它會出現在歷史記錄中。"
     },
     "debug": {
-      "title": "偵錯",
       "logDirectory": {
         "title": "日誌目錄",
         "description": "日誌檔案的儲存位置"
@@ -870,7 +867,6 @@
       }
     },
     "about": {
-      "title": "關於",
       "version": {
         "title": "版本",
         "description": "WinParakeet 的目前版本"

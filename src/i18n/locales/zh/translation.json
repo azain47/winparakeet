@@ -328,7 +328,6 @@
       "title": "{{model}} 设置"
     },
     "general": {
-      "title": "通用",
       "shortcut": {
         "title": "WinParakeet 快捷键",
         "description": "配置启动语音转文字录制的键盘快捷键",
@@ -691,7 +690,6 @@
       }
     },
     "history": {
-      "title": "历史记录",
       "openFolder": "打开录音文件夹",
       "loading": "加载历史记录中...",
       "empty": "还没有转录记录。开始录制以建立您的历史记录！",
@@ -721,7 +719,6 @@
       "dropDescription": "它会出现在历史记录中。"
     },
     "debug": {
-      "title": "调试",
       "logDirectory": {
         "title": "日志目录",
         "description": "日志文件的存储位置"
@@ -870,7 +867,6 @@
       }
     },
     "about": {
-      "title": "关于",
       "version": {
         "title": "版本",
         "description": "WinParakeet 的当前版本"
