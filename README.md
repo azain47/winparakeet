@@ -1,6 +1,6 @@
 # WinParakeet
 
-Private, offline speech-to-text for Windows. Dictate into any app with a global shortcut, transcribe audio and video files, and (next) record and transcribe meetings. Speech recognition runs on your own machine; no audio leaves it.
+Private, offline speech-to-text for Windows. Dictate into any app with a global shortcut, record and transcribe meetings, and transcribe audio and video files. Speech recognition runs on your own machine; no audio leaves it.
 
 <p align="center">
   <picture>
@@ -26,12 +26,19 @@ While you hold the shortcut, a small pill at the bottom of the screen shows that
 
 <p align="center"><img src="docs/screenshots/recording-pill.png" alt="The recording pill: a green dot, the microphone level, and a cancel button" width="217"></p>
 
-Next: meeting recording.
+## Meetings
 
-- [ ] Record the microphone and system audio (WASAPI loopback) as separate, crash-safe tracks
-- [ ] Live preview while recording; a final transcript of each track after the call, labelled "Me" and "Them"
-- [ ] Speaker diarization of the system track
-- [ ] Meeting library, summaries and chat through your own LLM endpoint
+The **Meetings** tab records a call without joining it: your microphone ("Me") and whatever the computer plays (the other side of a Teams, Zoom or Meet call) are recorded as two separate tracks. After the call both are transcribed on your machine, with timestamps, and the other side is split into speakers.
+
+- Start and stop from the Meetings tab, the tray menu, or `winparakeet.exe --toggle-meeting`. Dictation keeps working during a meeting.
+- Speaker labels come from NVIDIA's Sortformer (an optional 139 MB download): up to four speakers on the other side of the call, and on your microphone too when several people in the room share it (for an in-person meeting, record only the microphone). Click a speaker to name them.
+- On speakers instead of headphones, your microphone also hears the other side; those lines are dropped from "Me" when the other side said them at the same time.
+- The audio is saved as you go: if WinParakeet or Windows crashes mid-call, the recording is recovered on the next launch.
+- Meetings have their own settings: what to record (both sides, only the microphone, or only system audio), which model transcribes them, and how long to keep the audio. It's kept by default, so you can **re-transcribe** a meeting later with a bigger model; or it can move to the Bin after transcription or after 7, 30 or 90 days. Transcripts always stay.
+- Export the transcript as text, Markdown, SRT or WebVTT subtitles, or JSON; save the audio as one WAV with both sides mixed (to transcribe it elsewhere), or open the folder with each side's own track.
+- Deleting a meeting, or only its audio, moves it to the Bin.
+
+Not yet: a live transcript during the call, summaries and chat through your own LLM endpoint.
 
 ## Screenshots
 
@@ -69,6 +76,7 @@ Flags for controlling a running instance (sent through the single-instance plugi
 ```powershell
 winparakeet.exe --toggle-transcription    # Toggle recording on/off
 winparakeet.exe --toggle-post-process     # Toggle recording with post-processing on/off
+winparakeet.exe --toggle-meeting          # Start or stop recording a meeting
 winparakeet.exe --cancel                  # Cancel the current operation
 ```
 
@@ -118,5 +126,6 @@ MIT, see [LICENSE](LICENSE). The license covers Handy's code (copyright CJ Pais)
 
 - [Handy](https://github.com/cjpais/Handy) by CJ Pais and contributors, the foundation of this app
 - [transcribe.cpp](https://github.com/handy-computer/transcribe.cpp) and [ggml](https://github.com/ggml-org/ggml) for on-device inference
-- NVIDIA for the Parakeet models, OpenAI for Whisper, and Silero for voice activity detection
+- NVIDIA for the Parakeet models and Sortformer speaker diarization, OpenAI for Whisper, and Silero for voice activity detection
+- [MacParakeet](https://github.com/moona3k/macparakeet), whose meeting design WinParakeet's meetings follow
 - [Tauri](https://tauri.app) for the app framework
