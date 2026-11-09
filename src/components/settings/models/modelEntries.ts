@@ -2,7 +2,9 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { create } from "zustand";
-import { useModelStore } from "@/stores/modelStore";
+import i18n from "@/i18n";
+import { useModelStore, waitForDownload } from "@/stores/modelStore";
+import { notify } from "@/stores/noticeStore";
 import { areModelsLocked } from "@/stores/transcriptionJobsStore";
 import { useSettings } from "@/hooks/useSettings";
 import { useModelCatalog } from "@/hooks/useModelCatalog";
@@ -141,14 +143,22 @@ export const usePlace = (id: string): Place => {
 export const useIsTarget = (id: string) => usePageState((s) => s.target === id);
 
 const select = async (id: string) => {
-  // A file is transcribing, so the model in use can't change.
+  // A file is transcribing, so the model in use can't change. Say so rather
+  // than ignoring the press.
   if (areModelsLocked()) {
     usePageState.setState({ target: null });
+    notify({ title: i18n.t("modelSelector.lockedWhileTranscribing") });
     return;
   }
   usePageState.setState({ switching: id, target: null });
   try {
-    await useModelStore.getState().selectModel(id);
+    const ok = await useModelStore.getState().selectModel(id);
+    if (!ok) {
+      notify({
+        title: i18n.t("modelSelector.modelError"),
+        detail: useModelStore.getState().error ?? undefined,
+      });
+    }
   } finally {
     if (usePageState.getState().switching === id)
       usePageState.setState({ switching: null });
@@ -157,21 +167,6 @@ const select = async (id: string) => {
 
 const isOnDisk = (id: string) =>
   !!useModelStore.getState().models.find((m) => m.id === id)?.is_downloaded;
-
-/** Waits for a download started elsewhere; resolves to whether it's on disk. */
-const whenDownloadEnds = (id: string) =>
-  new Promise<boolean>((resolve) => {
-    const unsubscribe = useModelStore.subscribe(
-      (s) => id in s.downloadingModels || id in s.verifyingModels,
-      async (inFlight) => {
-        if (inFlight) return;
-        unsubscribe();
-        // The flag clears before the list reloads, so reload it first.
-        await useModelStore.getState().loadModels();
-        resolve(isOnDisk(id));
-      },
-    );
-  });
 
 /** Use a model, downloading it first if needed. The last one pressed wins. */
 export const pickModel = (id: string) => {
@@ -184,7 +179,7 @@ export const pickModel = (id: string) => {
   if (!areModelsLocked()) usePageState.setState({ target: id });
   const done =
     id in store.downloadingModels
-      ? whenDownloadEnds(id)
+      ? waitForDownload(id)
       : store.downloadModel(id);
   void done.then((ok) => {
     if (ok && usePageState.getState().target === id) void select(id);

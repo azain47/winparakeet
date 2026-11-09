@@ -109,6 +109,9 @@ fn ms_to_samples(ms: i64) -> usize {
 /// transparently.
 #[derive(Debug, Clone)]
 pub struct LoadSpec {
+    /// The app's id for the model. The supervisor only reports it back, with
+    /// the loaded model, so "which model is loaded" has one source of truth.
+    pub model_id: String,
     pub path: PathBuf,
     pub backend: Backend,
     pub device: DeviceSelector,
@@ -127,6 +130,7 @@ impl LoadSpec {
 
     fn cpu(&self) -> Self {
         Self {
+            model_id: self.model_id.clone(),
             path: self.path.clone(),
             backend: Backend::Cpu,
             device: DeviceSelector::Auto,
@@ -216,11 +220,16 @@ struct Shared {
     gpu_allowed: bool,
     /// A worker with GPU backends crashed or hung (in backend init, device
     /// listing, model load or inference). Models load in CPU-only workers,
-    /// and devices are not listed again, until [`EngineSupervisor::retry_gpu`].
+    /// and devices are not listed again, until [`EngineSupervisor::retry_gpu`]
+    /// (an explicit accelerator, GPU device or model change by the user).
     gpu_unavailable: AtomicBool,
-    /// The loaded model (logically: it stays loaded while its worker is
-    /// replaced after a crash or cancel).
-    loaded: Mutex<Option<LoadedInfo>>,
+    /// The loaded model's id and info: the one answer to "which model is
+    /// loaded". Logical: it stays loaded while its worker is replaced after a
+    /// crash or cancel, and goes only with an unload, a failed load, or a
+    /// worker that can't be brought back. Some exactly while the owner holds
+    /// a spec, except that an [`EngineSupervisor::unload`] clears it before
+    /// its turn in the queue.
+    loaded: Mutex<Option<(String, LoadedInfo)>>,
     /// The compute devices as last listed by a worker; `None` until one has.
     devices: Mutex<Option<Vec<DeviceInfo>>>,
     /// Held for the length of a device probe, so concurrent callers wait for
@@ -388,9 +397,11 @@ impl EngineSupervisor {
         Unloading(Some(exited))
     }
 
-    /// An explicit transcribe.cpp accelerator or GPU device change: forget
-    /// the GPU failure, if any, so the next load may use (and list) the GPU
-    /// again. A new failure sets the flag again.
+    /// An explicit transcribe.cpp accelerator, GPU device or model change:
+    /// forget the GPU failure, if any, so the next load may use (and list)
+    /// the GPU again. A new failure sets the flag again. Never automatic: a
+    /// GPU that crashed or hung would do it again on every reload, each time
+    /// costing a crash (or a hang deadline) before the CPU fallback.
     pub fn retry_gpu(&self, reason: &str) {
         if self.shared.gpu_unavailable.swap(false, Ordering::AcqRel) {
             info!("Transcription GPU no longer marked unavailable: {}", reason);
@@ -399,6 +410,18 @@ impl EngineSupervisor {
 
     /// The loaded model. A snapshot; never waits on the queue.
     pub fn loaded(&self) -> Option<LoadedInfo> {
+        lock(&self.shared.loaded)
+            .as_ref()
+            .map(|(_, info)| info.clone())
+    }
+
+    /// The id ([`LoadSpec::model_id`]) of the loaded model. A snapshot.
+    pub fn loaded_model_id(&self) -> Option<String> {
+        lock(&self.shared.loaded).as_ref().map(|(id, _)| id.clone())
+    }
+
+    /// The loaded model's id and info, read together. A snapshot.
+    pub fn loaded_model(&self) -> Option<(String, LoadedInfo)> {
         lock(&self.shared.loaded).clone()
     }
 
@@ -699,8 +722,7 @@ impl Owner {
 
     fn unload(&mut self) {
         // The worker's exit ends any stream; no need to reset it first.
-        self.stream = None;
-        if let Some(worker) = self.worker.take() {
+        if let Some(worker) = self.drop_worker() {
             let started = Instant::now();
             let pid = worker.control.pid;
             drop(worker);
@@ -712,6 +734,13 @@ impl Owner {
         }
         self.spec = None;
         *lock(&self.shared.loaded) = None;
+    }
+
+    /// Take the worker out of its slot. Any stream lived in that worker, so
+    /// it goes with it: a stream is only ever held beside its worker.
+    fn drop_worker(&mut self) -> Option<Worker> {
+        self.stream = None;
+        self.worker.take()
     }
 
     /// The spec a fresh worker should load: CPU while the GPU is marked
@@ -767,17 +796,19 @@ impl Owner {
             worker.control.pid,
             started.elapsed().as_millis()
         );
-        self.publish_loaded(&info);
+        self.publish_loaded(&spec.model_id, &info);
         self.worker = Some(worker);
         Ok(info)
     }
 
     /// Report the model loaded, unless an unload was requested since and is
-    /// still waiting in the queue.
-    fn publish_loaded(&self, info: &LoadedInfo) {
+    /// still waiting in the queue. Checked under the lock
+    /// [`EngineSupervisor::unload`] counts its request under, so a requested
+    /// unload is never overwritten by a load (or respawn) queued before it.
+    fn publish_loaded(&self, model_id: &str, info: &LoadedInfo) {
         let mut loaded = lock(&self.shared.loaded);
         if self.shared.unloads_requested.load(Ordering::SeqCst) == self.unloads_done {
-            *loaded = Some(info.clone());
+            *loaded = Some((model_id.to_string(), info.clone()));
         }
     }
 
@@ -805,8 +836,9 @@ impl Owner {
     /// details and native output). If it was on a GPU, mark the GPU
     /// unavailable so the next worker uses CPU. Returns whether it was.
     fn worker_lost(&mut self, during: &str, failure: &Failure) -> bool {
-        // Dropping the handle reaps the process.
-        let info = self.worker.take().and_then(|worker| worker.info.clone());
+        // Dropping the handle reaps the process. The model stays loaded
+        // (logically): the next use starts a fresh worker for the spec.
+        let info = self.drop_worker().and_then(|worker| worker.info.clone());
         let pinned = self.spec.as_ref().is_some_and(LoadSpec::pinned);
         match info {
             Some(info) if info.on_gpu => {
@@ -868,8 +900,8 @@ impl Owner {
         let killed = lock(&self.shared.in_flight).take().is_none();
         if killed || self.shared.cancelled_since(epoch) {
             if killed || result.as_ref().is_err_and(Failure::worker_lost) {
-                // The next use starts a fresh worker.
-                self.worker = None;
+                // The next use starts a fresh worker. A stream died with it.
+                self.drop_worker();
             }
             return Err(Failure::Cancelled);
         }
@@ -987,7 +1019,6 @@ impl Owner {
             // Later feeds are skipped, and finalize reports the cancel.
             Err(Failure::Cancelled) => {}
             Err(failure) => {
-                self.stream = None;
                 self.worker_lost("stream feed", &failure);
             }
         }
@@ -1516,6 +1547,7 @@ mod tests {
 
     fn spec() -> LoadSpec {
         LoadSpec {
+            model_id: "test-model".to_string(),
             path: env_path("HANDY_TEST_MODEL"),
             backend: Backend::Auto,
             device: DeviceSelector::Auto,

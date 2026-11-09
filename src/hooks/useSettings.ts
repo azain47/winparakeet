@@ -17,12 +17,12 @@ interface UseSettingsReturn {
   postProcessModelOptions: Record<string, string[]>;
   updateChecksLocked: boolean | null;
 
-  // Actions
+  // Actions. Writes resolve to whether the backend accepted them.
   updateSetting: <K extends keyof Settings>(
     key: K,
     value: Settings[K],
-  ) => Promise<void>;
-  resetSetting: (key: keyof Settings) => Promise<void>;
+  ) => Promise<boolean>;
+  resetSetting: (key: keyof Settings) => Promise<boolean>;
   refreshSettings: () => Promise<void>;
   refreshAudioDevices: () => Promise<void>;
   refreshOutputDevices: () => Promise<void>;

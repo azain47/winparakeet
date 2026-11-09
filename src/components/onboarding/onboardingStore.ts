@@ -39,8 +39,6 @@ interface Persisted {
   welcomeBack: boolean;
   /** Which ways of using the shortcut they've done for real (Try it). */
   lessons: { hold: boolean; tap: boolean };
-  /** Set when All set's panel jumps back to a screen; continuing returns here. */
-  returnTo: OnboardingStep | null;
   /** Start Handy at login: set on All set, saved when they finish. */
   atLogin: boolean;
 }
@@ -48,13 +46,30 @@ interface Persisted {
 interface OnboardingState extends Persisted {
   /** Debug preview: no permission prompts, downloads or setting writes. */
   preview: boolean;
+  /** Borrowed by a screen outside the flow (ReplaceModel): never saved. */
+  standalone: boolean;
   /** The download of `downloadId` stopped (failed, or cut off by a quit). */
   downloadFailed: boolean;
+  /**
+   * Set when All set's panel jumps back to a screen; continuing returns here.
+   * Not saved: a detour never outlives the session, and any other move ends it.
+   */
+  returnTo: OnboardingStep | null;
 
-  set: (patch: Partial<Persisted & { downloadFailed: boolean }>) => void;
+  set: (
+    patch: Partial<
+      Persisted & {
+        downloadFailed: boolean;
+        returnTo: OnboardingStep | null;
+      }
+    >,
+  ) => void;
   setLessons: (patch: Partial<{ hold: boolean; tap: boolean }>) => void;
-  /** Start over (a new person, or a preview). */
-  reset: (preview: boolean) => void;
+  /**
+   * Start over (a new person, or a preview). `standalone` starts fresh and
+   * never saves, so a reused screen can't leave onboarding progress behind.
+   */
+  reset: (preview: boolean, standalone?: boolean) => void;
 }
 
 const STORAGE_KEY = "handy.onboarding";
@@ -68,7 +83,6 @@ const fresh = (): Persisted => ({
   downloadId: null,
   welcomeBack: false,
   lessons: { hold: false, tap: false },
-  returnTo: null,
   atLogin: true,
 });
 
@@ -99,10 +113,6 @@ const load = (): Persisted => {
       extraModelId: pick("extraModelId", isId),
       downloadId: pick("downloadId", isId),
       welcomeBack: pick("welcomeBack", isBool),
-      returnTo: pick(
-        "returnTo",
-        (v) => v === null || STEP_ORDER.includes(v as OnboardingStep),
-      ),
       atLogin: pick("atLogin", isBool),
       lessons: pick(
         "lessons",
@@ -119,7 +129,7 @@ const load = (): Persisted => {
 };
 
 const save = (state: OnboardingState) => {
-  if (state.preview) return;
+  if (state.preview || state.standalone) return;
   const persisted: Persisted = {
     step: state.step,
     languages: state.languages,
@@ -129,7 +139,6 @@ const save = (state: OnboardingState) => {
     downloadId: state.downloadId,
     welcomeBack: state.welcomeBack,
     lessons: state.lessons,
-    returnTo: state.returnTo,
     atLogin: state.atLogin,
   };
   try {
@@ -152,7 +161,9 @@ export const clearOnboardingProgress = () => {
 export const useOnboardingStore = create<OnboardingState>()((set, get) => ({
   ...load(),
   preview: false,
+  standalone: false,
   downloadFailed: false,
+  returnTo: null,
 
   set: (patch) => {
     set(patch);
@@ -162,7 +173,13 @@ export const useOnboardingStore = create<OnboardingState>()((set, get) => ({
     set({ lessons: { ...get().lessons, ...patch } });
     save(get());
   },
-  reset: (preview) => {
-    set({ ...(preview ? fresh() : load()), preview, downloadFailed: false });
+  reset: (preview, standalone = false) => {
+    set({
+      ...(preview || standalone ? fresh() : load()),
+      preview,
+      standalone,
+      downloadFailed: false,
+      returnTo: null,
+    });
   },
 }));

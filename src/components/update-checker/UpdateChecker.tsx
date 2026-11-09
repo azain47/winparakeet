@@ -46,12 +46,22 @@ const UpdateChecker: React.FC<UpdateCheckerProps> = ({ className = "" }) => {
   const isManualCheckRef = useRef(false);
   const downloadedBytesRef = useRef(0);
   const contentLengthRef = useRef(0);
+  // Read by in-flight async work, which outlives the render it started in.
+  const enabledRef = useRef(updateChecksEnabled);
+  enabledRef.current = updateChecksEnabled;
+  // One check at a time; the guard is set synchronously, not via state.
+  const checkingRef = useRef(false);
+  // Bumped when checks are turned off, so a check already in flight drops
+  // its result instead of announcing an update.
+  const checkGenRef = useRef(0);
+  const installingRef = useRef(false);
 
   useEffect(() => {
     // Wait for settings to load before doing anything
     if (!settingsLoaded) return;
 
     if (!updateChecksEnabled) {
+      checkGenRef.current++;
       if (upToDateTimeoutRef.current) {
         clearTimeout(upToDateTimeoutRef.current);
       }
@@ -78,11 +88,17 @@ const UpdateChecker: React.FC<UpdateCheckerProps> = ({ className = "" }) => {
 
   // Update checking functions
   const checkForUpdates = async () => {
-    if (!updateChecksEnabled || isChecking) return;
+    if (!enabledRef.current || checkingRef.current) return;
+    checkingRef.current = true;
+    const gen = checkGenRef.current;
+    const manual = isManualCheckRef.current;
+    isManualCheckRef.current = false;
 
     try {
       setIsChecking(true);
       const update = await check();
+      // Turned off while checking: the answer no longer applies.
+      if (gen !== checkGenRef.current || !enabledRef.current) return;
 
       if (update) {
         setUpdateAvailable(true);
@@ -95,7 +111,7 @@ const UpdateChecker: React.FC<UpdateCheckerProps> = ({ className = "" }) => {
       } else {
         setUpdateAvailable(false);
 
-        if (isManualCheckRef.current) {
+        if (manual) {
           setShowUpToDate(true);
           if (upToDateTimeoutRef.current) {
             clearTimeout(upToDateTimeoutRef.current);
@@ -108,27 +124,39 @@ const UpdateChecker: React.FC<UpdateCheckerProps> = ({ className = "" }) => {
     } catch (error) {
       console.error("Failed to check for updates:", error);
     } finally {
+      checkingRef.current = false;
       setIsChecking(false);
-      isManualCheckRef.current = false;
+      // Turned off and back on while this check ran: the new setting's own
+      // check was refused as concurrent, so run it now.
+      if (gen !== checkGenRef.current && enabledRef.current) checkForUpdates();
     }
   };
 
   const handleManualUpdateCheck = () => {
-    if (!updateChecksEnabled) return;
+    if (!enabledRef.current || checkingRef.current) return;
     isManualCheckRef.current = true;
     checkForUpdates();
   };
 
-  const installUpdate = async () => {
-    if (!updateChecksEnabled) return;
+  const resetInstall = () => {
+    installingRef.current = false;
+    setIsInstalling(false);
+    setDownloadProgress(0);
+    downloadedBytesRef.current = 0;
+    contentLengthRef.current = 0;
+  };
 
-    const portable = await commands.isPortable();
-    if (portable) {
-      setShowPortableUpdateDialog(true);
-      return;
-    }
+  const installUpdate = async () => {
+    if (!enabledRef.current || installingRef.current) return;
+    installingRef.current = true;
 
     try {
+      if (await commands.isPortable()) {
+        installingRef.current = false;
+        setShowPortableUpdateDialog(true);
+        return;
+      }
+
       setIsInstalling(true);
       setDownloadProgress(0);
       downloadedBytesRef.current = 0;
@@ -137,6 +165,7 @@ const UpdateChecker: React.FC<UpdateCheckerProps> = ({ className = "" }) => {
 
       if (!update) {
         console.log("No update available during install attempt");
+        resetInstall();
         return;
       }
 
@@ -159,14 +188,11 @@ const UpdateChecker: React.FC<UpdateCheckerProps> = ({ className = "" }) => {
             break;
         }
       });
+      // Installed: stay "installing" until the relaunch replaces this process.
       await relaunch();
     } catch (error) {
       console.error("Failed to install update:", error);
-    } finally {
-      setIsInstalling(false);
-      setDownloadProgress(0);
-      downloadedBytesRef.current = 0;
-      contentLengthRef.current = 0;
+      resetInstall();
     }
   };
 

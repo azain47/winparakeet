@@ -706,6 +706,7 @@
       "transcribing": "Trascrizione in corso...",
       "transcriptionFailed": "Trascrizione fallita. Puoi ri-trascrivere usando l'icona di ripetizione.",
       "notTranscribed": "Non trascritto. Puoi trascriverlo usando l'icona di ripetizione.",
+      "notTranscribedNoRecording": "Non trascritto. La registrazione non è stata conservata.",
       "transcribeFile": "Trascrivi file",
       "mediaFiles": "Audio e video",
       "fileUnsupported": "Impossibile leggere l'audio da {{name}}.",
@@ -713,6 +714,7 @@
       "waiting": "In attesa di trascrizione",
       "transcribingPercent": "Trascrizione, {{percent}}%",
       "readingFile": "Lettura del file in corso...",
+      "fileWaiting": "In attesa di leggere il file...",
       "showMore": "Mostra di più",
       "showLess": "Mostra di meno",
       "dropTitle": "Rilascia per trascrivere",
@@ -788,7 +790,8 @@
       },
       "recordingRetention": {
         "title": "Eliminazione Automatica Registrazioni",
-        "description": "Elimina automaticamente le registrazioni vecchie per liberare spazio",
+        "description": "Elimina automaticamente le registrazioni vecchie per risparmiare spazio, oppure non salvarle affatto e conserva solo il testo",
+        "dontSave": "Non salvare le registrazioni",
         "never": "Mai",
         "preserveLimit": "Conserva le ultime {{count}}",
         "days3": "Dopo 3 giorni",
@@ -952,7 +955,8 @@
     "filePostProcessFailedTitle": "Trascritto senza post-elaborazione",
     "filePostProcessFailed": "La post-elaborazione non è terminata, quindi la trascrizione è stata salvata così com'è.",
     "fileTranscriptionFailedTitle": "Trascrizione del file non riuscita",
-    "transcriptionFailedTitle": "Trascrizione non riuscita"
+    "transcriptionFailedTitle": "Trascrizione non riuscita",
+    "onboardingFinishFailed": "Impossibile completare la configurazione. Riprova."
   },
   "notices": {
     "errorOne": "{{n}} errore",

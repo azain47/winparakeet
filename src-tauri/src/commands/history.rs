@@ -1,6 +1,6 @@
 use crate::managers::{
     history::{HistoryEntry, HistoryManager, PaginatedHistory},
-    transcription_jobs::TranscriptionJobManager,
+    transcription_jobs::{TranscriptionJob, TranscriptionJobManager},
 };
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -40,6 +40,9 @@ pub async fn get_audio_file_path(
     history_manager: State<'_, Arc<HistoryManager>>,
     file_name: String,
 ) -> Result<String, String> {
+    if file_name.is_empty() {
+        return Err("This entry has no recording".to_string());
+    }
     let path = history_manager.get_audio_file_path(&file_name);
     path.to_str()
         .ok_or_else(|| "Invalid file path".to_string())
@@ -76,6 +79,16 @@ pub fn retry_history_entry_transcription(jobs: State<'_, Arc<TranscriptionJobMan
 #[specta::specta]
 pub fn cancel_history_entry_transcription(jobs: State<'_, Arc<TranscriptionJobManager>>, id: i64) {
     jobs.cancel(id);
+}
+
+/// The background transcriptions queued or running now. Later changes
+/// arrive as `TranscriptionJob` events.
+#[tauri::command]
+#[specta::specta]
+pub fn get_transcription_jobs(
+    jobs: State<'_, Arc<TranscriptionJobManager>>,
+) -> Vec<TranscriptionJob> {
+    jobs.active_jobs()
 }
 
 /// Adds an audio or video file to History and queues its transcription.
@@ -121,6 +134,7 @@ pub async fn update_recording_retention_period(
     use crate::settings::RecordingRetentionPeriod;
 
     let retention_period = match period.as_str() {
+        "dont_save" => RecordingRetentionPeriod::DontSave,
         "never" => RecordingRetentionPeriod::Never,
         "preserve_limit" => RecordingRetentionPeriod::PreserveLimit,
         "days3" => RecordingRetentionPeriod::Days3,

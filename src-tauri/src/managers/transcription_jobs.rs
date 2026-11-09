@@ -5,11 +5,10 @@ use anyhow::{anyhow, Result};
 use log::{error, info, warn};
 use serde::{Deserialize, Serialize};
 use specta::Type;
-use std::cell::Cell;
 use std::collections::VecDeque;
 use std::panic::{catch_unwind, AssertUnwindSafe};
 use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU8, Ordering};
 use std::sync::{Arc, Condvar, Mutex, MutexGuard};
 use std::thread;
 use std::time::Duration;
@@ -36,8 +35,10 @@ pub enum TranscriptionJobStatus {
     Running {
         percent: u8,
     },
-    /// The entry has its new text, or the job was cancelled.
+    /// The entry has its new text.
     Finished,
+    /// Stopped before it finished; the entry keeps the text it had.
+    Cancelled,
     Failed {
         error: String,
     },
@@ -53,6 +54,8 @@ pub struct TranscriptionJob {
 struct Running {
     entry_id: i64,
     cancelled: Arc<AtomicBool>,
+    /// The last percent reported.
+    percent: Arc<AtomicU8>,
 }
 
 #[derive(Default)]
@@ -96,6 +99,15 @@ pub struct TranscriptionJobManager {
 impl TranscriptionJobManager {
     /// Starts the thread that runs the jobs.
     pub fn new(app: &AppHandle) -> Arc<Self> {
+        // A recording left by a job that a quit interrupted.
+        if !crate::settings::get_recording_retention_period(app).keeps_recordings() {
+            if let Err(e) = app
+                .state::<Arc<HistoryManager>>()
+                .remove_recordings(|_| false)
+            {
+                error!("Failed to remove recordings that are not kept: {}", e);
+            }
+        }
         let manager = Arc::new(Self {
             app: app.clone(),
             jobs: Mutex::new(Jobs::default()),
@@ -116,7 +128,8 @@ impl TranscriptionJobManager {
     }
 
     /// Decodes `path` into a recording, then adds it to History and queues
-    /// it. The recording exists first, so no entry is ever without audio.
+    /// it. The recording exists first, so no entry is ever without audio
+    /// before its job ends.
     pub fn transcribe_file(&self, path: PathBuf) -> Result<HistoryEntry> {
         // A malformed file may panic the decoder.
         let samples = catch_unwind(AssertUnwindSafe(|| decode_audio_file(&path))).unwrap_or_else(
@@ -148,67 +161,124 @@ impl TranscriptionJobManager {
             .file_name()
             .map(|n| n.to_string_lossy().into_owned())
             .unwrap_or_else(|| path.display().to_string());
-        let entry = match hm.save_file_entry(file_name, source_name) {
-            Ok(entry) => entry,
-            Err(e) => {
-                remove_recording(&recording);
-                return Err(e);
-            }
+        let entry = {
+            // Under the lock from the entry to its job, so recordings that
+            // are not kept are never removed in between.
+            let mut jobs = self.lock();
+            let entry = match hm.save_file_entry(file_name, source_name) {
+                Ok(entry) => entry,
+                Err(e) => {
+                    remove_recording(&recording);
+                    return Err(e);
+                }
+            };
+            self.enqueue(&mut jobs, entry.id, false);
+            entry
         };
         info!("Queued file transcription for history entry {}", entry.id);
-        self.queue(entry.id, false);
+        self.queued();
         Ok(entry)
     }
 
     /// Queues the entry to be transcribed again from its recording, ahead
-    /// of any file.
+    /// of any file, unless it already is.
     pub fn retry(&self, entry_id: i64) {
-        self.queue(entry_id, true);
+        if self.enqueue(&mut self.lock(), entry_id, true) {
+            self.queued();
+        }
     }
 
-    /// Queues the entry to be transcribed from its recording, unless it
-    /// already is.
-    fn queue(&self, entry_id: i64, retry: bool) {
-        {
-            let mut jobs = self.lock();
-            if jobs.has(entry_id) {
-                return;
-            }
-            if retry {
-                jobs.retries.push_back(entry_id);
-            } else {
-                jobs.files.push_back(entry_id);
-            }
-            self.sync_job_active(&jobs);
+    /// Queues the entry unless it already is; whether it was queued. Its
+    /// `Queued` goes out under the lock, before the job can be reported
+    /// as running.
+    fn enqueue(&self, jobs: &mut Jobs, entry_id: i64, retry: bool) -> bool {
+        if jobs.has(entry_id) {
+            return false;
         }
+        if retry {
+            jobs.retries.push_back(entry_id);
+        } else {
+            jobs.files.push_back(entry_id);
+        }
+        self.sync_job_active(jobs);
         self.emit(entry_id, TranscriptionJobStatus::Queued);
+        true
+    }
+
+    /// After a job is queued, with the lock released.
+    fn queued(&self) {
         crate::tray::update_tray_menu(&self.app);
         self.wake.notify_one();
+    }
+
+    /// The queued and running jobs, for a window that opens while they run.
+    pub fn active_jobs(&self) -> Vec<TranscriptionJob> {
+        let jobs = self.lock();
+        let running = jobs.running.iter().map(|running| TranscriptionJob {
+            entry_id: running.entry_id,
+            status: TranscriptionJobStatus::Running {
+                percent: running.percent.load(Ordering::Relaxed),
+            },
+        });
+        let queued = jobs
+            .retries
+            .iter()
+            .chain(&jobs.files)
+            .map(|&entry_id| TranscriptionJob {
+                entry_id,
+                status: TranscriptionJobStatus::Queued,
+            });
+        running.chain(queued).collect()
+    }
+
+    /// Deletes every recording no job still needs; for when recordings are
+    /// not kept.
+    pub fn remove_unused_recordings(&self) -> Result<()> {
+        self.remove_unused_recordings_locked(&self.lock())
+    }
+
+    /// The same, under the lock that queues jobs, so a recording can't be
+    /// removed between its entry and its job.
+    fn remove_unused_recordings_locked(&self, jobs: &Jobs) -> Result<()> {
+        self.app
+            .state::<Arc<HistoryManager>>()
+            .remove_recordings(|entry_id| jobs.has(entry_id))
+    }
+
+    /// After a job ends: its recording goes too if recordings are not kept.
+    fn drop_recording_if_not_kept(&self, jobs: &Jobs) {
+        if crate::settings::get_recording_retention_period(&self.app).keeps_recordings() {
+            return;
+        }
+        if let Err(e) = self.remove_unused_recordings_locked(jobs) {
+            error!("Failed to remove recordings that are not kept: {}", e);
+        }
     }
 
     /// Stops the entry's job: a queued one is dropped, a running one stops
     /// before its next chunk.
     pub fn cancel(&self, entry_id: i64) {
-        let (was_queued, idle) = {
+        let idle = {
             let mut jobs = self.lock();
-            let was_queued = jobs.unqueue(entry_id);
             if let Some(running) = jobs.running.as_ref().filter(|r| r.entry_id == entry_id) {
                 running.cancelled.store(true, Ordering::Release);
             }
-            self.sync_job_active(&jobs);
-            (was_queued, jobs.is_idle())
-        };
-        // A running job reports its own end from the job loop; a queued one
-        // never reaches it, so it is reported here.
-        if was_queued {
-            if idle && !crate::tray::dictation_in_progress(&self.app) {
-                self.app
-                    .state::<Arc<TranscriptionManager>>()
-                    .maybe_unload_immediately("background transcription");
+            // A running job reports its own end from the job loop; a queued
+            // one never reaches it, so it is reported here.
+            if !jobs.unqueue(entry_id) {
+                return;
             }
-            crate::tray::update_tray_menu(&self.app);
-            self.emit(entry_id, TranscriptionJobStatus::Finished);
+            self.sync_job_active(&jobs);
+            self.emit(entry_id, TranscriptionJobStatus::Cancelled);
+            self.drop_recording_if_not_kept(&jobs);
+            jobs.is_idle()
+        };
+        if idle && !crate::tray::dictation_in_progress(&self.app) {
+            self.app
+                .state::<Arc<TranscriptionManager>>()
+                .maybe_unload_immediately("background transcription");
         }
+        crate::tray::update_tray_menu(&self.app);
     }
 
     /// Keeps the model held for as long as any job is queued or running.
@@ -226,7 +296,7 @@ impl TranscriptionJobManager {
 
     fn run_jobs(&self) {
         loop {
-            let (entry_id, cancelled) = {
+            let (entry_id, cancelled, percent) = {
                 let mut jobs = self.lock();
                 let entry_id = loop {
                     if let Some(entry_id) =
@@ -240,35 +310,28 @@ impl TranscriptionJobManager {
                         .unwrap_or_else(|poisoned| poisoned.into_inner());
                 };
                 let cancelled = Arc::new(AtomicBool::new(false));
+                let percent = Arc::new(AtomicU8::new(0));
                 jobs.running = Some(Running {
                     entry_id,
                     cancelled: Arc::clone(&cancelled),
+                    percent: Arc::clone(&percent),
                 });
-                (entry_id, cancelled)
+                // Under the lock, so it can't overtake the job's `Queued`.
+                self.emit(entry_id, TranscriptionJobStatus::Running { percent: 0 });
+                (entry_id, cancelled, percent)
             };
-            self.emit(entry_id, TranscriptionJobStatus::Running { percent: 0 });
 
             // A panic fails only this job; the rest of the loop still has to
             // run, or the model would stay held and the queue stuck.
-            let result = catch_unwind(AssertUnwindSafe(|| self.run_job(entry_id, &cancelled)))
+            let job = || self.run_job(entry_id, &cancelled, &percent);
+            let result = catch_unwind(AssertUnwindSafe(job))
                 .unwrap_or_else(|payload| Err(crashed(payload.as_ref())));
 
-            let idle = {
-                let mut jobs = self.lock();
-                jobs.running = None;
-                self.sync_job_active(&jobs);
-                jobs.is_idle()
-            };
-            let tm = self.app.state::<Arc<TranscriptionManager>>();
-            if idle {
-                // A dictation under way unloads the model itself when it ends.
-                if !crate::tray::dictation_in_progress(&self.app) {
-                    tm.maybe_unload_immediately("background transcription");
-                }
-                crate::tray::update_tray_menu(&self.app);
-            }
             let status = match result {
-                Err(e) if !cancelled.load(Ordering::Acquire) => {
+                Err(_) | Ok(JobEnd::Cancelled) if cancelled.load(Ordering::Acquire) => {
+                    TranscriptionJobStatus::Cancelled
+                }
+                Err(e) => {
                     warn!("Transcription of history entry {} failed: {}", entry_id, e);
                     notices::raise(
                         &self.app,
@@ -292,17 +355,39 @@ impl TranscriptionJobManager {
                     }
                     TranscriptionJobStatus::Finished
                 }
-                _ => TranscriptionJobStatus::Finished,
+                Ok(JobEnd::Cancelled) => TranscriptionJobStatus::Cancelled,
             };
-            self.emit(entry_id, status);
+
+            let idle = {
+                let mut jobs = self.lock();
+                jobs.running = None;
+                self.sync_job_active(&jobs);
+                // Under the lock, so a new job for the entry can't be
+                // reported before this one's end.
+                self.emit(entry_id, status);
+                self.drop_recording_if_not_kept(&jobs);
+                jobs.is_idle()
+            };
+            if idle {
+                // A dictation under way unloads the model itself when it ends.
+                if !crate::tray::dictation_in_progress(&self.app) {
+                    self.app
+                        .state::<Arc<TranscriptionManager>>()
+                        .maybe_unload_immediately("background transcription");
+                }
+                crate::tray::update_tray_menu(&self.app);
+            }
         }
     }
 
-    fn run_job(&self, entry_id: i64, cancelled: &AtomicBool) -> Result<JobEnd> {
+    fn run_job(&self, entry_id: i64, cancelled: &AtomicBool, percent: &AtomicU8) -> Result<JobEnd> {
         let hm = Arc::clone(&self.app.state::<Arc<HistoryManager>>());
         let tm = Arc::clone(&self.app.state::<Arc<TranscriptionManager>>());
         let entry = tauri::async_runtime::block_on(hm.get_entry_by_id(entry_id))?
             .ok_or_else(|| anyhow!("History entry {} not found", entry_id))?;
+        if entry.file_name.is_empty() {
+            return Err(anyhow!("The recording of this entry was not kept"));
+        }
         let samples = read_wav_samples(hm.get_audio_file_path(&entry.file_name))
             .map_err(|e| anyhow!("Failed to load audio: {}", e))?;
         if samples.is_empty() {
@@ -313,7 +398,7 @@ impl TranscriptionJobManager {
             manager: self,
             entry_id: entry.id,
             cancelled,
-            percent: Cell::new(0),
+            percent,
         };
         let Some(Transcription { text, language }) = tm.transcribe_in_chunks(samples, &control)?
         else {
@@ -373,7 +458,7 @@ struct Control<'a> {
     entry_id: i64,
     cancelled: &'a AtomicBool,
     /// The last percent reported; the job starts at 0.
-    percent: Cell<u8>,
+    percent: &'a AtomicU8,
 }
 
 impl ChunkControl for Control<'_> {
@@ -397,7 +482,7 @@ impl ChunkControl for Control<'_> {
             return;
         }
         let percent = (done * 100 / total.max(1)).min(100) as u8;
-        if self.percent.replace(percent) == percent {
+        if self.percent.swap(percent, Ordering::Relaxed) == percent {
             return;
         }
         self.manager

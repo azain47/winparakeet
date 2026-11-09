@@ -1,4 +1,4 @@
-import { listen } from "@tauri-apps/api/event";
+import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import "./RecordingOverlay.css";
@@ -93,51 +93,103 @@ const RecordingOverlay: React.FC = () => {
   const direction = getLanguageDirection(i18n.language);
 
   useEffect(() => {
-    const setupEventListeners = async () => {
-      const unlistenNotice = await listen<Notice>("overlay-notice", (event) => {
+    // Listeners register asynchronously; one that resolves after unmount is
+    // removed at once, so StrictMode's double mount never leaves duplicates.
+    let disposed = false;
+    const unlisteners: UnlistenFn[] = [];
+    const register = (pending: Promise<UnlistenFn>) => {
+      pending.then((unlisten) => {
+        if (disposed) unlisten();
+        else unlisteners.push(unlisten);
+      }, console.error);
+    };
+
+    // Every show and hide bumps this. A show applies what it read from the
+    // backend only if no later show or hide arrived while it awaited, so the
+    // latest event always wins.
+    let overlaySeq = 0;
+
+    // Model-load latch. Bumped per model event, so a polled load status is
+    // applied only when no event raced the poll.
+    let modelLoadingNow = false;
+    let modelEventSeq = 0;
+    const setModelLoad = (loading: boolean) => {
+      modelLoadingNow = loading;
+      clearTimeout(modelLoadTimerRef.current);
+      setModelLoading(loading);
+      setModelLoadSlow(false);
+      if (loading) {
+        modelLoadTimerRef.current = setTimeout(
+          () => setModelLoadSlow(true),
+          SLOW_MODEL_LOAD_MS,
+        );
+      }
+    };
+
+    register(
+      listen<Notice>("overlay-notice", (event) => {
         clearTimeout(fadeTimerRef.current);
         setNotice(event.payload);
-      });
+      }),
+    );
 
-      const unlistenShow = await listen("show-overlay", async (event) => {
+    register(
+      listen("show-overlay", async (event) => {
+        const seq = ++overlaySeq;
+        const modelSeq = modelEventSeq;
         const overlayState = event.payload as OverlayState;
         clearTimeout(fadeTimerRef.current);
         if (!isNoticeState(overlayState)) setNotice(null);
         // Reset synchronously before settings I/O. A fast microphone can emit
-        // recording-ready while the awaits below are in flight; resetting after
-        // them would overwrite that event and leave the overlay stuck arming.
+        // recording-ready (and Live a `working` phase) while the awaits below
+        // are in flight; resetting after them would overwrite those events.
         if (overlayState === "recording" || overlayState === "streaming") {
           setCaptureReady(false);
           smoothedLevelsRef.current = Array(16).fill(0);
           setLevels(Array(WAVE_BARS).fill(0));
           setStreamText({ committed: "", tentative: "" });
         }
-
-        await syncLanguageFromSettings();
-        // The Live panel flows downward from a top overlay and upward from a
-        // bottom one; read the placement so the layout can flip to match.
-        try {
-          const settings = await commands.getAppSettings();
-          if (settings.status === "ok") {
-            setPosition(
-              settings.data.overlay_position === "top" ? "top" : "bottom",
-            );
-          }
-        } catch {
-          // Keep the previous/default placement if settings can't be read.
-        }
-        setState(overlayState);
         if (overlayState === "streaming") {
           setPhase("listening");
           setWorkKind("transcribing");
           setElapsed(0);
           setLoadNoticeShown(false);
+        }
+
+        // The Live panel flows downward from a top overlay and upward from a
+        // bottom one; read the placement so the layout can flip to match.
+        const [, settings, loading] = await Promise.all([
+          syncLanguageFromSettings().catch(console.error),
+          commands.getAppSettings().catch(() => null),
+          commands.isModelLoading().catch(() => null),
+        ]);
+        if (disposed || seq !== overlaySeq) return;
+
+        // Keep the previous/default placement if settings can't be read.
+        if (settings?.status === "ok") {
+          setPosition(
+            settings.data.overlay_position === "top" ? "top" : "bottom",
+          );
+        }
+        // Heal the load latch if a load's start or end event went missing.
+        if (
+          modelSeq === modelEventSeq &&
+          loading?.status === "ok" &&
+          loading.data !== modelLoadingNow
+        ) {
+          setModelLoad(loading.data);
+        }
+        setState(overlayState);
+        if (overlayState === "streaming") {
           setSession((s) => s + 1); // remount the card fresh for this session
         }
         setIsVisible(true);
-      });
+      }),
+    );
 
-      const unlistenHide = await listen("hide-overlay", () => {
+    register(
+      listen("hide-overlay", () => {
+        overlaySeq++;
         setIsVisible(false);
         setCaptureReady(false);
         // A notice keeps rendering while it fades. Dropping the transcript here
@@ -147,14 +199,18 @@ const RecordingOverlay: React.FC = () => {
           setNotice(null);
           setStreamText({ committed: "", tentative: "" });
         }, OVERLAY_FADE_MS);
-      });
+      }),
+    );
 
-      const unlistenReady = await listen("recording-ready", () => {
+    register(
+      listen("recording-ready", () => {
         setElapsed(0);
         setCaptureReady(true);
-      });
+      }),
+    );
 
-      const unlistenLevel = await listen<number[]>("mic-level", (event) => {
+    register(
+      listen<number[]>("mic-level", (event) => {
         const newLevels = event.payload as number[];
         // Exponential smoothing across the 16 buckets, then take the first N
         // bars for the shared waveform.
@@ -164,60 +220,47 @@ const RecordingOverlay: React.FC = () => {
         });
         smoothedLevelsRef.current = smoothed;
         setLevels(smoothed.slice(0, WAVE_BARS));
-      });
+      }),
+    );
 
-      const unlistenStream = await events.streamTextEvent.listen((event) => {
+    register(
+      events.streamTextEvent.listen((event) => {
         setStreamText(event.payload);
-      });
+      }),
+    );
 
-      const unlistenPhase = await events.streamPhaseEvent.listen((event) => {
+    register(
+      events.streamPhaseEvent.listen((event) => {
         const payload: StreamPhaseEvent = event.payload;
         setPhase(payload.phase);
         if (payload.kind) setWorkKind(payload.kind);
-      });
+      }),
+    );
 
-      // The backend ends every `loading_started` with exactly one of completed
-      // or failed, so only those end a load. Other events (e.g. `unloaded` from
-      // the idle watcher) aren't ordered against an in-flight load and must not
-      // clear it.
-      const unlistenModel = await listen<ModelStateEvent>(
-        "model-state-changed",
-        (event) => {
-          const type = event.payload.event_type;
-          if (type === "loading_started") {
-            clearTimeout(modelLoadTimerRef.current);
-            setModelLoading(true);
-            setModelLoadSlow(false);
-            modelLoadTimerRef.current = setTimeout(
-              () => setModelLoadSlow(true),
-              SLOW_MODEL_LOAD_MS,
-            );
-          } else if (
-            type === "loading_completed" ||
-            type === "loading_failed"
-          ) {
-            clearTimeout(modelLoadTimerRef.current);
-            setModelLoading(false);
-            setModelLoadSlow(false);
-          }
-        },
-      );
+    // The backend ends every `loading_started` with exactly one of completed
+    // or failed, so only those end a load. Other events (e.g. `unloaded` from
+    // the idle watcher) aren't ordered against an in-flight load and must not
+    // clear it. Each new overlay session also re-polls the load status, so a
+    // missed event can't latch the loading label.
+    register(
+      listen<ModelStateEvent>("model-state-changed", (event) => {
+        const type = event.payload.event_type;
+        if (type === "loading_started") {
+          modelEventSeq++;
+          setModelLoad(true);
+        } else if (type === "loading_completed" || type === "loading_failed") {
+          modelEventSeq++;
+          setModelLoad(false);
+        }
+      }),
+    );
 
-      return () => {
-        unlistenNotice();
-        unlistenShow();
-        unlistenHide();
-        unlistenReady();
-        unlistenLevel();
-        unlistenStream();
-        unlistenPhase();
-        unlistenModel();
-        clearTimeout(modelLoadTimerRef.current);
-        clearTimeout(fadeTimerRef.current);
-      };
+    return () => {
+      disposed = true;
+      unlisteners.splice(0).forEach((unlisten) => unlisten());
+      clearTimeout(modelLoadTimerRef.current);
+      clearTimeout(fadeTimerRef.current);
     };
-
-    setupEventListeners();
   }, []);
 
   // Elapsed capture timer starts only once microphone samples are flowing.
@@ -275,9 +318,19 @@ const RecordingOverlay: React.FC = () => {
   const fmtTime = (s: number) =>
     `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 
-  const transcribingLabel = modelLoading
-    ? t("overlay.loadingModel")
-    : t("overlay.transcribing");
+  // One source for "working": Live reports it as a stream phase, the minimal
+  // overlay as its state. Notices are never working.
+  const working =
+    state === "streaming"
+      ? phase === "working"
+      : state === "transcribing" || state === "processing";
+  const polishing =
+    state === "streaming" ? workKind === "polishing" : state === "processing";
+  const workLabel = polishing
+    ? t("overlay.processing")
+    : modelLoading
+      ? t("overlay.loadingModel")
+      : t("overlay.transcribing");
 
   // ---- Shared building blocks (one visual language for every overlay form) ----
   const waveform = (
@@ -358,7 +411,6 @@ const RecordingOverlay: React.FC = () => {
   if (state === "streaming" || liveNotice) {
     const hasText =
       streamText.committed.length > 0 || streamText.tentative.length > 0;
-    const working = !liveNotice && phase === "working";
     // A notice keeps the transcript; with none, the panel explains the notice.
     const noticeText =
       liveNotice && !hasText
@@ -417,12 +469,7 @@ const RecordingOverlay: React.FC = () => {
           {liveNotice
             ? noticeRow
             : working
-              ? workingRow(
-                  workKind === "polishing"
-                    ? t("overlay.processing")
-                    : transcribingLabel,
-                  true,
-                )
+              ? workingRow(workLabel, true)
               : listeningRow(open, true)}
         </div>
       </div>
@@ -432,9 +479,6 @@ const RecordingOverlay: React.FC = () => {
   // ---- Minimal overlay: exactly one row at a time — waveform (recording), or a
   // spinner + label (transcribing / processing). Never both. The pill animates its
   // width between them; the cancel button is in both rows so it stays put.
-  const working = state === "transcribing" || state === "processing";
-  const workLabel =
-    state === "processing" ? t("overlay.processing") : transcribingLabel;
 
   return (
     <div

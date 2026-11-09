@@ -211,6 +211,24 @@ pub(crate) fn try_reliable_paste(
     )
 }
 
+/// Settles any reliable-paste transaction still holding the clipboard and
+/// waits for its restore, so the caller's clipboard snapshot captures the
+/// user's content rather than the previous transcript. `try_reliable_paste`
+/// does this itself; the legacy clipboard paste must call it first. Call it
+/// without holding the enigo lock so the previous paste's auto-submit can go
+/// out.
+#[cfg(target_os = "windows")]
+pub(crate) fn settle_previous() {
+    platform::flush_pending();
+}
+
+/// macOS variant: must run on the main thread with the enigo lock held (the
+/// settle may send the previous paste's auto-submit with it).
+#[cfg(target_os = "macos")]
+pub(crate) fn settle_previous(app_handle: &tauri::AppHandle, enigo: &mut enigo::Enigo) {
+    platform::flush_pending(app_handle, enigo);
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

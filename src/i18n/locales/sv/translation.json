@@ -706,6 +706,7 @@
       "transcribing": "Transkriberar...",
       "transcriptionFailed": "Transkribering misslyckades. Du kan transkribera igen med hjälp av ikonen för nytt försök.",
       "notTranscribed": "Inte transkriberad. Du kan transkribera den med hjälp av ikonen för nytt försök.",
+      "notTranscribedNoRecording": "Inte transkriberad. Inspelningen sparades inte.",
       "transcribeFile": "Transkribera fil",
       "mediaFiles": "Ljud och video",
       "fileUnsupported": "Kunde inte läsa ljud från {{name}}.",
@@ -713,6 +714,7 @@
       "waiting": "Väntar på transkribering",
       "transcribingPercent": "Transkriberar, {{percent}} %",
       "readingFile": "Läser fil...",
+      "fileWaiting": "Väntar på att läsa filen...",
       "showMore": "Visa mer",
       "showLess": "Visa mindre",
       "dropTitle": "Släpp för att transkribera",
@@ -788,7 +790,8 @@
       },
       "recordingRetention": {
         "title": "Radera inspelningar automatiskt",
-        "description": "Radera gamla inspelningar automatiskt för att spara utrymme",
+        "description": "Radera gamla inspelningar automatiskt för att spara utrymme, eller spara inga inspelningar alls och behåll bara texten",
+        "dontSave": "Spara inte inspelningar",
         "never": "Aldrig",
         "preserveLimit": "Behåll de senaste {{count}}",
         "days3": "Efter 3 dagar",
@@ -952,7 +955,8 @@
     "filePostProcessFailedTitle": "Transkriberat utan efterbearbetning",
     "filePostProcessFailed": "Efterbearbetningen slutfördes inte, så transkriptionen sparades som den är.",
     "fileTranscriptionFailedTitle": "Transkriptionen av filen misslyckades",
-    "transcriptionFailedTitle": "Transkriptionen misslyckades"
+    "transcriptionFailedTitle": "Transkriptionen misslyckades",
+    "onboardingFinishFailed": "Det gick inte att slutföra konfigurationen. Försök igen."
   },
   "notices": {
     "errorOne": "{{n}} fel",

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useSettings } from "@/hooks/useSettings";
 import { useModelStore } from "@/stores/modelStore";
-import { clearOnboardingProgress, useOnboardingStore } from "./onboardingStore";
+import { useOnboardingStore } from "./onboardingStore";
 import { usePermissions } from "./usePermissions";
 import { useOnboardingModels } from "./useOnboardingModels";
 import { downloadPick } from "./downloadPick";
@@ -31,9 +31,10 @@ export const ReplaceModel: React.FC<{
   const finishing = useRef(false);
   const [attempt, setAttempt] = useState(0);
 
-  // Seed with saved spoken languages, if any.
+  // Seed with saved spoken languages, if any. Standalone: nothing chosen here
+  // is saved as onboarding progress; leaving restores the saved state.
   useEffect(() => {
-    store.reset(false);
+    store.reset(false, true);
     const spoken = settings?.spoken_languages ?? [];
     store.set({
       ...(spoken.length ? { languages: spoken } : {}),
@@ -41,6 +42,7 @@ export const ReplaceModel: React.FC<{
       extraModelId: null,
       downloadId: null,
     });
+    return () => useOnboardingStore.getState().reset(false);
     // Once, on arrival.
   }, []);
 
@@ -51,10 +53,7 @@ export const ReplaceModel: React.FC<{
     if (finishing.current || !pickedInfo || !pickedReady) return;
     finishing.current = true;
     selectModel(pickedInfo.id).then((ok) => {
-      if (!ok) return;
-      // Not a first run: leave no onboarding progress behind.
-      clearOnboardingProgress();
-      onComplete();
+      if (ok) onComplete();
     });
   }, [pickedInfo, pickedReady, attempt, selectModel, onComplete]);
 

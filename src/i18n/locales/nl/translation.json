@@ -706,6 +706,7 @@
       "transcribing": "Transcriberen...",
       "transcriptionFailed": "Transcriptie mislukt. Je kunt het opnieuw proberen via het herlaad-pictogram.",
       "notTranscribed": "Niet getranscribeerd. Je kunt het transcriberen via het herlaad-pictogram.",
+      "notTranscribedNoRecording": "Niet getranscribeerd. De opname is niet bewaard.",
       "transcribeFile": "Bestand transcriberen",
       "mediaFiles": "Audio en video",
       "fileUnsupported": "Kon geen audio lezen uit {{name}}.",
@@ -713,6 +714,7 @@
       "waiting": "Wacht op transcriptie",
       "transcribingPercent": "Transcriberen, {{percent}}%",
       "readingFile": "Bestand lezen...",
+      "fileWaiting": "Wachten om het bestand te lezen...",
       "showMore": "Meer tonen",
       "showLess": "Minder tonen",
       "dropTitle": "Loslaten om te transcriberen",
@@ -788,7 +790,8 @@
       },
       "recordingRetention": {
         "title": "Opnames automatisch verwijderen",
-        "description": "Oude opnames automatisch verwijderen om ruimte te besparen",
+        "description": "Oude opnames automatisch verwijderen om ruimte te besparen, of opnames helemaal niet opslaan en alleen de tekst bewaren",
+        "dontSave": "Opnames niet opslaan",
         "never": "Nooit",
         "preserveLimit": "Bewaar de nieuwste {{count}}",
         "days3": "Na 3 dagen",
@@ -952,7 +955,8 @@
     "filePostProcessFailedTitle": "Getranscribeerd zonder naverwerking",
     "filePostProcessFailed": "De naverwerking is niet voltooid, dus de transcriptie is ongewijzigd opgeslagen.",
     "fileTranscriptionFailedTitle": "Transcriptie van bestand mislukt",
-    "transcriptionFailedTitle": "Transcriptie mislukt"
+    "transcriptionFailedTitle": "Transcriptie mislukt",
+    "onboardingFinishFailed": "De installatie kon niet worden voltooid. Probeer het opnieuw."
   },
   "notices": {
     "errorOne": "{{n}} fout",

@@ -17,6 +17,10 @@ use crate::utils::{is_gnome_wayland, is_kde_wayland, is_wayland};
 
 /// Serializes pastes: overlapping ones would restore each other's transcript as
 /// the user's clipboard. Only taken by `paste`, which never runs on the main thread.
+/// A reliable paste (`paste_tx`) returns, releasing this lock, before its restore
+/// runs; the next clipboard paste therefore settles and waits for that restore
+/// (`paste_tx::settle_previous`, also done inside `try_reliable_paste`) before
+/// taking its own snapshot.
 static PASTE_LOCK: Mutex<()> = Mutex::new(());
 
 /// Runs `f` with the shared Enigo on the main thread (macOS TIS APIs require it)
@@ -852,6 +856,13 @@ pub fn paste(text: String, app_handle: AppHandle) -> Result<(), String> {
             )?;
         }
         PasteMethod::CtrlV | PasteMethod::CtrlShiftV | PasteMethod::ShiftInsert => {
+            // Finish a still-pending reliable paste first, so neither path below
+            // snapshots its transcript as the user's clipboard. Done here, off
+            // the main thread and without the enigo lock, so that paste's owed
+            // auto-submit is not skipped.
+            #[cfg(target_os = "windows")]
+            crate::paste_tx::settle_previous();
+
             // Debug-gated receipt-sequenced paste (#502): restore the clipboard
             // after the target actually reads the transcript, not on a timer.
             // On success it fully handles the paste (including auto-submit and
@@ -882,6 +893,18 @@ pub fn paste(text: String, app_handle: AppHandle) -> Result<(), String> {
                     Err(e) => {
                         log::warn!("Reliable paste unavailable ({e}); falling back to legacy paste")
                     }
+                }
+            }
+            // macOS settles on the main thread with the enigo lock (the reliable
+            // path does it inside `try_reliable_paste`); the legacy path must too.
+            #[cfg(target_os = "macos")]
+            {
+                let app = app_handle.clone();
+                if let Err(e) = with_enigo(&app_handle, move |enigo| {
+                    crate::paste_tx::settle_previous(&app, enigo);
+                    Ok(())
+                }) {
+                    log::warn!("Could not settle the previous reliable paste: {e}");
                 }
             }
             paste_via_clipboard(

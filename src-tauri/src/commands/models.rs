@@ -169,6 +169,12 @@ pub fn switch_active_model(app: &AppHandle, model_id: &str) -> Result<(), String
         return Err(format!("Model not downloaded: {}", model_id));
     }
 
+    // An explicit model switch is a fresh try of the GPU: it may run this
+    // model (e.g. a smaller one after running out of VRAM). One more GPU
+    // failure costs a single crash (or hang) before that load falls back to
+    // CPU and marks the GPU unavailable again; automatic reloads never retry.
+    transcription_manager.retry_transcribe_gpu("the transcription model was switched");
+
     let settings = get_settings(app);
     let unload_timeout = settings.model_unload_timeout;
     let old_model = settings.selected_model.clone();

@@ -3,6 +3,7 @@ use crate::notices::Notice;
 use crate::settings;
 use crate::settings::{OverlayPosition, OverlayStyle};
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+use std::sync::{Mutex, MutexGuard, PoisonError};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use tauri::{AppHandle, Emitter, Manager, PhysicalPosition, PhysicalSize};
 
@@ -61,6 +62,9 @@ const LIVE_NOTICE_STATE: &str = "live_notice";
 /// How long a notice holds before the overlay fades it.
 const NOTICE_HOLD: Duration = Duration::from_secs(4);
 
+/// How long the frontend's fade-out runs before the window is unmapped.
+const HIDE_FADE: Duration = Duration::from_millis(300);
+
 fn is_live_state(state: &str) -> bool {
     state == "streaming" || state == LIVE_NOTICE_STATE
 }
@@ -82,6 +86,94 @@ fn overlay_dimensions(state: &str) -> (f64, f64) {
     } else {
         (OVERLAY_WIDTH, OVERLAY_HEIGHT)
     }
+}
+
+/// What the overlay was last asked to show.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum OverlayContent {
+    Hidden,
+    /// A recording or transcribing session; `live` when it uses the Live window.
+    Session {
+        live: bool,
+    },
+    /// A notice, sized like the session it replaced.
+    Notice {
+        live: bool,
+    },
+}
+
+/// The overlay's one lifecycle.
+///
+/// Every request (show, notice, hide) takes the next generation synchronously
+/// in its caller, under this lock, so requests are ordered by call order and
+/// `content` is always the latest request. The window work then runs on the
+/// main thread, and every deferred step (show, fade, unmap, notice hold) first
+/// checks that its generation is still the latest. Main-thread closures run in
+/// FIFO order and each request queues its own step after the one it supersedes,
+/// so a stale step is skipped and the window ends in the newest request's state.
+struct OverlayState {
+    generation: u64,
+    content: OverlayContent,
+    /// Whether the window is currently sized for the Live layout. Set on the
+    /// main thread when a show is applied; read there when repositioning.
+    #[cfg(target_os = "windows")]
+    window_live: bool,
+}
+
+impl OverlayState {
+    const fn new() -> Self {
+        Self {
+            generation: 0,
+            content: OverlayContent::Hidden,
+            #[cfg(target_os = "windows")]
+            window_live: false,
+        }
+    }
+
+    /// Makes `content` the latest request and returns its generation.
+    fn request(&mut self, content: OverlayContent) -> u64 {
+        self.generation = self.generation.wrapping_add(1);
+        self.content = content;
+        self.generation
+    }
+
+    fn is_current(&self, generation: u64) -> bool {
+        self.generation == generation
+    }
+
+    /// Requests a notice in the layout of whatever it replaces, so the window
+    /// never changes size for one. Returns its generation and layout.
+    fn request_notice(&mut self) -> (u64, bool) {
+        let live = match self.content {
+            OverlayContent::Session { live } | OverlayContent::Notice { live } => live,
+            OverlayContent::Hidden => false,
+        };
+        (self.request(OverlayContent::Notice { live }), live)
+    }
+
+    /// Requests a hide only if `generation` is still the latest request.
+    fn request_hide_if_current(&mut self, generation: u64) -> Option<u64> {
+        self.is_current(generation)
+            .then(|| self.request(OverlayContent::Hidden))
+    }
+
+    /// Requests a hide only if the latest request is a notice.
+    fn request_hide_if_notice(&mut self) -> Option<u64> {
+        matches!(self.content, OverlayContent::Notice { .. })
+            .then(|| self.request(OverlayContent::Hidden))
+    }
+}
+
+static OVERLAY_STATE: Mutex<OverlayState> = Mutex::new(OverlayState::new());
+
+/// Never hold the guard across `run_on_main_thread`: it runs the closure
+/// inline on the main thread, and the closure locks again.
+fn overlay_state() -> MutexGuard<'static, OverlayState> {
+    OVERLAY_STATE.lock().unwrap_or_else(PoisonError::into_inner)
+}
+
+fn is_current(generation: u64) -> bool {
+    overlay_state().is_current(generation)
 }
 
 static LAST_MIC_LEVEL_EMIT: AtomicU64 = AtomicU64::new(0);
@@ -308,9 +400,6 @@ fn current_overlay_logical_size(window: &tauri::webview::WebviewWindow) -> Optio
     Some((size.width as f64 / scale, size.height as f64 / scale))
 }
 
-#[cfg(target_os = "windows")]
-static WINDOWS_OVERLAY_IS_STREAMING: AtomicBool = AtomicBool::new(false);
-
 /// Windows accessibility text size (Settings > Accessibility > Text size), a
 /// separate axis from display scaling that WebView2 applies as a document zoom.
 #[cfg(target_os = "windows")]
@@ -515,8 +604,9 @@ fn show_overlay_state(app_handle: &AppHandle, state: &str) {
     if settings.overlay_style == OverlayStyle::None {
         return;
     }
-    OVERLAY_SESSION_SHOWING.store(true, Ordering::SeqCst);
-    OVERLAY_SESSION_LIVE.store(is_live_state(state), Ordering::SeqCst);
+    let generation = overlay_state().request(OverlayContent::Session {
+        live: is_live_state(state),
+    });
 
     // The rest queries monitors and the cursor and mutates window geometry. On
     // Linux the monitor/cursor lookups hit GDK/Xlib on the process's shared X11
@@ -528,17 +618,20 @@ fn show_overlay_state(app_handle: &AppHandle, state: &str) {
     // inline when already on the main thread, so this never deadlocks.
     let handle = app_handle.clone();
     let state = state.to_string();
-    let _ = app_handle.run_on_main_thread(move || show_overlay_state_on_main(&handle, &state));
+    let _ = app_handle
+        .run_on_main_thread(move || show_overlay_state_on_main(&handle, &state, generation));
 }
 
-fn show_overlay_state_on_main(app_handle: &AppHandle, state: &str) {
+/// Applies the show requested as `generation`, unless a newer request has
+/// superseded it. Main thread only.
+fn show_overlay_state_on_main(app_handle: &AppHandle, state: &str, generation: u64) {
+    if !is_current(generation) {
+        log::debug!("Skipping stale overlay show '{state}': a newer request superseded it");
+        return;
+    }
     // Size the overlay for this state (compact vs. streaming), then position it.
     let (width, height) = overlay_dimensions(state);
     if let Some(overlay_window) = app_handle.get_webview_window("recording_overlay") {
-        // Invalidate any delayed hide still in flight from a previous session
-        // (see `hide_recording_overlay`).
-        OVERLAY_SHOW_GENERATION.fetch_add(1, Ordering::SeqCst);
-
         #[cfg(target_os = "linux")]
         let shown_with_layer_shell = if LAYER_SHELL_ACTIVE.load(Ordering::SeqCst) {
             let position = settings::get_settings(app_handle).overlay_position;
@@ -562,7 +655,9 @@ fn show_overlay_state_on_main(app_handle: &AppHandle, state: &str) {
             let _ =
                 overlay_window.set_size(tauri::Size::Logical(tauri::LogicalSize { width, height }));
             #[cfg(target_os = "windows")]
-            WINDOWS_OVERLAY_IS_STREAMING.store(is_live_state(state), Ordering::Relaxed);
+            {
+                overlay_state().window_live = is_live_state(state);
+            }
             let size_elapsed = size_started.elapsed();
 
             let pos_started = std::time::Instant::now();
@@ -662,37 +757,42 @@ pub fn show_overlay_notice(app_handle: &AppHandle, notice: &Notice) {
         hide_recording_overlay(app_handle);
         return;
     }
-    OVERLAY_SESSION_SHOWING.store(false, Ordering::SeqCst);
-
-    let state = notice_state(OVERLAY_SESSION_LIVE.load(Ordering::SeqCst));
+    let (generation, live) = overlay_state().request_notice();
+    let state = notice_state(live);
     let handle = app_handle.clone();
     let notice = notice.clone();
     // On the main thread for the same reason as show_overlay_state.
     let _ = app_handle.run_on_main_thread(move || {
+        if !is_current(generation) {
+            log::debug!("Skipping stale overlay notice: a newer request superseded it");
+            return;
+        }
         let _ = handle.emit_to("recording_overlay", "overlay-notice", notice);
-        show_overlay_state_on_main(&handle, state);
+        show_overlay_state_on_main(&handle, state, generation);
 
-        let generation = OVERLAY_SHOW_GENERATION.load(Ordering::SeqCst);
-        OVERLAY_NOTICE_GENERATION.store(generation, Ordering::SeqCst);
         std::thread::spawn(move || {
             std::thread::sleep(NOTICE_HOLD);
-            if OVERLAY_SHOW_GENERATION.load(Ordering::SeqCst) == generation {
-                hide_recording_overlay(&handle);
+            let hide = overlay_state().request_hide_if_current(generation);
+            if let Some(hide) = hide {
+                hide_overlay_window(&handle, hide);
             }
         });
     });
 }
 
-/// Hides the notice early, unless a new session has replaced it.
+/// Hides the notice early, unless something newer has replaced it.
 pub fn dismiss_overlay_notice(app_handle: &AppHandle) {
-    let shown = OVERLAY_SHOW_GENERATION.load(Ordering::SeqCst);
-    if OVERLAY_NOTICE_GENERATION.load(Ordering::SeqCst) == shown {
-        hide_recording_overlay(app_handle);
+    let hide = overlay_state().request_hide_if_notice();
+    if let Some(generation) = hide {
+        hide_overlay_window(app_handle, generation);
     }
 }
 
+/// Whether the latest overlay request is a recording or transcribing session.
+/// Reflects the request as soon as it is made, before the main thread applies
+/// it to the window.
 pub fn is_session_showing() -> bool {
-    OVERLAY_SESSION_SHOWING.load(Ordering::SeqCst)
+    matches!(overlay_state().content, OverlayContent::Session { .. })
 }
 
 /// Updates the overlay window position based on current settings
@@ -717,7 +817,8 @@ fn update_overlay_position_on_main(app_handle: &AppHandle) {
 
         #[cfg(target_os = "windows")]
         {
-            let state = if WINDOWS_OVERLAY_IS_STREAMING.load(Ordering::Relaxed) {
+            let window_live = overlay_state().window_live;
+            let state = if window_live {
                 "streaming"
             } else {
                 "recording"
@@ -742,49 +843,44 @@ fn update_overlay_position_on_main(app_handle: &AppHandle) {
     }
 }
 
-/// Generation counter bumped every time the overlay is shown. The delayed
-/// `hide()` below only unmaps the window if no show happened after it was
-/// scheduled, so a hide left over from a finished transcription can never
-/// take down the overlay of a session that started in the meantime — e.g. a
-/// press the coordinator remembered while the pipeline was busy and started
-/// the instant it drained, well inside the 300 ms hide delay.
-static OVERLAY_SHOW_GENERATION: AtomicU64 = AtomicU64::new(0);
-
-/// The show generation of the latest notice; it's on screen while this matches
-/// `OVERLAY_SHOW_GENERATION`.
-static OVERLAY_NOTICE_GENERATION: AtomicU64 = AtomicU64::new(u64::MAX);
-
-/// Set while the overlay shows a recording or transcribing session.
-static OVERLAY_SESSION_SHOWING: AtomicBool = AtomicBool::new(false);
-
-/// Whether the overlay's current session uses the Live window. The style alone
-/// can't say: a model that doesn't stream gets the compact pill under Live too.
-static OVERLAY_SESSION_LIVE: AtomicBool = AtomicBool::new(false);
-
 /// Hides the recording overlay window with fade-out animation
 pub fn hide_recording_overlay(app_handle: &AppHandle) {
-    OVERLAY_SESSION_SHOWING.store(false, Ordering::SeqCst);
-    OVERLAY_SESSION_LIVE.store(false, Ordering::SeqCst);
     // Always hide the overlay regardless of settings - if setting was changed while recording,
     // we still want to hide it properly
-    if let Some(overlay_window) = app_handle.get_webview_window("recording_overlay") {
-        // Snapshot before doing anything observable, so any show that lands
-        // after this point invalidates the delayed hide below.
-        let scheduled_at = OVERLAY_SHOW_GENERATION.load(Ordering::SeqCst);
+    let generation = overlay_state().request(OverlayContent::Hidden);
+    hide_overlay_window(app_handle, generation);
+}
+
+/// Fades and then unmaps the window for the hide requested as `generation`.
+/// Both steps run on the main thread and each is skipped once a newer request
+/// exists, so a hide left over from a finished transcription can never take
+/// down the overlay of a session that started in the meantime — e.g. a press
+/// the coordinator remembered while the pipeline was busy and started the
+/// instant it drained, well inside the fade.
+fn hide_overlay_window(app_handle: &AppHandle, generation: u64) {
+    let handle = app_handle.clone();
+    let _ = app_handle.run_on_main_thread(move || {
+        if !is_current(generation) {
+            log::debug!("Skipping stale overlay hide: a newer request superseded it");
+            return;
+        }
+        let Some(overlay_window) = handle.get_webview_window("recording_overlay") else {
+            return;
+        };
         // Emit event to trigger fade-out animation
         let _ = overlay_window.emit("hide-overlay", ());
-        // Hide the window after a short delay to allow animation to complete,
-        // unless a newer session has shown the overlay again by then.
-        let window_clone = overlay_window.clone();
         std::thread::spawn(move || {
-            std::thread::sleep(std::time::Duration::from_millis(300));
-            if OVERLAY_SHOW_GENERATION.load(Ordering::SeqCst) != scheduled_at {
-                log::debug!("Skipping stale overlay hide: a newer session is showing the overlay");
-                return;
-            }
-            let _ = window_clone.hide();
+            std::thread::sleep(HIDE_FADE);
+            let window = overlay_window.clone();
+            let _ = overlay_window.run_on_main_thread(move || {
+                if !is_current(generation) {
+                    log::debug!("Skipping stale overlay unmap: a newer request superseded it");
+                    return;
+                }
+                let _ = window.hide();
+            });
         });
-    }
+    });
 }
 
 // Cached "overlay is enabled" flag, kept in sync with overlay_style. Avoids
@@ -847,6 +943,62 @@ pub fn emit_levels(app_handle: &AppHandle, levels: &[f32]) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_show_queued_before_a_hide_goes_stale() {
+        let mut state = OverlayState::new();
+        let show = state.request(OverlayContent::Session { live: false });
+        let hide = state.request(OverlayContent::Hidden);
+
+        assert!(!state.is_current(show));
+        assert!(state.is_current(hide));
+        assert_eq!(state.content, OverlayContent::Hidden);
+    }
+
+    #[test]
+    fn a_show_after_a_hide_cancels_the_delayed_unmap() {
+        let mut state = OverlayState::new();
+        let hide = state.request(OverlayContent::Hidden);
+        let show = state.request(OverlayContent::Session { live: true });
+
+        assert!(!state.is_current(hide));
+        assert!(state.is_current(show));
+        assert_eq!(state.content, OverlayContent::Session { live: true });
+    }
+
+    #[test]
+    fn a_notice_takes_the_layout_it_replaces() {
+        let mut state = OverlayState::new();
+        assert!(!state.request_notice().1);
+
+        state.request(OverlayContent::Session { live: true });
+        let (_, live) = state.request_notice();
+        assert!(live);
+        let (_, live) = state.request_notice();
+        assert!(live);
+    }
+
+    #[test]
+    fn a_notice_hold_spares_a_newer_session() {
+        let mut state = OverlayState::new();
+        let (notice, _) = state.request_notice();
+        let session = state.request(OverlayContent::Session { live: false });
+
+        assert_eq!(state.request_hide_if_current(notice), None);
+        assert_eq!(state.request_hide_if_notice(), None);
+        assert!(state.is_current(session));
+    }
+
+    #[test]
+    fn a_current_notice_hides() {
+        let mut state = OverlayState::new();
+        let (notice, _) = state.request_notice();
+        let hide = state.request_hide_if_current(notice);
+
+        assert!(hide.is_some_and(|hide| state.is_current(hide)));
+        assert_eq!(state.content, OverlayContent::Hidden);
+        assert_eq!(state.request_hide_if_notice(), None);
+    }
 
     #[test]
     fn a_notice_keeps_the_size_of_its_session() {

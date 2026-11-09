@@ -248,10 +248,13 @@ pub struct TranscriptionManager {
     engine: EngineSupervisor,
     model_manager: Arc<ModelManager>,
     app_handle: AppHandle,
-    current_model_id: Arc<Mutex<Option<String>>>,
     last_activity: Arc<AtomicU64>,
     shutdown_signal: Arc<AtomicBool>,
     watcher_handle: Arc<Mutex<Option<thread::JoinHandle<()>>>>,
+    /// True while a model load runs. Starting a model use (dictation or
+    /// job), and every unload that isn't explicit, decide under this lock;
+    /// see [`initiate_model_load`](Self::initiate_model_load) and
+    /// [`begin_unload_if`](Self::begin_unload_if).
     is_loading: Arc<Mutex<bool>>,
     loading_condvar: Arc<Condvar>,
     reload_model_on_next_use: Arc<AtomicBool>,
@@ -286,7 +289,6 @@ impl TranscriptionManager {
             engine: EngineSupervisor::new(!transcribe_gpu_disabled_for_host()),
             model_manager,
             app_handle: app_handle.clone(),
-            current_model_id: Arc::new(Mutex::new(None)),
             last_activity: Arc::new(AtomicU64::new(Self::now_ms())),
             shutdown_signal: Arc::new(AtomicBool::new(false)),
             watcher_handle: Arc::new(Mutex::new(None)),
@@ -337,33 +339,28 @@ impl TranscriptionManager {
                     }
 
                     if let Some(limit_seconds) = timeout.to_seconds() {
-                        let last = manager_cloned.last_activity.load(Ordering::Relaxed);
-                        let now_ms = TranscriptionManager::now_ms();
-                        let idle_ms = now_ms.saturating_sub(last);
                         let limit_ms = limit_seconds * 1000;
-
-                        if idle_ms > limit_ms {
-                            // idle -> unload
-                            if manager_cloned.is_model_loaded() {
-                                let unload_start = std::time::Instant::now();
-                                info!(
-                                    "Model idle for {}s (limit: {}s), unloading",
-                                    idle_ms / 1000,
-                                    limit_seconds
-                                );
-                                match manager_cloned.unload_model() {
-                                    Ok(()) => {
-                                        let unload_duration = unload_start.elapsed();
-                                        info!(
-                                            "Model unloaded due to inactivity (took {}ms)",
-                                            unload_duration.as_millis()
-                                        );
-                                    }
-                                    Err(e) => {
-                                        error!("Failed to unload idle model: {}", e);
-                                    }
-                                }
+                        // idle -> unload. Decided again under the loading
+                        // lock: a dictation or job may start in between.
+                        let unload_start = std::time::Instant::now();
+                        let unloading = manager_cloned.begin_unload_if(|| {
+                            let idle_ms = manager_cloned.idle_ms();
+                            if idle_ms <= limit_ms {
+                                return false;
                             }
+                            info!(
+                                "Model idle for {}s (limit: {}s), unloading",
+                                idle_ms / 1000,
+                                limit_seconds
+                            );
+                            true
+                        });
+                        if let Some(unloading) = unloading {
+                            unloading.wait();
+                            info!(
+                                "Model unloaded due to inactivity (took {}ms)",
+                                unload_start.elapsed().as_millis()
+                            );
                         }
                     }
                 }
@@ -377,7 +374,8 @@ impl TranscriptionManager {
 
     pub fn is_model_loaded(&self) -> bool {
         // A transcribe-cpp model stays loaded while it is busy, so a batch
-        // run or stream in progress never reads as "unloaded".
+        // run or stream in progress never reads as "unloaded". Agrees with
+        // `get_current_model` by construction: both read the engine.
         self.engine.loaded().is_some()
     }
 
@@ -388,27 +386,21 @@ impl TranscriptionManager {
         self.reload_model_on_next_use.store(true, Ordering::Release);
     }
 
-    /// An explicit transcribe.cpp accelerator or GPU device change is the
-    /// user's way of trying the GPU again: forget every GPU failure so far,
-    /// so the next load may use (and list) the GPU.
+    /// An explicit transcribe.cpp accelerator, GPU device or model change is
+    /// the user's way of trying the GPU again: forget every GPU failure so
+    /// far, so the next load may use (and list) the GPU.
     pub fn retry_transcribe_gpu(&self, reason: &str) {
         self.engine.retry_gpu(reason);
     }
 
     /// The engine gives up on a model by itself when its worker can't be
-    /// restarted (e.g. the file is gone, or it crashes on CPU too). Keep the
-    /// loaded model id and the UI in step, so the next use loads the model
-    /// again and reports why it can't.
+    /// restarted (e.g. the file is gone, or it crashes on CPU too). The
+    /// loaded model id is the engine's, so it already reads unloaded; tell
+    /// the UI, so the next use loads the model again and reports why it
+    /// can't.
     fn forget_model_if_engine_dropped(&self, model_id: &str, error: &str) {
         if self.engine.loaded().is_some() {
             return;
-        }
-        {
-            let mut current_model = self.current_model_id.lock().unwrap();
-            if current_model.as_deref() != Some(model_id) {
-                return;
-            }
-            *current_model = None;
         }
         warn!(
             "Transcription model '{}' is no longer loaded: {}",
@@ -441,6 +433,58 @@ impl TranscriptionManager {
         })
     }
 
+    /// Block until no model load is in progress.
+    fn wait_for_load(&self) {
+        let mut is_loading = self.is_loading.lock().unwrap();
+        while *is_loading {
+            is_loading = self.loading_condvar.wait(is_loading).unwrap();
+        }
+    }
+
+    /// Waits out any model load and returns the loaded model's id and info.
+    /// An automatic unload can still land between a use's start (which saw
+    /// the model loaded, so started no load) and this first read; the model
+    /// is then loaded again here instead of failing the transcription.
+    fn wait_for_model(&self) -> Option<(String, LoadedInfo)> {
+        self.wait_for_load();
+        if let Some(model) = self.engine.loaded_model() {
+            return Some(model);
+        }
+        if self.initiate_model_load(false) {
+            info!("The model was unloaded before this transcription; loading it again");
+        }
+        self.wait_for_load();
+        self.engine.loaded_model()
+    }
+
+    /// The unload every automatic path uses (idle timeout, "Immediately").
+    /// Its checks and the unload's state change happen under the `is_loading`
+    /// lock, which [`initiate_model_load`](Self::initiate_model_load) holds
+    /// while a dictation or job starts (touching the idle timer there): a use
+    /// starting at the same time either keeps the model or finds it unloaded
+    /// and loads it again. Never unloads during a load, a recording or a
+    /// file job. `should_unload` is the caller's own condition, checked
+    /// last under the lock. Returns the unload to wait for, if it began one;
+    /// waiting happens after the lock is released.
+    fn begin_unload_if(&self, should_unload: impl FnOnce() -> bool) -> Option<Unloading> {
+        let is_loading = self.is_loading.lock().unwrap();
+        let is_recording = self
+            .app_handle
+            .try_state::<Arc<AudioRecordingManager>>()
+            .is_some_and(|a| a.is_recording());
+        if *is_loading
+            || is_recording
+            || self.job_active()
+            || !self.is_model_loaded()
+            || !should_unload()
+        {
+            return None;
+        }
+        let unloading = self.begin_unload();
+        drop(is_loading);
+        Some(unloading)
+    }
+
     /// Unload the model. Returns once the transcribe-cpp worker has exited,
     /// which frees all of its memory (e.g. before its file is deleted).
     pub fn unload_model(&self) -> Result<()> {
@@ -468,10 +512,6 @@ impl TranscriptionManager {
     fn begin_unload(&self) -> Unloading {
         let unloading = self.engine.unload();
         self.language_detector.unload();
-        {
-            let mut current_model = self.current_model_id.lock().unwrap();
-            *current_model = None;
-        }
 
         // Emit unloaded event
         let _ = self.app_handle.emit(
@@ -498,22 +538,28 @@ impl TranscriptionManager {
         self.last_activity.store(Self::now_ms(), Ordering::Relaxed);
     }
 
+    /// Milliseconds since the idle timer was last reset.
+    fn idle_ms(&self) -> u64 {
+        Self::now_ms().saturating_sub(self.last_activity.load(Ordering::Relaxed))
+    }
+
     /// Unloads the model immediately if the setting is enabled and the model
     /// is loaded. Never waits for the worker to exit, so it is safe on any
-    /// thread, including the event loop.
+    /// thread, including the event loop. Skipped while a load, a recording
+    /// or a file job is under way (checked under the loading lock; see
+    /// [`begin_unload_if`](Self::begin_unload_if)).
     pub fn maybe_unload_immediately(&self, context: &str) {
-        // A file job keeps the model for its remaining chunks; it unloads
-        // the model itself when it ends.
-        if self.job_active() {
+        let settings = get_settings(&self.app_handle);
+        if settings.model_unload_timeout != ModelUnloadTimeout::Immediately {
             return;
         }
-        let settings = get_settings(&self.app_handle);
-        if settings.model_unload_timeout == ModelUnloadTimeout::Immediately
-            && self.is_model_loaded()
-        {
+        // A file job keeps the model for its remaining chunks; it unloads
+        // the model itself when it ends.
+        let unloading = self.begin_unload_if(|| {
             info!("Immediately unloading model after {}", context);
-            self.request_unload();
-        }
+            true
+        });
+        drop(unloading);
     }
 
     pub fn load_model(&self, model_id: &str) -> Result<()> {
@@ -586,12 +632,11 @@ impl TranscriptionManager {
             .get_model_path(model_id)
             .inspect_err(|error| emit_loading_failed(&error.to_string()))?;
 
-        // Clear the id before loading: if the new load fails, status should
-        // read "no loaded model", not the model the worker is replacing.
-        {
-            let mut current_model = self.current_model_id.lock().unwrap();
-            *current_model = None;
-        }
+        // The settings read below are the latest, so a reload marked before
+        // this point is done by this load. Cleared before reading them: a
+        // mark that lands after the read stays set for the next use.
+        self.reload_model_on_next_use
+            .store(false, Ordering::Release);
 
         // The backend is chosen at load time. With an explicit
         // `device_index` (the --device-index flag) hard-select that
@@ -619,6 +664,7 @@ impl TranscriptionManager {
         let info = self
             .engine
             .load(LoadSpec {
+                model_id: model_id.to_string(),
                 path: model_path.clone(),
                 backend,
                 device,
@@ -657,10 +703,15 @@ impl TranscriptionManager {
             caps.supports_language_detect
         );
 
-        // Update the current model ID
-        {
-            let mut current_model = self.current_model_id.lock().unwrap();
-            *current_model = Some(model_id.to_string());
+        // The engine reports the model loaded (and its id) itself, unless an
+        // unload was requested while it loaded. That unload already told the
+        // UI; a "loading_completed" now would contradict it.
+        if self.engine.loaded_model_id().as_deref() != Some(model_id) {
+            info!(
+                "Transcription model '{}' was unloaded while it loaded",
+                model_id
+            );
+            return Ok(());
         }
 
         // Reset idle timer so the watcher doesn't immediately unload a just-loaded model
@@ -693,8 +744,14 @@ impl TranscriptionManager {
     /// Starts loading the model in the background unless it's loaded or
     /// loading, and returns whether it did. Only a dictation sets
     /// `raise_notice`: file jobs and Settings report their own failures.
+    ///
+    /// This is where a dictation or job starts using the model: it resets
+    /// the idle timer under the `is_loading` lock, which every automatic
+    /// unload also decides under (see
+    /// [`begin_unload_if`](Self::begin_unload_if)).
     pub fn initiate_model_load(&self, raise_notice: bool) -> bool {
         let mut is_loading = self.is_loading.lock().unwrap();
+        self.touch_activity();
         if *is_loading {
             return false;
         }
@@ -705,13 +762,16 @@ impl TranscriptionManager {
         }
 
         *is_loading = true;
+        // Clears the flag and wakes waiters however the load ends, a panic
+        // in it included. `load_model` clears `reload_model_on_next_use`.
+        let loading = LoadingGuard {
+            is_loading: self.is_loading.clone(),
+            loading_condvar: self.loading_condvar.clone(),
+        };
+        drop(is_loading);
         let self_clone = self.clone();
         thread::spawn(move || {
-            if reload_pending {
-                self_clone
-                    .reload_model_on_next_use
-                    .store(false, Ordering::Release);
-            }
+            let _loading = loading;
             let settings = get_settings(&self_clone.app_handle);
             if let Err(e) = self_clone.load_model(&settings.selected_model) {
                 error!("Failed to load model {}: {}", settings.selected_model, e);
@@ -719,9 +779,6 @@ impl TranscriptionManager {
                     self_clone.raise_model_load_failed(&settings.selected_model, &e);
                 }
             }
-            let mut is_loading = self_clone.is_loading.lock().unwrap();
-            *is_loading = false;
-            self_clone.loading_condvar.notify_all();
         });
         true
     }
@@ -752,8 +809,7 @@ impl TranscriptionManager {
     }
 
     pub fn get_current_model(&self) -> Option<String> {
-        let current_model = self.current_model_id.lock().unwrap();
-        current_model.clone()
+        self.engine.loaded_model_id()
     }
 
     /// The compute backend the currently-loaded engine is bound to, for
@@ -838,22 +894,14 @@ impl TranscriptionManager {
 
         // Wait for any in-progress model load to finish (start_stream races the
         // background load kicked off when recording starts).
-        {
-            let mut is_loading = self.is_loading.lock().unwrap();
-            while *is_loading {
-                is_loading = self.loading_condvar.wait(is_loading).unwrap();
-            }
-        }
-
-        let model_id = self.get_current_model().unwrap_or_default();
+        self.wait_for_load();
 
         // The loaded model (not the ModelManager copy) is the source of truth
         // for run-path capabilities.
-        let Some(info) = self.engine.loaded() else {
+        let Some((model_id, info)) = self.engine.loaded_model() else {
             info!(
-                "Live preview: model '{}' is not a loaded transcribe-cpp model; \
-                 streaming is unavailable, using batch transcription",
-                model_id
+                "Live preview: no transcribe-cpp model is loaded; \
+                 streaming is unavailable, using batch transcription"
             );
             self.router.clear();
             drain_until_finalize(rx);
@@ -963,22 +1011,41 @@ impl TranscriptionManager {
     /// Transcribe a whole clip in batch: a re-transcribed history entry, or
     /// a file from the CLI.
     pub fn transcribe(&self, audio: Vec<f32>) -> Result<String> {
-        Ok(self.complete(Instant::now(), audio, None)?.text)
+        let mark = self.engine.cancel_mark();
+        Ok(self.complete(Instant::now(), mark, audio, None)?.text)
     }
 
     /// Transcribe a finished recording: what its live decode produced, or a
     /// batch run of the whole recording when there is no live result.
-    pub fn transcribe_recording(&self, samples: Vec<f32>) -> Result<Transcription> {
+    ///
+    /// `mark` is taken ([`cancel_mark`](Self::cancel_mark)) where the stop
+    /// begins: a cancel takes the live route (so the flush finds none and
+    /// falls back to batch) before it cancels the engine, and that batch
+    /// must count as cancelled too, however late in the stop it starts.
+    pub fn transcribe_recording(
+        &self,
+        mark: CancelMark,
+        samples: Vec<f32>,
+    ) -> Result<Transcription> {
         let started = Instant::now();
         let live = self.finalize_live(samples.len())?;
-        self.complete(started, samples, live)
+        self.complete(started, mark, samples, live)
+    }
+
+    /// A point to cancel from: every transcription given it is stopped by
+    /// any [`cancel_transcription`](Self::cancel_transcription) after it was
+    /// taken.
+    pub fn cancel_mark(&self) -> CancelMark {
+        self.engine.cancel_mark()
     }
 
     /// The final text of one transcription, from its live result or else a
-    /// batch run of `audio`. Every transcription finishes here.
+    /// batch run of `audio`, cancelled by any cancel since `mark`. Every
+    /// transcription finishes here.
     fn complete(
         &self,
         started: Instant,
+        mark: CancelMark,
         audio: Vec<f32>,
         live: Option<RunOutcome>,
     ) -> Result<Transcription> {
@@ -1002,7 +1069,7 @@ impl TranscriptionManager {
 
         let outcome = match live {
             Some(outcome) => outcome,
-            None => self.decode_batch(audio)?,
+            None => self.decode_batch(mark, audio)?,
         };
         let settings = get_settings(&self.app_handle);
         let language = outcome
@@ -1044,27 +1111,20 @@ impl TranscriptionManager {
     }
 
     /// Decode a whole clip with the loaded model, loading it first if a load
-    /// is under way.
-    fn decode_batch(&self, audio: Vec<f32>) -> Result<RunOutcome> {
-        // A cancel from here on (during the model-load wait or chunk planning
-        // included) stops every run of this transcription.
-        let mark = self.engine.cancel_mark();
+    /// is under way. A cancel since `mark` (during the model-load wait or
+    /// chunk planning included) stops every run of this transcription.
+    fn decode_batch(&self, mark: CancelMark, audio: Vec<f32>) -> Result<RunOutcome> {
         self.touch_activity();
         let batch = self.batch_context(&audio)?;
         self.transcribe_cpp(mark, batch, audio)
     }
 
-    /// Waits out any model load, then reads what a batch transcription of
+    /// Waits out any model load (loading the model again if it was unloaded
+    /// since the use started), then reads what a batch transcription of
     /// `audio` runs with: the loaded model, the settings, and the language
     /// resolved for it.
     fn batch_context(&self, audio: &[f32]) -> Result<BatchContext> {
-        {
-            let mut is_loading = self.is_loading.lock().unwrap();
-            while *is_loading {
-                is_loading = self.loading_condvar.wait(is_loading).unwrap();
-            }
-        }
-        let Some(info) = self.engine.loaded() else {
+        let Some((active_model, info)) = self.wait_for_model() else {
             return Err(anyhow::anyhow!("Model is not loaded for transcription."));
         };
 
@@ -1072,10 +1132,7 @@ impl TranscriptionManager {
         // Validate against the model that's actually loaded (which can differ
         // from settings.selected_model when a caller loaded a specific model —
         // e.g. the --transcribe-file path's --model), not the persisted
-        // selection.
-        let active_model = self
-            .get_current_model()
-            .unwrap_or_else(|| settings.selected_model.clone());
+        // selection. The engine reports its id with its info.
         let plan = self.language_plan(&settings, &active_model, &info);
         let setup = self.setup_for(&info, &settings, &plan, audio);
         Ok(BatchContext {
@@ -2390,12 +2447,12 @@ impl Drop for TranscriptionManager {
         // Skip shutdown unless this is the very last clone. TranscriptionManager
         // is cloned by initiate_model_load() and the watcher thread — those
         // clones dropping must not kill the watcher. The watcher thread holds
-        // its own clone, so current_model_id's strong_count is always >= 2 while
-        // the watcher is alive. (current_model_id is only ever cloned along with
+        // its own clone, so watcher_handle's strong_count is always >= 2 while
+        // the watcher is alive. (watcher_handle is only ever cloned along with
         // the manager; shutdown_signal is not, since the watcher also holds a
         // standalone clone of it.) When it reaches 1, only this instance
         // remains and we can safely shut down.
-        if Arc::strong_count(&self.current_model_id) > 1 {
+        if Arc::strong_count(&self.watcher_handle) > 1 {
             return;
         }
 

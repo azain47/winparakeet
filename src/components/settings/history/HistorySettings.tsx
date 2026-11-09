@@ -81,7 +81,8 @@ const TranscribePulseKeyframes: React.FC = () => (
   `}</style>
 );
 
-// A dropped or picked file while its audio is read, before it's an entry.
+// A dropped or picked file while its audio is read, or waits to be, before
+// it's an entry.
 const FileReadRow: React.FC<{ read: FileRead }> = ({ read }) => {
   const { t } = useTranslation();
   return (
@@ -95,7 +96,9 @@ const FileReadRow: React.FC<{ read: FileRead }> = ({ read }) => {
       </span>
       <p className="italic text-sm w-full" style={TRANSCRIBE_PULSE}>
         <TranscribePulseKeyframes />
-        {t("settings.history.readingFile")}
+        {read.reading
+          ? t("settings.history.readingFile")
+          : t("settings.history.fileWaiting")}
       </p>
     </div>
   );
@@ -411,6 +414,8 @@ const HistoryEntryComponent: React.FC<HistoryEntryProps> = ({
     if (!retrying) setCancelling(false);
   }, [retrying]);
   const hasTranscription = entry.transcription_text.trim().length > 0;
+  // Empty when recordings aren't kept: nothing to play or transcribe again.
+  const hasRecording = entry.file_name !== "";
   const folded = hasTranscription && !retrying && !expanded;
 
   // Offer "Show more" only when the folded text is actually cut off.
@@ -450,6 +455,17 @@ const HistoryEntryComponent: React.FC<HistoryEntryProps> = ({
     } catch (error) {
       console.error("Failed to delete entry:", error);
       notify({ title: t("settings.history.deleteError") });
+    }
+  };
+
+  const handleCancel = async () => {
+    setCancelling(true);
+    try {
+      await cancelTranscription(entry.id);
+    } catch (error) {
+      // The job goes on, so it can still be cancelled.
+      console.error("Failed to cancel transcription:", error);
+      setCancelling(false);
     }
   };
 
@@ -508,23 +524,20 @@ const HistoryEntryComponent: React.FC<HistoryEntryProps> = ({
           </IconButton>
           {retrying ? (
             <IconButton
-              onClick={() => {
-                setCancelling(true);
-                void cancelTranscription(entry.id);
-              }}
+              onClick={() => void handleCancel()}
               disabled={cancelling}
               title={t("settings.history.cancelTranscription")}
             >
               <X width={16} height={16} />
             </IconButton>
-          ) : (
+          ) : hasRecording ? (
             <IconButton
               onClick={() => retryTranscription(entry.id)}
               title={t("settings.history.retranscribe")}
             >
               <RotateCcw width={16} height={16} />
             </IconButton>
-          )}
+          ) : null}
           <IconButton
             onClick={handleDeleteEntry}
             title={t("settings.history.delete")}
@@ -562,10 +575,12 @@ const HistoryEntryComponent: React.FC<HistoryEntryProps> = ({
             ? progressText
             : hasTranscription
               ? entry.transcription_text
-              : entry.source_name
-                ? // Cancelled, interrupted by a quit, or failed.
-                  t("settings.history.notTranscribed")
-                : t("settings.history.transcriptionFailed")}
+              : !hasRecording
+                ? t("settings.history.notTranscribedNoRecording")
+                : entry.source_name
+                  ? // Cancelled, interrupted by a quit, or failed.
+                    t("settings.history.notTranscribed")
+                  : t("settings.history.transcriptionFailed")}
         </p>
         {hasTranscription && !retrying && (expanded || overflows) && (
           <button
@@ -580,7 +595,9 @@ const HistoryEntryComponent: React.FC<HistoryEntryProps> = ({
         )}
       </div>
 
-      <AudioPlayer onLoadRequest={handleLoadAudio} className="w-full" />
+      {hasRecording && (
+        <AudioPlayer onLoadRequest={handleLoadAudio} className="w-full" />
+      )}
     </div>
   );
 };

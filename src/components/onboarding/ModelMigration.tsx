@@ -230,7 +230,10 @@ const ModelMigration: React.FC<ModelMigrationProps> = ({
           setOutcome(retiredId, "failed");
           return;
         }
-        await deleteRetiredModel(retiredId);
+        // The switch succeeded; a failed removal only leaves the old file.
+        await deleteRetiredModel(retiredId).catch((e) => {
+          console.warn(`Failed to delete retired model ${retiredId}:`, e);
+        });
         setOutcome(retiredId, "done");
       })();
     }
@@ -238,15 +241,24 @@ const ModelMigration: React.FC<ModelMigrationProps> = ({
 
   // Wrap up once the target is switched to and every other pick has either
   // finished or failed. A failed extra keeps its old file; the Models page
-  // notice can clean it up later. Unticked models are removed here.
+  // notice can clean it up later. Unticked models are removed here, best
+  // effort: a failed removal never keeps the flow from completing. The latch
+  // belongs to one migration and clears whenever the phase leaves it.
   useEffect(() => {
-    if (phase !== "migrating" || wrappingUp.current) return;
+    if (phase !== "migrating") {
+      wrappingUp.current = false;
+      return;
+    }
+    if (wrappingUp.current) return;
     if (targetId !== undefined && outcomes[targetId] !== "done") return;
     if (!chosen.every((p) => outcomes[p.retired.id])) return;
     wrappingUp.current = true;
     (async () => {
       for (const p of rows) {
-        if (!picked.has(p.retired.id)) await deleteRetiredModel(p.retired.id);
+        if (picked.has(p.retired.id)) continue;
+        await deleteRetiredModel(p.retired.id).catch((e) => {
+          console.warn(`Failed to delete retired model ${p.retired.id}:`, e);
+        });
       }
       onComplete();
     })();

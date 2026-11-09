@@ -706,6 +706,7 @@
       "transcribing": "Přepisuji...",
       "transcriptionFailed": "Přepis selhal. Můžete zkusit přepis znovu pomocí ikony opakování.",
       "notTranscribed": "Nepřepsáno. Můžete to přepsat pomocí ikony opakování.",
+      "notTranscribedNoRecording": "Nepřepsáno. Nahrávka nebyla uložena.",
       "transcribeFile": "Přepsat soubor",
       "mediaFiles": "Zvuk a video",
       "fileUnsupported": "Ze souboru {{name}} se nepodařilo načíst zvuk.",
@@ -713,6 +714,7 @@
       "waiting": "Čeká na přepis",
       "transcribingPercent": "Přepisuji, {{percent}} %",
       "readingFile": "Načítám soubor...",
+      "fileWaiting": "Čeká na načtení souboru...",
       "showMore": "Zobrazit více",
       "showLess": "Zobrazit méně",
       "dropTitle": "Pusťte pro přepis",
@@ -788,7 +790,8 @@
       },
       "recordingRetention": {
         "title": "Automatické mazání nahrávek",
-        "description": "Automaticky mazat staré nahrávky pro úsporu místa",
+        "description": "Automaticky mazat staré nahrávky kvůli úspoře místa, nebo nahrávky vůbec neukládat a ponechat jen text",
+        "dontSave": "Neukládat nahrávky",
         "never": "Nikdy",
         "preserveLimit": "Ponechat posledních {{count}}",
         "days3": "Po 3 dnech",
@@ -952,7 +955,8 @@
     "filePostProcessFailedTitle": "Přepsáno bez následného zpracování",
     "filePostProcessFailed": "Následné zpracování se nedokončilo, takže byl přepis uložen beze změn.",
     "fileTranscriptionFailedTitle": "Přepis souboru selhal",
-    "transcriptionFailedTitle": "Přepis selhal"
+    "transcriptionFailedTitle": "Přepis selhal",
+    "onboardingFinishFailed": "Nastavení se nepodařilo dokončit. Zkuste to znovu."
   },
   "notices": {
     "errorOne": "{{n}} chyba",

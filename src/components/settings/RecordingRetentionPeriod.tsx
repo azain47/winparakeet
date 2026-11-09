@@ -27,6 +27,10 @@ export const RecordingRetentionPeriodSelector: React.FC<RecordingRetentionPeriod
     };
 
     const retentionOptions = [
+      {
+        value: "dont_save",
+        label: t("settings.debug.recordingRetention.dontSave"),
+      },
       { value: "never", label: t("settings.debug.recordingRetention.never") },
       {
         value: "preserve_limit",

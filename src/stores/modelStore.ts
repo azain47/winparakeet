@@ -180,9 +180,15 @@ export const useModelStore = create<ModelsStore>()(
           );
         }
         return result.status === "ok";
-      } catch {
-        // model-download-failed event won't fire for JS exceptions (e.g. IPC error),
-        // so clean up state here to avoid a stuck progress spinner.
+      } catch (err) {
+        // An IPC error says nothing about the backend's download, which may
+        // still be running. Ask it: keep tracking a live download (its events
+        // end it), clear the spinner only for one that isn't running.
+        console.error(`Failed to download model ${modelId}:`, err);
+        await get().loadModels();
+        if (get().models.find((m) => m.id === modelId)?.is_downloading) {
+          return waitForDownload(modelId);
+        }
         set(
           produce((state) => {
             delete state.downloadingModels[modelId];
@@ -252,101 +258,130 @@ export const useModelStore = create<ModelsStore>()(
       return get().downloadProgress[modelId];
     },
 
-    initialize: async () => {
-      if (get().initialized) return;
-
-      const { loadModels, loadCurrentModel } = get();
-
-      // Load initial data
-      await Promise.all([loadModels(), loadCurrentModel()]);
-
-      // Set up event listeners
-      listen<DownloadProgress>("model-download-progress", (event) => {
-        const progress = event.payload;
-        set(
-          produce((state) => {
-            state.downloadProgress[progress.model_id] = progress;
-          }),
-        );
-      });
-
-      listen<string>("model-download-complete", (event) => {
-        const modelId = event.payload;
-        set(
-          produce((state) => {
-            delete state.downloadingModels[modelId];
-            delete state.verifyingModels[modelId];
-            delete state.downloadProgress[modelId];
-          }),
-        );
-        get().loadModels();
-      });
-
-      listen<{ model_id: string; error: string }>(
-        "model-download-failed",
-        (event) => {
-          const { model_id: modelId, error } = event.payload;
-          set(
-            produce((state) => {
-              delete state.downloadingModels[modelId];
-              delete state.verifyingModels[modelId];
-              delete state.downloadProgress[modelId];
-              state.error = error;
-            }),
-          );
-          notify({
-            title: i18n.t("errors.modelDownloadFailed"),
-            detail: error,
-            key: downloadNoticeKey(modelId),
-          });
-        },
-      );
-
-      listen<string>("model-verification-started", (event) => {
-        const modelId = event.payload;
-        set(
-          produce((state) => {
-            state.verifyingModels[modelId] = true;
-          }),
-        );
-      });
-
-      listen<string>("model-verification-completed", (event) => {
-        const modelId = event.payload;
-        set(
-          produce((state) => {
-            delete state.verifyingModels[modelId];
-          }),
-        );
-      });
-
-      listen<string>("model-download-cancelled", (event) => {
-        const modelId = event.payload;
-        set(
-          produce((state) => {
-            delete state.downloadingModels[modelId];
-            delete state.verifyingModels[modelId];
-            delete state.downloadProgress[modelId];
-          }),
-        );
-      });
-
-      listen<string>("model-deleted", () => {
-        get().loadModels();
-        get().loadCurrentModel();
-      });
-
-      listen("model-state-changed", () => {
-        get().loadModels();
-        get().loadCurrentModel();
-      });
-
-      listen("models-updated", () => {
-        get().loadModels();
-        get().loadCurrentModel();
-      });
-
-      set({ initialized: true });
-    },
+    // One run per app: concurrent callers share it. Listeners register before
+    // the initial load, so no event between the load and them is lost.
+    initialize: () => (initializing ??= initializeStore()),
   })),
 );
+
+let initializing: Promise<void> | null = null;
+
+const initializeStore = async () => {
+  const { getState: get, setState: set } = useModelStore;
+
+  await Promise.all([
+    listen<DownloadProgress>("model-download-progress", (event) => {
+      const progress = event.payload;
+      set(
+        produce((state) => {
+          state.downloadProgress[progress.model_id] = progress;
+        }),
+      );
+    }),
+
+    listen<string>("model-download-complete", (event) => {
+      const modelId = event.payload;
+      set(
+        produce((state) => {
+          delete state.downloadingModels[modelId];
+          delete state.verifyingModels[modelId];
+          delete state.downloadProgress[modelId];
+        }),
+      );
+      get().loadModels();
+    }),
+
+    listen<{ model_id: string; error: string }>(
+      "model-download-failed",
+      (event) => {
+        const { model_id: modelId, error } = event.payload;
+        set(
+          produce((state) => {
+            delete state.downloadingModels[modelId];
+            delete state.verifyingModels[modelId];
+            delete state.downloadProgress[modelId];
+            state.error = error;
+          }),
+        );
+        notify({
+          title: i18n.t("errors.modelDownloadFailed"),
+          detail: error,
+          key: downloadNoticeKey(modelId),
+        });
+      },
+    ),
+
+    listen<string>("model-verification-started", (event) => {
+      const modelId = event.payload;
+      set(
+        produce((state) => {
+          state.verifyingModels[modelId] = true;
+        }),
+      );
+    }),
+
+    listen<string>("model-verification-completed", (event) => {
+      const modelId = event.payload;
+      set(
+        produce((state) => {
+          delete state.verifyingModels[modelId];
+        }),
+      );
+    }),
+
+    listen<string>("model-download-cancelled", (event) => {
+      const modelId = event.payload;
+      set(
+        produce((state) => {
+          delete state.downloadingModels[modelId];
+          delete state.verifyingModels[modelId];
+          delete state.downloadProgress[modelId];
+        }),
+      );
+    }),
+
+    listen<string>("model-deleted", () => {
+      get().loadModels();
+      get().loadCurrentModel();
+    }),
+
+    listen("model-state-changed", () => {
+      get().loadModels();
+      get().loadCurrentModel();
+    }),
+
+    listen("models-updated", () => {
+      get().loadModels();
+      get().loadCurrentModel();
+    }),
+  ]);
+
+  const { loadModels, loadCurrentModel } = get();
+  await Promise.all([loadModels(), loadCurrentModel()]);
+  set({ initialized: true });
+};
+
+/**
+ * Waits for a download that is already tracked to end; resolves to whether
+ * the model is on disk afterwards.
+ */
+export const waitForDownload = (modelId: string) =>
+  new Promise<boolean>((resolve) => {
+    const { getState, subscribe } = useModelStore;
+    const inFlight = (state: ModelsStore) =>
+      modelId in state.downloadingModels || modelId in state.verifyingModels;
+    const settle = async () => {
+      // The flag clears before the list reloads, so reload it first.
+      await getState().loadModels();
+      resolve(!!getState().models.find((m) => m.id === modelId)?.is_downloaded);
+    };
+    if (!inFlight(getState())) {
+      void settle();
+      return;
+    }
+    const unsubscribe = subscribe(inFlight, (busy) => {
+      if (busy) return;
+      unsubscribe();
+      void settle();
+    });
+  });

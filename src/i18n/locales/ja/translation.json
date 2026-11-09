@@ -706,6 +706,7 @@
       "transcribing": "文字起こし中…",
       "transcriptionFailed": "文字起こしに失敗しました。リトライアイコンを使用して再文字起こしできます。",
       "notTranscribed": "文字起こしされていません。リトライアイコンを使用して文字起こしできます。",
+      "notTranscribedNoRecording": "文字起こしされていません。録音は保存されていません。",
       "transcribeFile": "ファイルを文字起こし",
       "mediaFiles": "音声と動画",
       "fileUnsupported": "{{name}} から音声を読み込めませんでした。",
@@ -713,6 +714,7 @@
       "waiting": "文字起こし待ち",
       "transcribingPercent": "文字起こし中… {{percent}}%",
       "readingFile": "ファイルを読み込み中…",
+      "fileWaiting": "ファイルの読み込みを待機中...",
       "showMore": "もっと見る",
       "showLess": "閉じる",
       "dropTitle": "ドロップして文字起こし",
@@ -788,7 +790,8 @@
       },
       "recordingRetention": {
         "title": "録音の自動削除",
-        "description": "古い録音を自動的に削除して容量を節約",
+        "description": "古い録音を自動的に削除して容量を節約するか、録音をまったく保存せずテキストのみを残します",
+        "dontSave": "録音を保存しない",
         "never": "しない",
         "preserveLimit": "最新{{count}}件を保持",
         "days3": "3日後",
@@ -952,7 +955,8 @@
     "filePostProcessFailedTitle": "後処理なしで文字起こししました",
     "filePostProcessFailed": "後処理が完了しなかったため、文字起こしをそのまま保存しました。",
     "fileTranscriptionFailedTitle": "ファイルの文字起こしに失敗しました",
-    "transcriptionFailedTitle": "文字起こしに失敗しました"
+    "transcriptionFailedTitle": "文字起こしに失敗しました",
+    "onboardingFinishFailed": "セットアップを完了できませんでした。もう一度お試しください。"
   },
   "notices": {
     "errorOne": "エラー {{n}} 件",

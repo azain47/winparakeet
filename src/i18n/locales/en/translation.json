@@ -706,6 +706,7 @@
       "transcribing": "Transcribing...",
       "transcriptionFailed": "Transcription failed. You can re-transcribe using the retry icon.",
       "notTranscribed": "Not transcribed. You can transcribe it using the retry icon.",
+      "notTranscribedNoRecording": "Not transcribed. Its recording wasn't kept.",
       "transcribeFile": "Transcribe File",
       "mediaFiles": "Audio and video",
       "fileUnsupported": "Couldn't read audio from {{name}}.",
@@ -713,6 +714,7 @@
       "waiting": "Waiting to transcribe",
       "transcribingPercent": "Transcribing, {{percent}}%",
       "readingFile": "Reading file...",
+      "fileWaiting": "Waiting to read file...",
       "showMore": "Show more",
       "showLess": "Show less",
       "dropTitle": "Drop to transcribe",
@@ -788,7 +790,8 @@
       },
       "recordingRetention": {
         "title": "Auto-Delete Recordings",
-        "description": "Automatically delete old recordings to save space",
+        "description": "Automatically delete old recordings to save space, or don't save recordings at all and keep only the text",
+        "dontSave": "Don't save recordings",
         "never": "Never",
         "preserveLimit": "Keep latest {{count}}",
         "days3": "After 3 days",
@@ -952,7 +955,8 @@
     "filePostProcessFailedTitle": "Transcribed Without Post-Processing",
     "filePostProcessFailed": "Post Process didn't finish, so the transcript was saved as is.",
     "fileTranscriptionFailedTitle": "File Transcription Failed",
-    "transcriptionFailedTitle": "Transcription Failed"
+    "transcriptionFailedTitle": "Transcription Failed",
+    "onboardingFinishFailed": "Couldn't finish setup. Try again."
   },
   "notices": {
     "errorOne": "{{n}} error",

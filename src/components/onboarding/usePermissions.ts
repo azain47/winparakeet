@@ -60,6 +60,8 @@ export const usePermissions = (preview: boolean): Permissions => {
   const [microphoneAsked, setMicrophoneAsked] = useState(false);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const errorCountRef = useRef(0);
+  // Input is initialized once, the first time Accessibility is seen granted.
+  const inputInitializedRef = useRef(false);
 
   const isMacOS = os === "macos";
   const isWindows = os === "windows";
@@ -74,13 +76,16 @@ export const usePermissions = (preview: boolean): Permissions => {
     return !status.supported || status.overall_access !== "denied";
   }, []);
 
-  const initializeAfterAccessibility = () =>
-    Promise.all([
+  const initializeAfterAccessibility = async () => {
+    if (inputInitializedRef.current) return;
+    inputInitializedRef.current = true;
+    await Promise.all([
       commands.initializeEnigo(),
       commands.initializeShortcuts(),
     ]).catch((e) => {
       console.warn("Failed to initialize after permission grant:", e);
     });
+  };
 
   const stopPolling = () => {
     if (pollingRef.current) {
@@ -154,11 +159,11 @@ export const usePermissions = (preview: boolean): Permissions => {
           return;
         }
         const [acc, mic] = await readMac();
-        setAccessibility((prev) => {
-          if (acc && prev !== "granted") initializeAfterAccessibility();
-          return acc ? "granted" : prev;
-        });
-        setMicrophone((prev) => (mic ? "granted" : prev));
+        if (acc) {
+          initializeAfterAccessibility();
+          setAccessibility("granted");
+        }
+        if (mic) setMicrophone("granted");
         if (acc && mic) {
           stopPolling();
           await onAllGranted();
@@ -169,6 +174,12 @@ export const usePermissions = (preview: boolean): Permissions => {
         errorCountRef.current += 1;
         if (errorCountRef.current >= MAX_POLLING_ERRORS) {
           stopPolling();
+          errorCountRef.current = 0;
+          // No answer is coming: offer the buttons again.
+          const giveUp = (prev: PermissionStatus) =>
+            prev === "waiting" ? "needed" : prev;
+          setMicrophone(giveUp);
+          setAccessibility(giveUp);
           notify({ title: t("onboarding.permissions.errors.checkFailed") });
         }
       }
@@ -177,44 +188,56 @@ export const usePermissions = (preview: boolean): Permissions => {
 
   useEffect(() => stopPolling, []);
 
-  // A waiting row whose answer was no (or never came): ask again.
+  // Settle waiting rows (a "no", or no answer, goes back to needed), and pick
+  // up a permission granted in Settings while its row showed needed.
   const recheckWaiting = useCallback(async () => {
+    const settle = (prev: PermissionStatus, granted: boolean) =>
+      prev === "waiting"
+        ? granted
+          ? "granted"
+          : "needed"
+        : prev === "needed" && granted
+          ? "granted"
+          : prev;
     try {
       if (isWindows) {
         const mic = await hasWindowsMicrophoneAccess();
-        setMicrophone((prev) =>
-          prev === "waiting" ? (mic ? "granted" : "needed") : prev,
-        );
+        setMicrophone((prev) => settle(prev, mic));
         return;
       }
       if (!isMacOS) return;
       const [acc, mic] = await readMac();
-      setAccessibility((prev) =>
-        prev === "waiting" ? (acc ? "granted" : "needed") : prev,
-      );
-      setMicrophone((prev) =>
-        prev === "waiting" ? (mic ? "granted" : "needed") : prev,
-      );
+      setAccessibility((prev) => settle(prev, acc));
+      setMicrophone((prev) => settle(prev, mic));
     } catch (error) {
       console.warn("Failed to recheck permissions:", error);
     }
   }, [hasWindowsMicrophoneAccess, isMacOS, isWindows]);
 
   const waiting = microphone === "waiting" || accessibility === "waiting";
+  const unsettled =
+    waiting || microphone === "needed" || accessibility === "needed";
+  // Polling answers a request; once nothing waits on one, it stops. Asking
+  // again starts it anew, and coming back to the window rechecks.
   useEffect(() => {
-    if (preview || !waiting) return;
+    if (!waiting) stopPolling();
+  }, [waiting]);
+  useEffect(() => {
+    if (preview || !unsettled) return;
     const unlisten = getCurrentWindow().onFocusChanged(({ payload }) => {
       if (payload) recheckWaiting();
     });
-    // Only while Handy is in front: away in Settings, the row keeps waiting.
-    const timer = setTimeout(() => {
-      if (document.hasFocus()) recheckWaiting();
-    }, WAITING_TIMEOUT_MS);
+    // Only while the app is in front: away in Settings, the row keeps waiting.
+    const timer = waiting
+      ? setTimeout(() => {
+          if (document.hasFocus()) recheckWaiting();
+        }, WAITING_TIMEOUT_MS)
+      : undefined;
     return () => {
       clearTimeout(timer);
       unlisten.then((off) => off());
     };
-  }, [preview, waiting, recheckWaiting]);
+  }, [preview, unsettled, waiting, recheckWaiting]);
 
   const requestAccessibility = async () => {
     if (preview) return;

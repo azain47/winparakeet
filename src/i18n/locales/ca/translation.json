@@ -706,6 +706,7 @@
       "transcribing": "S'està transcrivint...",
       "transcriptionFailed": "La transcripció ha fallat. Podeu tornar a transcriure amb la icona de reintent.",
       "notTranscribed": "No s'ha transcrit. Podeu transcriure-ho amb la icona de reintent.",
+      "notTranscribedNoRecording": "No transcrit. No se n'ha conservat la gravació.",
       "transcribeFile": "Transcriu un fitxer",
       "mediaFiles": "Àudio i vídeo",
       "fileUnsupported": "No s'ha pogut llegir l'àudio de {{name}}.",
@@ -713,6 +714,7 @@
       "waiting": "Esperant per transcriure",
       "transcribingPercent": "Transcrivint, {{percent}}%",
       "readingFile": "S'està llegint el fitxer...",
+      "fileWaiting": "Esperant per llegir el fitxer...",
       "showMore": "Mostra'n més",
       "showLess": "Mostra'n menys",
       "dropTitle": "Deixa anar per transcriure",
@@ -788,7 +790,8 @@
       },
       "recordingRetention": {
         "title": "Supressió automàtica d'enregistraments",
-        "description": "Suprimeix automàticament els enregistraments antics per estalviar espai",
+        "description": "Elimina automàticament les gravacions antigues per estalviar espai, o no les desis mai i conserva només el text",
+        "dontSave": "No desar les gravacions",
         "never": "Mai",
         "preserveLimit": "Conserva els últims {{count}}",
         "days3": "Al cap de 3 dies",
@@ -952,7 +955,8 @@
     "filePostProcessFailedTitle": "Transcrit sense postprocessament",
     "filePostProcessFailed": "El postprocessament no ha acabat, així que la transcripció s'ha desat tal qual.",
     "fileTranscriptionFailedTitle": "La transcripció del fitxer ha fallat",
-    "transcriptionFailedTitle": "La transcripció ha fallat"
+    "transcriptionFailedTitle": "La transcripció ha fallat",
+    "onboardingFinishFailed": "No s'ha pogut acabar la configuració. Torna-ho a provar."
   },
   "notices": {
     "errorOne": "{{n}} error",

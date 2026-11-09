@@ -83,10 +83,20 @@ const CANCELLATION_POLL_INTERVAL: Duration = Duration::from_millis(25);
 static RECORDING_SESSION: AtomicU64 = AtomicU64::new(0);
 
 /// Drop guard that finishes the transcription pipeline, including immediate
-/// model unloading on early exits.
-struct FinishGuard(AppHandle, Arc<TranscriptionManager>);
+/// model unloading on early exits. The third field is the session the
+/// pipeline belongs to: if the pipeline panics, its tray and overlay are reset
+/// unless a newer session owns them.
+struct FinishGuard(AppHandle, Arc<TranscriptionManager>, u64);
 impl Drop for FinishGuard {
     fn drop(&mut self) {
+        if std::thread::panicking() {
+            error!("The transcription pipeline panicked; ending the session");
+            if RECORDING_SESSION.load(Ordering::SeqCst) == self.2 {
+                self.1.cancel_stream();
+                utils::hide_recording_overlay(&self.0);
+                set_tray_state(&self.0, TrayIconState::Idle);
+            }
+        }
         self.1.maybe_unload_immediately("transcription session");
         if let Some(c) = self.0.try_state::<TranscriptionCoordinator>() {
             c.notify_processing_finished();
@@ -95,6 +105,34 @@ impl Drop for FinishGuard {
         // WAV copy, engine scratch); hand the cached pages back to the OS so
         // they don't sit in malloc arenas until they get swapped out (#1792).
         crate::memory::trim_freed_memory();
+    }
+}
+
+/// Held by the paste thread: if it panics, the session still ends, so the
+/// tray and overlay aren't left showing a transcription that never finishes.
+struct PastePanicGuard {
+    app: AppHandle,
+    session: u64,
+    sample_count: usize,
+    stop_time: Instant,
+}
+impl Drop for PastePanicGuard {
+    fn drop(&mut self) {
+        if !std::thread::panicking() {
+            return;
+        }
+        error!("The paste thread panicked; ending the session");
+        // A newer session may own the UI by now; leave it alone.
+        if RECORDING_SESSION.load(Ordering::SeqCst) == self.session {
+            utils::hide_recording_overlay(&self.app);
+            set_tray_state(&self.app, TrayIconState::Idle);
+        }
+        emit_transcription_complete(
+            &self.app,
+            TranscriptionOutcome::Failed,
+            self.sample_count,
+            self.stop_time,
+        );
     }
 }
 
@@ -618,9 +656,9 @@ impl ShortcutAction for TranscribeAction {
                     if rm_clone.is_recording_readiness_current(generation) {
                         play_feedback_sound_blocking(&app_clone, SoundType::Start);
                     }
-                    if rm_clone.is_recording_readiness_current(generation) {
-                        rm_clone.apply_mute();
-                    }
+                    // Checks the generation itself, atomically with the mute,
+                    // so a stop that lands meanwhile always gets to unmute.
+                    rm_clone.apply_mute(generation);
                 });
             }
             Err(e) => {
@@ -693,9 +731,13 @@ impl ShortcutAction for TranscribeAction {
         let binding_id = binding_id.to_string(); // Clone binding_id for the async task
         let post_process = self.post_process;
         let cancel_generation = rm.cancel_generation();
+        // Taken with the cancel generation, before anything can cancel this
+        // stop: a cancel from here on also stops its batch transcription.
+        let cancel_mark = tm.cancel_mark();
+        let session = RECORDING_SESSION.load(Ordering::SeqCst);
 
         tauri::async_runtime::spawn(async move {
-            let _guard = FinishGuard(ah.clone(), Arc::clone(&tm));
+            let _guard = FinishGuard(ah.clone(), Arc::clone(&tm), session);
             debug!(
                 "Starting async transcription task for binding: {}",
                 binding_id
@@ -729,14 +771,23 @@ impl ShortcutAction for TranscribeAction {
                     set_tray_state(&ah, TrayIconState::Idle);
                     emit_transcription_complete(&ah, empty_outcome(input_silent), 0, stop_time);
                 } else {
-                    // Save WAV concurrently with transcription
+                    // Save WAV concurrently with transcription, unless
+                    // recordings are not kept: then History keeps the text only.
                     let sample_count = samples.len();
-                    let file_name = format!("handy-{}.wav", chrono::Utc::now().timestamp());
+                    let keep_recording =
+                        crate::settings::get_recording_retention_period(&ah).keeps_recordings();
+                    let file_name = if keep_recording {
+                        format!("handy-{}.wav", chrono::Utc::now().timestamp())
+                    } else {
+                        String::new()
+                    };
                     let wav_path = hm.recordings_dir().join(&file_name);
-                    let wav_path_for_verify = wav_path.clone();
-                    let samples_for_wav = samples.clone();
-                    let wav_handle = tauri::async_runtime::spawn_blocking(move || {
-                        crate::audio_toolkit::save_wav_file(&wav_path, &samples_for_wav)
+                    let wav_handle = keep_recording.then(|| {
+                        let wav_path = wav_path.clone();
+                        let samples_for_wav = samples.clone();
+                        tauri::async_runtime::spawn_blocking(move || {
+                            crate::audio_toolkit::save_wav_file(&wav_path, &samples_for_wav)
+                        })
                     });
 
                     // Transcribe concurrently with WAV save: the live decode's
@@ -744,30 +795,32 @@ impl ShortcutAction for TranscribeAction {
                     // otherwise a batch run of the samples. A cancel is surfaced
                     // as an error, so it never starts a batch run.
                     let transcription_time = Instant::now();
-                    let transcription_result = tm.transcribe_recording(samples);
+                    let transcription_result = tm.transcribe_recording(cancel_mark, samples);
 
-                    // Await WAV save and verify
-                    let wav_saved = match wav_handle.await {
-                        Ok(Ok(())) => {
-                            match crate::audio_toolkit::verify_wav_file(
-                                &wav_path_for_verify,
-                                sample_count,
-                            ) {
-                                Ok(()) => true,
-                                Err(e) => {
-                                    error!("WAV verification failed: {}", e);
-                                    false
+                    // Await WAV save and verify; with no recording kept, the
+                    // entry is saved without one.
+                    let wav_saved = match wav_handle {
+                        None => true,
+                        Some(wav_handle) => match wav_handle.await {
+                            Ok(Ok(())) => {
+                                match crate::audio_toolkit::verify_wav_file(&wav_path, sample_count)
+                                {
+                                    Ok(()) => true,
+                                    Err(e) => {
+                                        error!("WAV verification failed: {}", e);
+                                        false
+                                    }
                                 }
                             }
-                        }
-                        Ok(Err(e)) => {
-                            error!("Failed to save WAV file: {}", e);
-                            false
-                        }
-                        Err(e) => {
-                            error!("WAV save task panicked: {}", e);
-                            false
-                        }
+                            Ok(Err(e)) => {
+                                error!("Failed to save WAV file: {}", e);
+                                false
+                            }
+                            Err(e) => {
+                                error!("WAV save task panicked: {}", e);
+                                false
+                            }
+                        },
                     };
 
                     if rm.was_cancelled_since(cancel_generation) {
@@ -864,6 +917,12 @@ impl ShortcutAction for TranscribeAction {
                                 std::thread::Builder::new()
                                     .name("paste".into())
                                     .spawn(move || {
+                                        let _panic_guard = PastePanicGuard {
+                                            app: ah_clone.clone(),
+                                            session,
+                                            sample_count,
+                                            stop_time,
+                                        };
                                         if rm_for_paste.was_cancelled_since(cancel_generation) {
                                             debug!(
                                                 "Transcription operation cancelled before paste"
@@ -965,8 +1024,9 @@ impl ShortcutAction for TranscribeAction {
                                 )
                                 .with_detail(err.to_string()),
                             );
-                            // Save entry with empty text so user can retry
-                            if wav_saved {
+                            // Save entry with empty text so user can retry;
+                            // without a recording it would hold nothing.
+                            if wav_saved && keep_recording {
                                 if let Err(save_err) = hm.save_entry(
                                     file_name,
                                     String::new(),

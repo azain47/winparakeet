@@ -706,6 +706,7 @@
       "transcribing": "전사 중...",
       "transcriptionFailed": "전사에 실패했습니다. 재시도 아이콘을 사용하여 다시 전사할 수 있습니다.",
       "notTranscribed": "전사되지 않았습니다. 재시도 아이콘을 사용하여 전사할 수 있습니다.",
+      "notTranscribedNoRecording": "변환되지 않았습니다. 녹음이 보관되지 않았습니다.",
       "transcribeFile": "파일 받아쓰기",
       "mediaFiles": "오디오 및 비디오",
       "fileUnsupported": "{{name}}에서 오디오를 읽을 수 없습니다.",
@@ -713,6 +714,7 @@
       "waiting": "받아쓰기 대기 중",
       "transcribingPercent": "받아쓰는 중, {{percent}}%",
       "readingFile": "파일 읽는 중...",
+      "fileWaiting": "파일 읽기 대기 중...",
       "showMore": "더 보기",
       "showLess": "간략히 보기",
       "dropTitle": "놓아서 받아쓰기",
@@ -788,7 +790,8 @@
       },
       "recordingRetention": {
         "title": "녹음 자동 삭제",
-        "description": "공간을 절약하기 위해 오래된 녹음을 자동으로 삭제합니다",
+        "description": "공간 절약을 위해 오래된 녹음을 자동으로 삭제하거나, 녹음을 저장하지 않고 텍스트만 보관합니다",
+        "dontSave": "녹음 저장 안 함",
         "never": "안 함",
         "preserveLimit": "최근 {{count}}개 유지",
         "days3": "3일 후",
@@ -952,7 +955,8 @@
     "filePostProcessFailedTitle": "후처리 없이 받아씀",
     "filePostProcessFailed": "후처리가 완료되지 않아 받아쓰기 결과를 그대로 저장했습니다.",
     "fileTranscriptionFailedTitle": "파일 음성 인식 실패",
-    "transcriptionFailedTitle": "음성 인식 실패"
+    "transcriptionFailedTitle": "음성 인식 실패",
+    "onboardingFinishFailed": "설정을 완료하지 못했습니다. 다시 시도하세요."
   },
   "notices": {
     "errorOne": "오류 {{n}}개",

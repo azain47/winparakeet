@@ -706,6 +706,7 @@
       "transcribing": "Đang phiên âm...",
       "transcriptionFailed": "Phiên âm thất bại. Bạn có thể phiên âm lại bằng biểu tượng thử lại.",
       "notTranscribed": "Chưa phiên âm. Bạn có thể phiên âm bằng biểu tượng thử lại.",
+      "notTranscribedNoRecording": "Chưa được chép lời. Bản ghi âm không được giữ lại.",
       "transcribeFile": "Chép lời tệp",
       "mediaFiles": "Âm thanh và video",
       "fileUnsupported": "Không thể đọc âm thanh từ {{name}}.",
@@ -713,6 +714,7 @@
       "waiting": "Đang chờ chép lời",
       "transcribingPercent": "Đang chép lời, {{percent}}%",
       "readingFile": "Đang đọc tệp...",
+      "fileWaiting": "Đang chờ đọc tệp...",
       "showMore": "Xem thêm",
       "showLess": "Thu gọn",
       "dropTitle": "Thả để chép lời",
@@ -788,7 +790,8 @@
       },
       "recordingRetention": {
         "title": "Tự động xóa ghi âm",
-        "description": "Tự động xóa các bản ghi âm cũ để tiết kiệm dung lượng",
+        "description": "Tự động xóa bản ghi âm cũ để tiết kiệm dung lượng, hoặc không lưu bản ghi âm và chỉ giữ văn bản",
+        "dontSave": "Không lưu bản ghi âm",
         "never": "Không bao giờ",
         "preserveLimit": "Giữ {{count}} bản mới nhất",
         "days3": "Sau 3 ngày",
@@ -952,7 +955,8 @@
     "filePostProcessFailedTitle": "Đã chép lời không qua xử lý sau",
     "filePostProcessFailed": "Xử lý sau chưa hoàn tất nên bản chép lời được lưu nguyên trạng.",
     "fileTranscriptionFailedTitle": "Phiên âm tệp thất bại",
-    "transcriptionFailedTitle": "Phiên âm thất bại"
+    "transcriptionFailedTitle": "Phiên âm thất bại",
+    "onboardingFinishFailed": "Không thể hoàn tất thiết lập. Hãy thử lại."
   },
   "notices": {
     "errorOne": "{{n}} lỗi",

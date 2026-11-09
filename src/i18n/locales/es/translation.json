@@ -706,6 +706,7 @@
       "transcribing": "Transcribiendo...",
       "transcriptionFailed": "La transcripción falló. Puedes re-transcribir usando el icono de reintentar.",
       "notTranscribed": "Sin transcribir. Puedes transcribirlo usando el icono de reintentar.",
+      "notTranscribedNoRecording": "Sin transcribir. No se conservó la grabación.",
       "transcribeFile": "Transcribir archivo",
       "mediaFiles": "Audio y vídeo",
       "fileUnsupported": "No se pudo leer el audio de {{name}}.",
@@ -713,6 +714,7 @@
       "waiting": "Esperando para transcribir",
       "transcribingPercent": "Transcribiendo, {{percent}} %",
       "readingFile": "Leyendo archivo...",
+      "fileWaiting": "Esperando para leer el archivo...",
       "showMore": "Mostrar más",
       "showLess": "Mostrar menos",
       "dropTitle": "Suelta para transcribir",
@@ -788,7 +790,8 @@
       },
       "recordingRetention": {
         "title": "Eliminación automática de grabaciones",
-        "description": "Eliminar automáticamente grabaciones antiguas para ahorrar espacio",
+        "description": "Elimina automáticamente las grabaciones antiguas para ahorrar espacio, o no guardes grabaciones y conserva solo el texto",
+        "dontSave": "No guardar grabaciones",
         "never": "Nunca",
         "preserveLimit": "Mantener las últimas {{count}}",
         "days3": "Después de 3 días",
@@ -952,7 +955,8 @@
     "filePostProcessFailedTitle": "Transcrito sin post proceso",
     "filePostProcessFailed": "El post proceso no terminó, así que la transcripción se guardó tal cual.",
     "fileTranscriptionFailedTitle": "Error al transcribir el archivo",
-    "transcriptionFailedTitle": "Error de transcripción"
+    "transcriptionFailedTitle": "Error de transcripción",
+    "onboardingFinishFailed": "No se pudo completar la configuración. Inténtalo de nuevo."
   },
   "notices": {
     "errorOne": "{{n}} error",

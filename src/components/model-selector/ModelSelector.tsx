@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { listen } from "@tauri-apps/api/event";
 import { commands } from "@/bindings";
@@ -49,34 +49,52 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({ onError }) => {
 
   const displayModelId = pendingModelId || currentModel;
 
+  // Status polls and model events race; each bumps this, and a poll applies
+  // only if nothing newer arrived while it awaited.
+  const statusSeqRef = useRef(0);
+  const currentModelRef = useRef(currentModel);
+  currentModelRef.current = currentModel;
+
+  const checkStatus = useCallback(async () => {
+    const seq = ++statusSeqRef.current;
+    const model = currentModelRef.current;
+    if (!model) {
+      setModelStatus("none");
+      return;
+    }
+    try {
+      const [statusResult, loading] = await Promise.all([
+        commands.getTranscriptionModelStatus(),
+        commands.isModelLoading(),
+      ]);
+      if (seq !== statusSeqRef.current) return;
+      if (loading.status === "ok" && loading.data) {
+        setModelStatus("loading");
+      } else if (statusResult.status === "ok") {
+        setModelStatus(statusResult.data === model ? "ready" : "unloaded");
+      }
+    } catch {
+      if (seq !== statusSeqRef.current) return;
+      setModelStatus("error");
+      setModelError("Failed to check model status");
+    }
+  }, []);
+
   // Check model status when currentModel changes
   useEffect(() => {
-    const checkStatus = async () => {
-      if (currentModel) {
-        try {
-          const statusResult = await commands.getTranscriptionModelStatus();
-          if (statusResult.status === "ok") {
-            setModelStatus(
-              statusResult.data === currentModel ? "ready" : "unloaded",
-            );
-          }
-        } catch {
-          setModelStatus("error");
-          setModelError("Failed to check model status");
-        }
-      } else {
-        setModelStatus("none");
-      }
-    };
     checkStatus();
-  }, [currentModel]);
+  }, [currentModel, checkStatus]);
 
   useEffect(() => {
+    let disposed = false;
+    const timers = new Set<ReturnType<typeof setTimeout>>();
+
     // Listen for model loading lifecycle events
     const modelStateUnlisten = listen<ModelStateEvent>(
       "model-state-changed",
       (event) => {
         const { event_type, error } = event.payload;
+        statusSeqRef.current++;
         switch (event_type) {
           case "loading_started":
             setModelStatus("loading");
@@ -93,8 +111,10 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({ onError }) => {
             setPendingModelId(null);
             break;
           case "unloaded":
-            setModelStatus("unloaded");
+            // Not ordered against an in-flight load (the idle watcher may
+            // unload the previous model), so ask the backend what is loaded.
             setModelError(null);
+            checkStatus();
             break;
         }
       },
@@ -107,23 +127,22 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({ onError }) => {
         const modelId = event.payload;
         // The language detector downloads like a model but isn't one.
         if (modelId === LANGUAGE_DETECTOR_ID) return;
-        setTimeout(async () => {
+        const timer = setTimeout(async () => {
+          timers.delete(timer);
           try {
             const isRecording = await commands.isRecording();
             // A file job holds the current model until it's done.
-            if (!isRecording && !areModelsLocked()) {
-              setPendingModelId(modelId);
-              setModelError(null);
-              setShowModelDropdown(false);
-              const success = await selectModel(modelId);
-              if (!success) {
-                setPendingModelId(null);
-              }
-            }
+            if (disposed || isRecording || areModelsLocked()) return;
+            setPendingModelId(modelId);
+            setModelError(null);
+            setShowModelDropdown(false);
+            await selectModel(modelId);
+            if (!disposed) setPendingModelId(null);
           } catch {
             // Ignore errors in auto-select
           }
         }, 500);
+        timers.add(timer);
       },
     );
 
@@ -140,19 +159,25 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({ onError }) => {
     document.addEventListener("mousedown", handleClickOutside);
 
     return () => {
+      disposed = true;
+      timers.forEach(clearTimeout);
       document.removeEventListener("mousedown", handleClickOutside);
       modelStateUnlisten.then((fn) => fn());
       downloadCompleteUnlisten.then((fn) => fn());
     };
-  }, [selectModel]);
+  }, [selectModel, checkStatus]);
 
   const handleModelSelect = async (modelId: string) => {
     setPendingModelId(modelId);
     setModelError(null);
     setShowModelDropdown(false);
     const success = await selectModel(modelId);
-    if (!success) {
-      setPendingModelId(null);
+    // On success the store's currentModel is the pick; nothing stays pending
+    // even when no load events follow (e.g. it was already loaded).
+    setPendingModelId(null);
+    if (success) {
+      checkStatus();
+    } else {
       setModelStatus("error");
       setModelError("Failed to switch model");
       onError?.("Failed to switch model");

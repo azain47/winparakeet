@@ -706,6 +706,7 @@
       "transcribing": "转录中...",
       "transcriptionFailed": "转录失败。您可以使用重试图标重新转录。",
       "notTranscribed": "尚未转录。您可以使用重试图标进行转录。",
+      "notTranscribedNoRecording": "未转录。录音未保留。",
       "transcribeFile": "转录文件",
       "mediaFiles": "音频和视频",
       "fileUnsupported": "无法读取 {{name}} 中的音频。",
@@ -713,6 +714,7 @@
       "waiting": "等待转录",
       "transcribingPercent": "正在转录，{{percent}}%",
       "readingFile": "正在读取文件...",
+      "fileWaiting": "等待读取文件...",
       "showMore": "显示更多",
       "showLess": "收起",
       "dropTitle": "拖放到此处进行转录",
@@ -788,7 +790,8 @@
       },
       "recordingRetention": {
         "title": "自动删除录音",
-        "description": "自动删除旧录音以节省空间",
+        "description": "自动删除旧录音以节省空间，或完全不保存录音，仅保留文字",
+        "dontSave": "不保存录音",
         "never": "从不",
         "preserveLimit": "保留最新 {{count}} 条",
         "days3": "3 天后",
@@ -952,7 +955,8 @@
     "filePostProcessFailedTitle": "已转录，未经后处理",
     "filePostProcessFailed": "后处理未完成，因此按原样保存转录内容。",
     "fileTranscriptionFailedTitle": "文件转录失败",
-    "transcriptionFailedTitle": "转录失败"
+    "transcriptionFailedTitle": "转录失败",
+    "onboardingFinishFailed": "无法完成设置。请重试。"
   },
   "notices": {
     "errorOne": "{{n}} 个错误",

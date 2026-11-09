@@ -221,11 +221,21 @@ pub enum AutoSubmitKey {
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Type)]
 #[serde(rename_all = "snake_case")]
 pub enum RecordingRetentionPeriod {
+    /// No recording is kept: History keeps only the text. A file being
+    /// transcribed keeps its recording until its job ends.
+    DontSave,
     Never,
     PreserveLimit,
     Days3,
     Weeks2,
     Months3,
+}
+
+impl RecordingRetentionPeriod {
+    /// Whether recordings are kept once their transcription is done.
+    pub fn keeps_recordings(self) -> bool {
+        self != Self::DontSave
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Type)]

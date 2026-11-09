@@ -706,6 +706,7 @@
       "transcribing": "Transkribe ediliyor...",
       "transcriptionFailed": "Transkripsiyon başarısız oldu. Yeniden deneme simgesini kullanarak tekrar transkribe edebilirsiniz.",
       "notTranscribed": "Transkribe edilmedi. Yeniden deneme simgesini kullanarak transkribe edebilirsiniz.",
+      "notTranscribedNoRecording": "Yazıya dökülmedi. Kayıt saklanmadı.",
       "transcribeFile": "Dosyayı Yazıya Dök",
       "mediaFiles": "Ses ve video",
       "fileUnsupported": "{{name}} dosyasından ses okunamadı.",
@@ -713,6 +714,7 @@
       "waiting": "Yazıya dökülmeyi bekliyor",
       "transcribingPercent": "Yazıya dökülüyor, %{{percent}}",
       "readingFile": "Dosya okunuyor...",
+      "fileWaiting": "Dosyanın okunması bekleniyor...",
       "showMore": "Daha fazla göster",
       "showLess": "Daha az göster",
       "dropTitle": "Yazıya dökmek için bırakın",
@@ -788,7 +790,8 @@
       },
       "recordingRetention": {
         "title": "Kayıtları Otomatik Sil",
-        "description": "Alan tasarrufu için eski kayıtları otomatik olarak siler",
+        "description": "Yer kazanmak için eski kayıtları otomatik olarak sil veya kayıtları hiç saklamayıp yalnızca metni tut",
+        "dontSave": "Kayıtları kaydetme",
         "never": "Asla",
         "preserveLimit": "Son {{count}} kaydı tut",
         "days3": "3 gün sonra",
@@ -952,7 +955,8 @@
     "filePostProcessFailedTitle": "Son işlem olmadan yazıya döküldü",
     "filePostProcessFailed": "Son işlem tamamlanmadı, bu yüzden metin olduğu gibi kaydedildi.",
     "fileTranscriptionFailedTitle": "Dosya transkripsiyonu başarısız oldu",
-    "transcriptionFailedTitle": "Transkripsiyon başarısız oldu"
+    "transcriptionFailedTitle": "Transkripsiyon başarısız oldu",
+    "onboardingFinishFailed": "Kurulum tamamlanamadı. Tekrar deneyin."
   },
   "notices": {
     "errorOne": "{{n}} hata",

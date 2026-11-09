@@ -706,6 +706,7 @@
       "transcribing": "Transkrybuję...",
       "transcriptionFailed": "Transkrypcja nie powiodła się. Możesz transkrybować ponownie za pomocą ikony ponowienia.",
       "notTranscribed": "Nie przetranskrybowano. Możesz to przetranskrybować za pomocą ikony ponowienia.",
+      "notTranscribedNoRecording": "Nie przetranskrybowano. Nagranie nie zostało zachowane.",
       "transcribeFile": "Transkrybuj plik",
       "mediaFiles": "Audio i wideo",
       "fileUnsupported": "Nie udało się odczytać dźwięku z {{name}}.",
@@ -713,6 +714,7 @@
       "waiting": "Oczekuje na transkrypcję",
       "transcribingPercent": "Transkrypcja, {{percent}}%",
       "readingFile": "Odczytuję plik...",
+      "fileWaiting": "Oczekiwanie na odczyt pliku...",
       "showMore": "Pokaż więcej",
       "showLess": "Pokaż mniej",
       "dropTitle": "Upuść, aby transkrybować",
@@ -788,7 +790,8 @@
       },
       "recordingRetention": {
         "title": "Automatyczne usuwanie nagrań",
-        "description": "Automatycznie usuwaj stare nagrania, aby zaoszczędzić miejsce",
+        "description": "Automatycznie usuwaj stare nagrania, aby oszczędzać miejsce, lub w ogóle nie zapisuj nagrań i zachowuj tylko tekst",
+        "dontSave": "Nie zapisuj nagrań",
         "never": "Nigdy",
         "preserveLimit": "Zachowaj ostatnie {{count}}",
         "days3": "Po 3 dniach",
@@ -952,7 +955,8 @@
     "filePostProcessFailedTitle": "Przetranskrybowano bez postprocesu",
     "filePostProcessFailed": "Postproces nie został ukończony, więc transkrypcja została zapisana bez zmian.",
     "fileTranscriptionFailedTitle": "Transkrypcja pliku nie powiodła się",
-    "transcriptionFailedTitle": "Transkrypcja nie powiodła się"
+    "transcriptionFailedTitle": "Transkrypcja nie powiodła się",
+    "onboardingFinishFailed": "Nie udało się ukończyć konfiguracji. Spróbuj ponownie."
   },
   "notices": {
     "errorOne": "{{n}} błąd",

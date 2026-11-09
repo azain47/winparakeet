@@ -1497,12 +1497,15 @@ pub fn change_show_tray_icon_setting(app: AppHandle, enabled: bool) -> Result<()
     Ok(())
 }
 
-/// Save accelerator settings and make the next model use reload with them.
+/// Save accelerator settings, clear any earlier GPU fallback, and make the next
+/// model use reload with them. The fallback is cleared before the reload is
+/// marked, so a load that slips in between already runs with the GPU allowed.
 /// The currently running transcription, if any, keeps its existing engine.
-fn save_accelerator_and_reload_next_use(app: &AppHandle, s: settings::AppSettings) {
+fn save_accelerator_and_reload_next_use(app: &AppHandle, s: settings::AppSettings, reason: &str) {
     settings::write_settings(app, s);
 
     let tm = app.state::<std::sync::Arc<crate::managers::transcription::TranscriptionManager>>();
+    tm.retry_transcribe_gpu(reason);
     tm.reload_model_on_next_use();
 }
 
@@ -1514,9 +1517,7 @@ pub fn change_transcribe_accelerator_setting(
 ) -> Result<(), String> {
     let mut s = settings::get_settings(&app);
     s.transcribe_accelerator = accelerator;
-    save_accelerator_and_reload_next_use(&app, s);
-    app.state::<std::sync::Arc<crate::managers::transcription::TranscriptionManager>>()
-        .retry_transcribe_gpu("the transcribe.cpp accelerator setting changed");
+    save_accelerator_and_reload_next_use(&app, s, "the transcribe.cpp accelerator setting changed");
     Ok(())
 }
 
@@ -1525,9 +1526,7 @@ pub fn change_transcribe_accelerator_setting(
 pub fn change_transcribe_gpu_device(app: AppHandle, device: Option<String>) -> Result<(), String> {
     let mut s = settings::get_settings(&app);
     s.transcribe_gpu_device = device;
-    save_accelerator_and_reload_next_use(&app, s);
-    app.state::<std::sync::Arc<crate::managers::transcription::TranscriptionManager>>()
-        .retry_transcribe_gpu("the transcribe.cpp GPU device setting changed");
+    save_accelerator_and_reload_next_use(&app, s, "the transcribe.cpp GPU device setting changed");
     Ok(())
 }
 

@@ -706,6 +706,7 @@
       "transcribing": "Transkribiere...",
       "transcriptionFailed": "Transkription fehlgeschlagen. Du kannst über das Wiederholen-Symbol erneut transkribieren.",
       "notTranscribed": "Nicht transkribiert. Du kannst es über das Wiederholen-Symbol transkribieren.",
+      "notTranscribedNoRecording": "Nicht transkribiert. Die Aufnahme wurde nicht behalten.",
       "transcribeFile": "Datei transkribieren",
       "mediaFiles": "Audio und Video",
       "fileUnsupported": "Audio aus {{name}} konnte nicht gelesen werden.",
@@ -713,6 +714,7 @@
       "waiting": "Wartet auf Transkription",
       "transcribingPercent": "Transkribiere, {{percent}} %",
       "readingFile": "Datei wird gelesen...",
+      "fileWaiting": "Warte auf das Lesen der Datei...",
       "showMore": "Mehr anzeigen",
       "showLess": "Weniger anzeigen",
       "dropTitle": "Zum Transkribieren ablegen",
@@ -788,7 +790,8 @@
       },
       "recordingRetention": {
         "title": "Aufnahmen automatisch löschen",
-        "description": "Alte Aufnahmen automatisch löschen, um Speicherplatz zu sparen",
+        "description": "Alte Aufnahmen automatisch löschen, um Speicherplatz zu sparen, oder Aufnahmen gar nicht speichern und nur den Text behalten",
+        "dontSave": "Aufnahmen nicht speichern",
         "never": "Nie",
         "preserveLimit": "Neueste {{count}} behalten",
         "days3": "Nach 3 Tagen",
@@ -952,7 +955,8 @@
     "filePostProcessFailedTitle": "Ohne Nachbearbeitung transkribiert",
     "filePostProcessFailed": "Die Nachbearbeitung wurde nicht abgeschlossen, daher wurde das Transkript unverändert gespeichert.",
     "fileTranscriptionFailedTitle": "Dateitranskription fehlgeschlagen",
-    "transcriptionFailedTitle": "Transkription fehlgeschlagen"
+    "transcriptionFailedTitle": "Transkription fehlgeschlagen",
+    "onboardingFinishFailed": "Die Einrichtung konnte nicht abgeschlossen werden. Versuche es erneut."
   },
   "notices": {
     "errorOne": "{{n}} Fehler",

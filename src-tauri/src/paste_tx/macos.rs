@@ -183,7 +183,7 @@ fn settle(
 
 /// If a previous transaction is still holding the clipboard, settle it now so
 /// the caller's snapshot captures the user's original clipboard content.
-fn flush_pending(app_handle: &AppHandle, enigo: &mut enigo::Enigo) {
+pub(super) fn flush_pending(app_handle: &AppHandle, enigo: &mut enigo::Enigo) {
     let previous = match PENDING.lock() {
         Ok(mut slot) => slot.take(),
         Err(_) => None,

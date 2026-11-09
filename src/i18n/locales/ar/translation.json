@@ -706,6 +706,7 @@
       "transcribing": "جارٍ النسخ...",
       "transcriptionFailed": "فشل النسخ. يمكنك إعادة النسخ باستخدام أيقونة إعادة المحاولة.",
       "notTranscribed": "لم يتم النسخ. يمكنك نسخه باستخدام أيقونة إعادة المحاولة.",
+      "notTranscribedNoRecording": "لم يتم النسخ. لم يتم الاحتفاظ بالتسجيل.",
       "transcribeFile": "نسخ ملف",
       "mediaFiles": "الصوت والفيديو",
       "fileUnsupported": "تعذّرت قراءة الصوت من {{name}}.",
@@ -713,6 +714,7 @@
       "waiting": "في انتظار النسخ",
       "transcribingPercent": "جارٍ النسخ، {{percent}}%",
       "readingFile": "جارٍ قراءة الملف...",
+      "fileWaiting": "في انتظار قراءة الملف...",
       "showMore": "عرض المزيد",
       "showLess": "عرض أقل",
       "dropTitle": "أفلت الملف لنسخه",
@@ -788,7 +790,8 @@
       },
       "recordingRetention": {
         "title": "حذف التسجيلات تلقائياً",
-        "description": "حذف التسجيلات القديمة تلقائياً لتوفير المساحة",
+        "description": "حذف التسجيلات القديمة تلقائيًا لتوفير المساحة، أو عدم حفظ التسجيلات إطلاقًا والاحتفاظ بالنص فقط",
+        "dontSave": "عدم حفظ التسجيلات",
         "never": "أبداً",
         "preserveLimit": "الاحتفاظ بآخر {{count}}",
         "days3": "بعد 3 أيام",
@@ -952,7 +955,8 @@
     "filePostProcessFailedTitle": "نُسخ بدون معالجة لاحقة",
     "filePostProcessFailed": "لم تكتمل المعالجة اللاحقة، لذا حُفظ النص المنسوخ كما هو.",
     "fileTranscriptionFailedTitle": "فشل التفريغ النصي للملف",
-    "transcriptionFailedTitle": "فشل التفريغ النصي"
+    "transcriptionFailedTitle": "فشل التفريغ النصي",
+    "onboardingFinishFailed": "تعذّر إنهاء الإعداد. حاول مرة أخرى."
   },
   "notices": {
     "errorOne": "{{n}} خطأ",

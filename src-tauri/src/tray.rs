@@ -242,11 +242,13 @@ pub fn set_tray_state(app: &AppHandle, state: TrayIconState) {
     sync_tray_with(app, |inner| inner.icon_state = state);
 }
 
-/// Whether a dictation is recording, transcribing or delivering. Every start,
-/// finish and cancel sets the tray state, so it's the record of that.
+/// Whether a dictation is recording, or transcribing until its pipeline
+/// drains. Read from the transcription coordinator, which owns that
+/// lifecycle; the tray icon only displays it (a cancel resets the icon
+/// before a cancelled pipeline has let go of the engine).
 pub fn dictation_in_progress(app: &AppHandle) -> bool {
-    app.try_state::<TrayState>()
-        .is_some_and(|state| state.lock().icon_state.is_busy())
+    app.try_state::<crate::transcription_coordinator::TranscriptionCoordinator>()
+        .is_some_and(|coordinator| coordinator.is_busy())
 }
 
 /// Re-syncs the tray after something other than the recording state changed

@@ -14,9 +14,9 @@
 //! signals the transcript is published, then returns; the wait, guarded
 //! restore and auto-submit all finish on the worker.
 
-use std::sync::{mpsc::Sender, Arc, Mutex, Once};
+use std::sync::{mpsc::Sender, Arc, Condvar, Mutex, Once, PoisonError};
 use std::thread;
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 use log::{error, info, warn};
 use tauri::Manager;
@@ -52,6 +52,10 @@ use windows::Win32::UI::WindowsAndMessaging::{
 const CLASS_NAME: PCWSTR = w!("HandyPasteTxWindow");
 const TIMER_ID: usize = 1;
 const TIMER_INTERVAL_MS: u32 = 25;
+/// How long a new paste waits for the previous transaction's worker to settle
+/// (restore) the clipboard before snapshotting. The worker notices the
+/// cancellation on its next timer tick, so this is normally ~25ms.
+const FLUSH_WAIT: Duration = Duration::from_secs(1);
 /// Skip clipboard formats larger than this when snapshotting.
 const MAX_FORMAT_BYTES: usize = 64 * 1024 * 1024;
 
@@ -63,8 +67,20 @@ struct SavedFormat {
     data: Vec<u8>,
 }
 
+/// Settlement lifecycle of one transaction. Exactly one thread moves it from
+/// `Open` to `Settling` (see `claim_settle`) and therefore performs the
+/// auto-submit and guarded restore; `Done` is announced on `settled_cv`.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum SettlePhase {
+    Open,
+    Settling,
+    Done,
+}
+
 pub(super) struct WinTxShared {
     state: Mutex<TxState>,
+    settle: Mutex<SettlePhase>,
+    settled_cv: Condvar,
     text: String,
     snapshot: Mutex<Vec<SavedFormat>>,
     /// Copied HBITMAP (as raw usize), restored via SetClipboardData.
@@ -79,7 +95,8 @@ pub(super) struct WinTxShared {
 }
 
 /// The transaction currently holding the clipboard, if any. A new
-/// transaction settles it before snapshotting (see `flush_pending`).
+/// transaction waits for it to settle before snapshotting (see
+/// `flush_pending`). Cleared by the worker only after its settle is `Done`.
 static PENDING: Mutex<Option<Arc<WinTxShared>>> = Mutex::new(None);
 
 fn wide(s: &str) -> Vec<u16> {
@@ -209,11 +226,53 @@ fn ensure_window_class(hinstance: HINSTANCE) {
     });
 }
 
-/// If a previous transaction is still holding the clipboard, settle it now so
-/// the snapshot below captures the user's original clipboard content. The
-/// previous worker observes `cancelled` on its next timer tick and tears down
-/// without restoring.
-fn flush_pending() {
+/// Claims the right to settle `shared`. Returns `true` for exactly one caller.
+fn claim_settle(shared: &WinTxShared) -> bool {
+    let mut phase = shared.settle.lock().unwrap_or_else(PoisonError::into_inner);
+    if *phase != SettlePhase::Open {
+        return false;
+    }
+    *phase = SettlePhase::Settling;
+    true
+}
+
+fn mark_settled(shared: &WinTxShared) {
+    let mut phase = shared.settle.lock().unwrap_or_else(PoisonError::into_inner);
+    *phase = SettlePhase::Done;
+    shared.settled_cv.notify_all();
+}
+
+/// Sends the owed auto-submit and restores (or preserves) the clipboard while
+/// we still own it. Only the thread that won `claim_settle` may call this.
+fn settle_now(shared: &WinTxShared) {
+    let (receipt, ownership_lost) = match shared.state.lock() {
+        Ok(st) => (st.any_receipt_after_injection(), st.ownership_lost),
+        Err(_) => (false, true),
+    };
+
+    // Auto-submit only once the target demonstrably read the transcript;
+    // pressing Enter after an unconfirmed paste could submit stale content.
+    if shared.auto_submit && receipt {
+        send_auto_submit(shared);
+    }
+
+    let sequence = *shared.sequence.lock().unwrap();
+    let still_ours = !ownership_lost && unsafe { GetClipboardSequenceNumber() } == sequence;
+    if still_ours {
+        unsafe { settle_clipboard(shared) };
+    } else {
+        info!("[reliable-paste] clipboard changed externally; leaving it untouched");
+    }
+}
+
+/// If a previous transaction is still holding the clipboard, make it settle
+/// now and wait (bounded by `FLUSH_WAIT`) until its restore has finished, so
+/// the caller's snapshot captures the user's original clipboard content and
+/// not the previous transcript. The previous worker observes `cancelled` on
+/// its next timer tick and settles on its own thread, which owns the
+/// delayed-render window. Must not be called while holding the enigo lock if
+/// the previous transaction's auto-submit should go out (it uses `try_lock`).
+pub(super) fn flush_pending() {
     let previous = match PENDING.lock() {
         Ok(mut slot) => slot.take(),
         Err(_) => None,
@@ -221,21 +280,38 @@ fn flush_pending() {
     let Some(previous) = previous else {
         return;
     };
-    let receipt = {
-        let mut st = match previous.state.lock() {
-            Ok(st) => st,
-            Err(_) => return,
-        };
+    if let Ok(mut st) = previous.state.lock() {
         st.cancelled = true;
-        st.any_receipt_after_injection()
-    };
-    if previous.auto_submit && receipt {
-        send_auto_submit(&previous);
     }
-    let sequence = *previous.sequence.lock().unwrap();
-    let still_ours = unsafe { GetClipboardSequenceNumber() } == sequence;
-    if still_ours {
-        unsafe { settle_clipboard(&previous) };
+
+    // Copy the phase out so the guard is released before `claim_settle`.
+    let phase = {
+        let guard = previous
+            .settle
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner);
+        let (guard, _) = previous
+            .settled_cv
+            .wait_timeout_while(guard, FLUSH_WAIT, |phase| *phase != SettlePhase::Done)
+            .unwrap_or_else(PoisonError::into_inner);
+        *guard
+    };
+    match phase {
+        SettlePhase::Done => {}
+        SettlePhase::Open => {
+            // The worker never got to it (stalled message loop): settle here.
+            if claim_settle(&previous) {
+                warn!("[reliable-paste] previous paste worker unresponsive; settling it here");
+                settle_now(&previous);
+                mark_settled(&previous);
+            }
+        }
+        SettlePhase::Settling => {
+            warn!(
+                "[reliable-paste] previous paste still restoring after {}ms; continuing",
+                FLUSH_WAIT.as_millis()
+            );
+        }
     }
 }
 
@@ -433,16 +509,22 @@ fn on_timer(_hwnd: HWND, shared: &WinTxShared) {
         return;
     }
 
-    let (receipt, ownership_lost, injection_failed) = {
-        let st = match shared.state.lock() {
-            Ok(st) => st,
-            Err(_) => return,
-        };
-        (
+    if !claim_settle(shared) {
+        // flush_pending settled this transaction itself (this worker stalled
+        // past FLUSH_WAIT); nothing left to do but tear down.
+        unsafe {
+            PostQuitMessage(0);
+        }
+        return;
+    }
+
+    let (receipt, ownership_lost, injection_failed) = match shared.state.lock() {
+        Ok(st) => (
             st.any_receipt_after_injection(),
             st.ownership_lost,
             st.injection_failed,
-        )
+        ),
+        Err(_) => (false, true, false),
     };
     if ownership_lost {
         info!("[reliable-paste] settling: clipboard ownership lost");
@@ -454,19 +536,8 @@ fn on_timer(_hwnd: HWND, shared: &WinTxShared) {
         info!("[reliable-paste] settling: no read within timeout, restoring anyway");
     }
 
-    // Auto-submit only once the target demonstrably read the transcript;
-    // pressing Enter after an unconfirmed paste could submit stale content.
-    if shared.auto_submit && receipt {
-        send_auto_submit(shared);
-    }
-
-    let sequence = *shared.sequence.lock().unwrap();
-    let still_ours = !ownership_lost && unsafe { GetClipboardSequenceNumber() } == sequence;
-    if still_ours {
-        unsafe { settle_clipboard(shared) };
-    } else {
-        info!("[reliable-paste] clipboard changed externally; leaving it untouched");
-    }
+    settle_now(shared);
+    mark_settled(shared);
 
     if let Ok(mut slot) = PENDING.lock() {
         let is_us = slot
@@ -582,6 +653,8 @@ pub(super) fn run(
 ) -> Result<(), String> {
     let shared = Arc::new(WinTxShared {
         state: Mutex::new(TxState::new()),
+        settle: Mutex::new(SettlePhase::Open),
+        settled_cv: Condvar::new(),
         text: text.to_string(),
         snapshot: Mutex::new(Vec::new()),
         saved_bitmap: Mutex::new(None),

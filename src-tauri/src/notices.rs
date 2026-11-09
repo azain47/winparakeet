@@ -156,12 +156,13 @@ fn publish(app: &AppHandle, active: &[Notice], raised: Option<Notice>) {
 }
 
 /// Replaces the source's previous notice. A dictation notice also replaces the
-/// overlay.
+/// overlay, after the store has it.
 pub fn raise(app: &AppHandle, notice: Notice) {
-    if notice.source == NoticeSource::Dictation {
+    let on_overlay = (notice.source == NoticeSource::Dictation).then(|| notice.clone());
+    raise_without_overlay(app, notice);
+    if let Some(notice) = on_overlay {
         overlay::show_overlay_notice(app, &notice);
     }
-    raise_without_overlay(app, notice);
 }
 
 /// [`raise`] for a failure that isn't the session on the overlay, such as a

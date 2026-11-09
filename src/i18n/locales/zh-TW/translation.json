@@ -706,6 +706,7 @@
       "transcribing": "轉錄中...",
       "transcriptionFailed": "轉錄失敗。您可以使用重試圖示重新轉錄。",
       "notTranscribed": "尚未轉錄。您可以使用重試圖示進行轉錄。",
+      "notTranscribedNoRecording": "未轉錄。錄音未保留。",
       "transcribeFile": "轉錄檔案",
       "mediaFiles": "音訊和影片",
       "fileUnsupported": "無法讀取 {{name}} 中的音訊。",
@@ -713,6 +714,7 @@
       "waiting": "等待轉錄",
       "transcribingPercent": "正在轉錄，{{percent}}%",
       "readingFile": "正在讀取檔案...",
+      "fileWaiting": "等待讀取檔案...",
       "showMore": "顯示更多",
       "showLess": "收合",
       "dropTitle": "拖放到此處進行轉錄",
@@ -788,7 +790,8 @@
       },
       "recordingRetention": {
         "title": "自動刪除錄音",
-        "description": "自動刪除舊錄音以節省空間",
+        "description": "自動刪除舊錄音以節省空間，或完全不儲存錄音，只保留文字",
+        "dontSave": "不儲存錄音",
         "never": "從不",
         "preserveLimit": "保留最新 {{count}} 筆",
         "days3": "3 天後",
@@ -952,7 +955,8 @@
     "filePostProcessFailedTitle": "已轉錄，未經後處理",
     "filePostProcessFailed": "後處理未完成，因此按原樣儲存轉錄內容。",
     "fileTranscriptionFailedTitle": "檔案轉錄失敗",
-    "transcriptionFailedTitle": "轉錄失敗"
+    "transcriptionFailedTitle": "轉錄失敗",
+    "onboardingFinishFailed": "無法完成設定。請再試一次。"
   },
   "notices": {
     "errorOne": "{{n}} 個錯誤",

@@ -7,10 +7,13 @@ use serde::{Deserialize, Serialize};
 use specta::Type;
 use std::fs;
 use std::path::PathBuf;
-use tauri::AppHandle;
+use std::sync::Arc;
+use tauri::{AppHandle, Manager};
 use tauri_specta::Event;
 
 use crate::language_detection::{LanguageDecision, LanguageSource};
+use crate::managers::transcription_jobs::TranscriptionJobManager;
+use crate::settings::RecordingRetentionPeriod;
 
 /// Database migrations for transcription history.
 /// Each migration is applied in order. The library tracks which migrations
@@ -66,6 +69,7 @@ pub enum HistoryUpdatePayload {
 #[derive(Clone, Debug, Serialize, Deserialize, Type)]
 pub struct HistoryEntry {
     pub id: i64,
+    /// The recording in the recordings folder; empty when none is kept.
     pub file_name: String,
     pub timestamp: i64,
     pub saved: bool,
@@ -280,7 +284,8 @@ impl HistoryManager {
     }
 
     /// Save a new history entry to the database.
-    /// The WAV file should already have been written to the recordings directory.
+    /// The WAV file should already have been written to the recordings
+    /// directory; `file_name` is empty when no recording is kept.
     pub fn save_entry(
         &self,
         file_name: String,
@@ -436,11 +441,20 @@ impl HistoryManager {
         let retention_period = crate::settings::get_recording_retention_period(&self.app_handle);
 
         match retention_period {
-            crate::settings::RecordingRetentionPeriod::Never => {
+            RecordingRetentionPeriod::DontSave => {
+                // The entries and their text stay; only the recordings go,
+                // except those a job still has to transcribe.
+                match self.app_handle.try_state::<Arc<TranscriptionJobManager>>() {
+                    Some(jobs) => jobs.remove_unused_recordings(),
+                    // Before the job manager exists, there is no job.
+                    None => self.remove_recordings(|_| false),
+                }
+            }
+            RecordingRetentionPeriod::Never => {
                 // Don't delete anything
                 Ok(())
             }
-            crate::settings::RecordingRetentionPeriod::PreserveLimit => {
+            RecordingRetentionPeriod::PreserveLimit => {
                 // Use the old count-based logic with history_limit
                 let limit = crate::settings::get_history_limit(&self.app_handle);
                 self.cleanup_by_count(limit)
@@ -448,6 +462,105 @@ impl HistoryManager {
             _ => {
                 // Use time-based logic
                 self.cleanup_by_time(retention_period)
+            }
+        }
+    }
+
+    /// Deletes every recording but those `in_use` says a job still needs.
+    /// The entries keep their text, and are announced without the recording.
+    ///
+    /// A file is deleted before its entry forgets it. A recording Windows
+    /// keeps open (the History player, a virus scanner) can't be deleted yet:
+    /// its entry keeps the name, so the next cleanup or the startup sweep
+    /// tries again instead of leaving an untracked file behind.
+    pub fn remove_recordings(&self, in_use: impl Fn(i64) -> bool) -> Result<()> {
+        let conn = self.get_connection()?;
+        let mut removed = 0;
+        for (id, file_name) in Self::recordings_to_remove(&conn, in_use)? {
+            if !self.delete_unkept_recording(&file_name)
+                || !Self::forget_recording(&conn, id, &file_name)?
+            {
+                continue;
+            }
+            removed += 1;
+            match conn.query_row(
+                &format!("SELECT {ENTRY_COLUMNS} FROM transcription_history WHERE id = ?1"),
+                params![id],
+                Self::map_history_entry,
+            ) {
+                Ok(entry) => {
+                    if let Err(e) = (HistoryUpdatePayload::Updated { entry }).emit(&self.app_handle)
+                    {
+                        error!("Failed to emit history-updated event: {}", e);
+                    }
+                }
+                // Deleted meanwhile; its deletion was announced already.
+                Err(rusqlite::Error::QueryReturnedNoRows) => {}
+                Err(e) => error!("Failed to read history entry {}: {}", id, e),
+            }
+        }
+        if removed > 0 {
+            info!("Removed {} recordings that are not kept", removed);
+        }
+        Ok(())
+    }
+
+    /// The entries with a recording that `in_use` doesn't claim: ids and file names.
+    fn recordings_to_remove(
+        conn: &Connection,
+        in_use: impl Fn(i64) -> bool,
+    ) -> Result<Vec<(i64, String)>> {
+        let recordings: Vec<(i64, String)> = conn
+            .prepare("SELECT id, file_name FROM transcription_history WHERE file_name != ''")?
+            .query_map([], |row| {
+                Ok((row.get::<_, i64>(0)?, row.get::<_, String>(1)?))
+            })?
+            .collect::<rusqlite::Result<Vec<_>>>()?;
+        Ok(recordings
+            .into_iter()
+            .filter(|(id, _)| !in_use(*id))
+            .collect())
+    }
+
+    /// Clears an entry's recording, if it still names `file_name`; whether it did.
+    fn forget_recording(conn: &Connection, id: i64, file_name: &str) -> Result<bool> {
+        let changed = conn.execute(
+            "UPDATE transcription_history SET file_name = '' WHERE id = ?1 AND file_name = ?2",
+            params![id, file_name],
+        )?;
+        Ok(changed > 0)
+    }
+
+    /// Deletes a recording that isn't kept; whether the file is gone now
+    /// (deleted, or missing already).
+    fn delete_unkept_recording(&self, file_name: &str) -> bool {
+        match fs::remove_file(self.recordings_dir.join(file_name)) {
+            Ok(()) => {
+                debug!("Deleted WAV file: {}", file_name);
+                true
+            }
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => true,
+            Err(e) => {
+                warn!("Couldn't delete WAV file {} yet: {}", file_name, e);
+                false
+            }
+        }
+    }
+
+    /// Deletes an entry's recording, if it has one; whether a file went.
+    fn remove_recording_file(&self, file_name: &str) -> bool {
+        if file_name.is_empty() {
+            return false;
+        }
+        match fs::remove_file(self.recordings_dir.join(file_name)) {
+            Ok(()) => {
+                debug!("Deleted WAV file: {}", file_name);
+                true
+            }
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => false,
+            Err(e) => {
+                error!("Failed to delete WAV file {}: {}", file_name, e);
+                false
             }
         }
     }
@@ -468,14 +581,8 @@ impl HistoryManager {
             )?;
 
             // Delete WAV file
-            let file_path = self.recordings_dir.join(file_name);
-            if file_path.exists() {
-                if let Err(e) = fs::remove_file(&file_path) {
-                    error!("Failed to delete WAV file {}: {}", file_name, e);
-                } else {
-                    debug!("Deleted old WAV file: {}", file_name);
-                    deleted_count += 1;
-                }
+            if self.remove_recording_file(file_name) {
+                deleted_count += 1;
             }
         }
 
@@ -521,9 +628,9 @@ impl HistoryManager {
         // Calculate cutoff timestamp (current time minus retention period)
         let now = Utc::now().timestamp();
         let cutoff_timestamp = match retention_period {
-            crate::settings::RecordingRetentionPeriod::Days3 => now - (3 * 24 * 60 * 60), // 3 days in seconds
-            crate::settings::RecordingRetentionPeriod::Weeks2 => now - (2 * 7 * 24 * 60 * 60), // 2 weeks in seconds
-            crate::settings::RecordingRetentionPeriod::Months3 => now - (3 * 30 * 24 * 60 * 60), // 3 months in seconds (approximate)
+            RecordingRetentionPeriod::Days3 => now - (3 * 24 * 60 * 60), // 3 days in seconds
+            RecordingRetentionPeriod::Weeks2 => now - (2 * 7 * 24 * 60 * 60), // 2 weeks in seconds
+            RecordingRetentionPeriod::Months3 => now - (3 * 30 * 24 * 60 * 60), // 3 months in seconds (approximate)
             _ => unreachable!("Should not reach here"),
         };
 
@@ -691,16 +798,9 @@ impl HistoryManager {
     pub async fn delete_entry(&self, id: i64) -> Result<()> {
         let conn = self.get_connection()?;
 
-        // Get the entry to find the file name
+        // Delete the audio file first; the entry goes even if that fails.
         if let Some(entry) = self.get_entry_by_id(id).await? {
-            // Delete the audio file first
-            let file_path = self.get_audio_file_path(&entry.file_name);
-            if file_path.exists() {
-                if let Err(e) = fs::remove_file(&file_path) {
-                    error!("Failed to delete audio file {}: {}", entry.file_name, e);
-                    // Continue with database deletion even if file deletion fails
-                }
-            }
+            self.remove_recording_file(&entry.file_name);
         }
 
         // Delete from database
@@ -894,5 +994,33 @@ mod tests {
             .expect("completed entry exists");
 
         assert_eq!(entry.transcription_text, "dictated");
+    }
+
+    #[test]
+    fn recordings_to_remove_skip_those_in_use_and_without_audio() {
+        let conn = setup_conn();
+        insert_entry(&conn, 100, "first", None);
+        insert_entry(&conn, 200, "second", None);
+        insert_entry(&conn, 300, "third", None);
+        conn.execute(
+            "UPDATE transcription_history SET file_name = '' WHERE timestamp = 300",
+            [],
+        )
+        .expect("clear third recording");
+
+        let unkept = HistoryManager::recordings_to_remove(&conn, |id| id == 2).unwrap();
+        assert_eq!(unkept, vec![(1, "handy-100.wav".to_string())]);
+        assert!(HistoryManager::forget_recording(&conn, 1, "handy-100.wav").unwrap());
+        // An entry whose recording changed meanwhile keeps it.
+        assert!(!HistoryManager::forget_recording(&conn, 2, "handy-other.wav").unwrap());
+
+        let file_names: Vec<String> = conn
+            .prepare("SELECT file_name FROM transcription_history ORDER BY id")
+            .unwrap()
+            .query_map([], |row| row.get(0))
+            .unwrap()
+            .collect::<rusqlite::Result<_>>()
+            .unwrap();
+        assert_eq!(file_names, ["", "handy-200.wav", ""]);
     }
 }

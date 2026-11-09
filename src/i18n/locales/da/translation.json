@@ -706,6 +706,7 @@
       "transcribing": "Transskriberer...",
       "transcriptionFailed": "Transskription mislykkedes. Du kan transskribere igen ved hjælp af genforsøgsikonet.",
       "notTranscribed": "Ikke transskriberet. Du kan transskribere den ved hjælp af genforsøgsikonet.",
+      "notTranscribedNoRecording": "Ikke transskriberet. Optagelsen blev ikke gemt.",
       "transcribeFile": "Transskriber fil",
       "mediaFiles": "Lyd og video",
       "fileUnsupported": "Kunne ikke læse lyd fra {{name}}.",
@@ -713,6 +714,7 @@
       "waiting": "Venter på transskription",
       "transcribingPercent": "Transskriberer, {{percent}} %",
       "readingFile": "Læser fil...",
+      "fileWaiting": "Venter på at læse filen...",
       "showMore": "Vis mere",
       "showLess": "Vis mindre",
       "dropTitle": "Slip for at transskribere",
@@ -788,7 +790,8 @@
       },
       "recordingRetention": {
         "title": "Automatisk sletning af optagelser",
-        "description": "Slet automatisk gamle optagelser for at spare plads",
+        "description": "Slet automatisk gamle optagelser for at spare plads, eller gem slet ikke optagelser og behold kun teksten",
+        "dontSave": "Gem ikke optagelser",
         "never": "Aldrig",
         "preserveLimit": "Behold de seneste {{count}}",
         "days3": "Efter 3 dage",
@@ -952,7 +955,8 @@
     "filePostProcessFailedTitle": "Transskriberet uden efterbehandling",
     "filePostProcessFailed": "Efterbehandlingen blev ikke færdig, så transskriptionen blev gemt, som den er.",
     "fileTranscriptionFailedTitle": "Transskription af fil mislykkedes",
-    "transcriptionFailedTitle": "Transskription mislykkedes"
+    "transcriptionFailedTitle": "Transskription mislykkedes",
+    "onboardingFinishFailed": "Opsætningen kunne ikke afsluttes. Prøv igen."
   },
   "notices": {
     "errorOne": "{{n}} fejl",

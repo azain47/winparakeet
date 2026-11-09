@@ -45,7 +45,12 @@ export const useShortcutCapture = (
 
   // What the capture holds in the backend, released on end or unmount.
   const held = useRef<"handyKeys" | "bindings" | null>(null);
+  // The start() still awaiting the backend. Only one runs at a time, so two
+  // acquisitions never interleave; release() (end, unmount) or Escape marks it
+  // abandoned, and it then gives back whatever it acquired.
+  const pendingStart = useRef<{ abandoned: boolean } | null>(null);
   const release = useCallback(async () => {
+    if (pendingStart.current) pendingStart.current.abandoned = true;
     const was = held.current;
     held.current = null;
     if (was === "handyKeys")
@@ -86,40 +91,66 @@ export const useShortcutCapture = (
 
   /** Resolves to whether capture began. */
   const start = useCallback(async () => {
-    if (held.current) return false;
-    if (handyKeys) {
-      // Refused while macOS Secure Input is on (no key events would arrive);
-      // the backend also shows the warning banner the notice points at.
-      const result = await commands
-        .startHandyKeysRecording(bindingId)
-        .catch((error) => ({ status: "error" as const, error: String(error) }));
-      if (result.status === "error") {
-        if (String(result.error).includes("secure-input-active")) {
-          notify({
-            title: t("secureInput.recorderBlocked"),
-            action: {
-              label: t("secureInput.learnMore"),
-              onClick: () => openUrl(SECURE_INPUT_HELP_URL),
-            },
-          });
-        } else {
-          notify({
-            title: t("settings.general.shortcut.errors.set", {
-              error: result.error,
-            }),
-          });
+    if (held.current || pendingStart.current) return false;
+    const pending = { abandoned: false };
+    pendingStart.current = pending;
+    // Escape while the backend call is in flight abandons the start.
+    const onEscape = (e: KeyboardEvent) => {
+      if (e.key !== "Escape" || pending.abandoned) return;
+      e.preventDefault();
+      e.stopPropagation();
+      pending.abandoned = true;
+    };
+    if (escapeCancels) window.addEventListener("keydown", onEscape, true);
+    try {
+      let acquired: "handyKeys" | "bindings" | null = null;
+      if (handyKeys) {
+        // Refused while macOS Secure Input is on (no key events would arrive);
+        // the backend also shows the warning banner the notice points at.
+        const result = await commands
+          .startHandyKeysRecording(bindingId)
+          .catch((error) => ({
+            status: "error" as const,
+            error: String(error),
+          }));
+        if (result.status === "error") {
+          if (String(result.error).includes("secure-input-active")) {
+            notify({
+              title: t("secureInput.recorderBlocked"),
+              action: {
+                label: t("secureInput.learnMore"),
+                onClick: () => openUrl(SECURE_INPUT_HELP_URL),
+              },
+            });
+          } else {
+            notify({
+              title: t("settings.general.shortcut.errors.set", {
+                error: result.error,
+              }),
+            });
+          }
+          return false;
         }
+        acquired = "handyKeys";
+      } else if (!inert) {
+        await commands.suspendAllBindings().catch(console.error);
+        acquired = "bindings";
+      }
+      if (pending.abandoned) {
+        // Abandoned (unmount, Escape) while awaiting: give it straight back.
+        held.current = acquired;
+        await release();
         return false;
       }
-      held.current = "handyKeys";
-    } else if (!inert) {
-      await commands.suspendAllBindings().catch(console.error);
-      held.current = "bindings";
+      held.current = acquired;
+      setPartial("");
+      setCapturing(true);
+      return true;
+    } finally {
+      window.removeEventListener("keydown", onEscape, true);
+      if (pendingStart.current === pending) pendingStart.current = null;
     }
-    setPartial("");
-    setCapturing(true);
-    return true;
-  }, [bindingId, handyKeys, inert, t]);
+  }, [bindingId, escapeCancels, handyKeys, inert, release, t]);
 
   const cancel = useCallback(() => {
     if (capturing) finish();

@@ -22,6 +22,7 @@ import { useOnboardingModels } from "./useOnboardingModels";
 import { useModelStore } from "@/stores/modelStore";
 import { moveScreens } from "./screenTransitions";
 import { downloadPick } from "./downloadPick";
+import { notify } from "@/stores/noticeStore";
 import "./screenTransitions.css";
 
 interface OnboardingFlowProps {
@@ -123,18 +124,25 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
     };
   }, [preview]);
 
-  if (!permissions.checked) return null;
-
   const steps = STEP_ORDER.filter(
     (s) => s !== "permissions" || permissions.needed || store.welcomeBack,
   );
-  const step = steps.includes(store.step) ? store.step : steps[0];
+  // A saved step that's no longer shown (Permissions, once granted) moves on
+  // to the next shown step, and the store follows so it can't reappear later.
+  const step = steps.includes(store.step)
+    ? store.step
+    : (STEP_ORDER.slice(STEP_ORDER.indexOf(store.step)).find((s) =>
+        steps.includes(s),
+      ) ?? steps[0]);
+  useEffect(() => {
+    if (permissions.checked && step !== store.step) store.set({ step });
+  }, [permissions.checked, step, store.step]);
+
+  if (!permissions.checked) return null;
+
   const progress = { index: steps.indexOf(step), count: steps.length };
-  // Reaching returnTo ends the detour.
-  const go = (to: OnboardingStep) =>
-    store.set(
-      to === store.returnTo ? { step: to, returnTo: null } : { step: to },
-    );
+  // Any move ends a detour: reaching returnTo, Back, or going elsewhere.
+  const go = (to: OnboardingStep) => store.set({ step: to, returnTo: null });
   /** Next screen, or back to All set after a detour from its panel. */
   const onward = () => (store.returnTo ? go(store.returnTo) : next());
   const next = () => {
@@ -152,7 +160,19 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
     // Saved only now: each login item change posts a macOS notification.
     if (!preview) {
       await updateSetting("autostart_enabled", store.atLogin);
-      await commands.completeOnboarding();
+      // Not recorded as complete: stay on All set so finishing can be retried,
+      // rather than leaving and running onboarding again on the next launch.
+      const result = await commands
+        .completeOnboarding()
+        .catch((error) => ({ status: "error" as const, error: String(error) }));
+      if (result.status === "error") {
+        console.error("Failed to complete onboarding:", result.error);
+        notify({
+          title: i18n.t("errors.onboardingFinishFailed"),
+          detail: result.error,
+        });
+        return;
+      }
     }
     onComplete();
     // After Settings replaces the flow, so Welcome doesn't flash.

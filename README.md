@@ -11,6 +11,7 @@ Today WinParakeet does what Handy 0.10 does, with a Windows-first focus:
 - Hold or tap a shortcut, speak, and the text is pasted where your cursor is.
 - Local models through [transcribe.cpp](https://github.com/handy-computer/transcribe.cpp) (ggml/GGUF): NVIDIA Parakeet TDT v3 and v2, Whisper, Moonshine, SenseVoice and more, with Vulkan GPU acceleration.
 - Transcribe audio and video files by dropping them on the window; history with playback.
+- Keep only the text if you like: **Advanced → Auto-Delete Recordings → Don't save recordings** never writes dictation audio to disk and removes recordings already kept.
 - Optional LLM clean-up of transcripts through OpenAI-compatible endpoints (Ollama, LM Studio, or a cloud provider).
 
 Next: meeting recording.

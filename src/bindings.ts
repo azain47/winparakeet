@@ -995,6 +995,13 @@ async cancelHistoryEntryTranscription(id: number) : Promise<void> {
     await TAURI_INVOKE("cancel_history_entry_transcription", { id });
 },
 /**
+ * The background transcriptions queued or running now. Later changes
+ * arrive as `TranscriptionJob` events.
+ */
+async getTranscriptionJobs() : Promise<TranscriptionJob[]> {
+    return await TAURI_INVOKE("get_transcription_jobs");
+},
+/**
  * Adds an audio or video file to History and queues its transcription.
  * Fails without adding anything if the file has no audio Handy can read.
  */
@@ -1208,7 +1215,11 @@ export type ChineseScript =
 export type ClipboardHandling = "dont_modify" | "copy_to_clipboard"
 export type CustomSounds = { start: boolean; stop: boolean }
 export type GpuDeviceOption = { id: string; name: string; total_vram_mb: number }
-export type HistoryEntry = { id: number; file_name: string; timestamp: number; saved: boolean; title: string; transcription_text: string; post_processed_text: string | null; post_process_prompt: string | null; post_process_requested: boolean; 
+export type HistoryEntry = { id: number; 
+/**
+ * The recording in the recordings folder; empty when none is kept.
+ */
+file_name: string; timestamp: number; saved: boolean; title: string; transcription_text: string; post_processed_text: string | null; post_process_prompt: string | null; post_process_requested: boolean; 
 /**
  * The name of the file this entry was transcribed from; `None` for a
  * dictation.
@@ -1408,7 +1419,12 @@ export type RecordingPhase =
  * The session was cancelled.
  */
 "cancelled"
-export type RecordingRetentionPeriod = "never" | "preserve_limit" | "days_3" | "weeks_2" | "months_3"
+export type RecordingRetentionPeriod = 
+/**
+ * No recording is kept: History keeps only the text. A file being
+ * transcribed keeps its recording until its job ends.
+ */
+"dont_save" | "never" | "preserve_limit" | "days_3" | "weeks_2" | "months_3"
 export type RecordingStateEvent = { phase: RecordingPhase }
 /**
  * A retired ONNX model found on disk.
@@ -1523,9 +1539,13 @@ export type TranscriptionJobStatus =
  */
 { state: "running"; percent: number } | 
 /**
- * The entry has its new text, or the job was cancelled.
+ * The entry has its new text.
  */
-{ state: "finished" } | { state: "failed"; error: string }
+{ state: "finished" } | 
+/**
+ * Stopped before it finished; the entry keeps the text it had.
+ */
+{ state: "cancelled" } | { state: "failed"; error: string }
 /**
  * How a dictation ended.
  */

@@ -706,6 +706,7 @@
       "transcribing": "Transcrevendo...",
       "transcriptionFailed": "A transcrição falhou. Você pode re-transcrever usando o ícone de tentar novamente.",
       "notTranscribed": "Não transcrito. Você pode transcrevê-lo usando o ícone de tentar novamente.",
+      "notTranscribedNoRecording": "Não transcrito. A gravação não foi mantida.",
       "transcribeFile": "Transcrever arquivo",
       "mediaFiles": "Áudio e vídeo",
       "fileUnsupported": "Não foi possível ler o áudio de {{name}}.",
@@ -713,6 +714,7 @@
       "waiting": "Aguardando transcrição",
       "transcribingPercent": "Transcrevendo, {{percent}}%",
       "readingFile": "Lendo arquivo...",
+      "fileWaiting": "Aguardando para ler o arquivo...",
       "showMore": "Mostrar mais",
       "showLess": "Mostrar menos",
       "dropTitle": "Solte para transcrever",
@@ -788,7 +790,8 @@
       },
       "recordingRetention": {
         "title": "Excluir Gravações Automaticamente",
-        "description": "Excluir automaticamente gravações antigas para economizar espaço",
+        "description": "Excluir automaticamente gravações antigas para economizar espaço, ou não salvar gravações e manter apenas o texto",
+        "dontSave": "Não salvar gravações",
         "never": "Nunca",
         "preserveLimit": "Manter as últimas {{count}}",
         "days3": "Após 3 dias",
@@ -952,7 +955,8 @@
     "filePostProcessFailedTitle": "Transcrito sem pós-processamento",
     "filePostProcessFailed": "O pós-processamento não terminou, então a transcrição foi salva como está.",
     "fileTranscriptionFailedTitle": "Falha na transcrição do arquivo",
-    "transcriptionFailedTitle": "Falha na transcrição"
+    "transcriptionFailedTitle": "Falha na transcrição",
+    "onboardingFinishFailed": "Não foi possível concluir a configuração. Tente novamente."
   },
   "notices": {
     "errorOne": "{{n}} erro",

@@ -18,7 +18,8 @@ interface SettingsStore {
   settings: Settings | null;
   defaultSettings: Settings | null;
   isLoading: boolean;
-  isUpdating: Record<string, boolean>;
+  // In-flight writes per key; a key is updating while its count is above 0.
+  isUpdating: Record<string, number>;
   audioDevices: AudioDevice[];
   outputDevices: AudioDevice[];
   customSounds: { start: boolean; stop: boolean };
@@ -30,11 +31,12 @@ interface SettingsStore {
   initialize: () => Promise<void>;
   loadDefaultSettings: () => Promise<void>;
   loadUpdateChecksLocked: () => Promise<void>;
+  /** Resolves to whether the backend accepted the value. */
   updateSetting: <K extends keyof Settings>(
     key: K,
     value: Settings[K],
-  ) => Promise<void>;
-  resetSetting: (key: keyof Settings) => Promise<void>;
+  ) => Promise<boolean>;
+  resetSetting: (key: keyof Settings) => Promise<boolean>;
   refreshSettings: () => Promise<void>;
   refreshAudioDevices: () => Promise<void>;
   refreshOutputDevices: () => Promise<void>;
@@ -70,6 +72,7 @@ interface SettingsStore {
   setSettings: (settings: Settings | null) => void;
   setDefaultSettings: (defaultSettings: Settings | null) => void;
   setLoading: (loading: boolean) => void;
+  /** Marks one write to `key` as started (true) or ended (false). */
   setUpdating: (key: string, updating: boolean) => void;
   setAudioDevices: (devices: AudioDevice[]) => void;
   setOutputDevices: (devices: AudioDevice[]) => void;
@@ -84,6 +87,13 @@ const DEFAULT_AUDIO_DEVICE: AudioDevice = {
   name: "Default",
   is_default: true,
 };
+
+const isErrorResult = (
+  result: unknown,
+): result is { status: "error"; error: string } =>
+  typeof result === "object" &&
+  result !== null &&
+  (result as { status?: unknown }).status === "error";
 
 const settingUpdaters: {
   [K in keyof Settings]?: (value: Settings[K]) => Promise<unknown>;
@@ -236,16 +246,22 @@ export const useSettingsStore = create<SettingsStore>()(
     setDefaultSettings: (defaultSettings) => set({ defaultSettings }),
     setLoading: (isLoading) => set({ isLoading }),
     setUpdating: (key, updating) =>
-      set((state) => ({
-        isUpdating: { ...state.isUpdating, [key]: updating },
-      })),
+      set((state) => {
+        const count = Math.max(
+          0,
+          (state.isUpdating[key] ?? 0) + (updating ? 1 : -1),
+        );
+        const isUpdating = { ...state.isUpdating, [key]: count };
+        if (!count) delete isUpdating[key];
+        return { isUpdating };
+      }),
     setAudioDevices: (audioDevices) => set({ audioDevices }),
     setOutputDevices: (outputDevices) => set({ outputDevices }),
     setCustomSounds: (customSounds) => set({ customSounds }),
 
     // Getters
     getSetting: (key) => get().settings?.[key],
-    isUpdatingKey: (key) => get().isUpdating[key] || false,
+    isUpdatingKey: (key) => (get().isUpdating[key] ?? 0) > 0,
 
     // Load settings from store
     refreshSettings: async () => {
@@ -337,28 +353,45 @@ export const useSettingsStore = create<SettingsStore>()(
       key: K,
       value: Settings[K],
     ) => {
-      const { settings, setUpdating } = get();
+      const { setUpdating } = get();
       const updateKey = String(key);
-      const originalValue = settings?.[key];
+      const originalValue = get().settings?.[key];
 
       setUpdating(updateKey, true);
+      set((state) => ({
+        settings: state.settings ? { ...state.settings, [key]: value } : null,
+      }));
 
       try {
-        set((state) => ({
-          settings: state.settings ? { ...state.settings, [key]: value } : null,
-        }));
-
         const updater = settingUpdaters[key];
         if (updater) {
-          await updater(value);
+          const result = await updater(value);
+          // Most commands report failure as a Result rather than a throw.
+          if (isErrorResult(result)) throw new Error(result.error);
         } else if (key !== "bindings" && key !== "selected_model") {
           console.warn(`No handler for setting: ${String(key)}`);
         }
+        return true;
       } catch (error) {
         console.error(`Failed to update setting ${String(key)}:`, error);
-        if (settings) {
-          set({ settings: { ...settings, [key]: originalValue } });
+        // Some commands save the value and fail afterwards (a cleanup step),
+        // so the backend's stored value, not the one from before this call,
+        // is what to restore. Fall back to the old value if it can't be read.
+        let restored = originalValue;
+        try {
+          const stored = await commands.getAppSettings();
+          if (stored.status === "ok") restored = stored.data[key] ?? restored;
+        } catch {
+          // Keep the value from before this call.
         }
+        // Roll back only this key, and only while it still holds this call's
+        // value: other keys and later writes to this key stay untouched.
+        set((state) =>
+          state.settings && state.settings[key] === value
+            ? { settings: { ...state.settings, [key]: restored } }
+            : {},
+        );
+        return false;
       } finally {
         setUpdating(updateKey, false);
       }
@@ -370,35 +403,39 @@ export const useSettingsStore = create<SettingsStore>()(
       if (defaultSettings) {
         const defaultValue = defaultSettings[key];
         if (defaultValue !== undefined) {
-          await get().updateSetting(key, defaultValue as any);
+          return get().updateSetting(key, defaultValue as any);
         }
       }
+      return false;
     },
 
     // Update a specific binding
     updateBinding: async (id, binding) => {
-      const { settings, setUpdating } = get();
+      const { setUpdating } = get();
       const updateKey = `binding_${id}`;
-      const originalBinding = settings?.bindings?.[id]?.current_binding;
+      const original = get().settings?.bindings?.[id];
+
+      // Writes this binding's current_binding, if the binding exists.
+      const setCurrent = (current: string) =>
+        set((state) => {
+          const existing = state.settings?.bindings?.[id];
+          if (!state.settings || !existing) return {};
+          return {
+            settings: {
+              ...state.settings,
+              bindings: {
+                ...state.settings.bindings,
+                [id]: { ...existing, current_binding: current },
+              },
+            },
+          };
+        });
 
       setUpdating(updateKey, true);
 
       try {
         // Optimistic update
-        set((state) => ({
-          settings: state.settings
-            ? {
-                ...state.settings,
-                bindings: {
-                  ...state.settings.bindings,
-                  [id]: {
-                    ...state.settings.bindings?.[id]!,
-                    current_binding: binding,
-                  },
-                },
-              }
-            : null,
-        }));
+        setCurrent(binding);
 
         const result = await commands.changeBinding(id, binding);
 
@@ -414,22 +451,13 @@ export const useSettingsStore = create<SettingsStore>()(
       } catch (error) {
         console.error(`Failed to update binding ${id}:`, error);
 
-        // Rollback on error
-        if (originalBinding && get().settings) {
-          set((state) => ({
-            settings: state.settings
-              ? {
-                  ...state.settings,
-                  bindings: {
-                    ...state.settings.bindings,
-                    [id]: {
-                      ...state.settings.bindings?.[id]!,
-                      current_binding: originalBinding,
-                    },
-                  },
-                }
-              : null,
-          }));
+        // Roll back (an empty original included) unless a later write has
+        // already replaced this call's value.
+        if (
+          original &&
+          get().settings?.bindings?.[id]?.current_binding === binding
+        ) {
+          setCurrent(original.current_binding);
         }
 
         // Re-throw to let the caller know it failed

@@ -4,6 +4,7 @@ use crate::settings::ShortcutActivation;
 use log::{debug, error, warn};
 use serde::{Deserialize, Serialize};
 use specta::Type;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::{self, Sender};
 use std::sync::Arc;
 use std::thread;
@@ -279,6 +280,13 @@ impl CoordinatorState {
     /// A recording is running and outlives its key (a tap, or toggle mode).
     fn is_recording_locked(&self) -> bool {
         matches!(self.stage, Stage::Recording(_)) && self.hold.as_ref().is_some_and(|h| h.locked)
+    }
+
+    /// A dictation is recording or its pipeline hasn't drained yet. A cancel
+    /// during processing keeps this true until the pipeline finishes, so the
+    /// engine isn't handed to other work while the cancelled take still runs.
+    fn is_busy(&self) -> bool {
+        !matches!(self.stage, Stage::Idle)
     }
 
     fn on_input(&mut self, input: InputEvent, now: Instant) -> Option<Effect> {
@@ -566,6 +574,9 @@ impl CoordinatorState {
 /// returned [`Effect`]s.
 pub struct TranscriptionCoordinator {
     tx: Sender<Command>,
+    /// `CoordinatorState::is_busy`, published by the coordinator thread after
+    /// every transition: the one record of whether a dictation is under way.
+    busy: Arc<AtomicBool>,
 }
 
 pub fn is_transcribe_binding(id: &str) -> bool {
@@ -575,8 +586,11 @@ pub fn is_transcribe_binding(id: &str) -> bool {
 impl TranscriptionCoordinator {
     pub fn new(app: AppHandle) -> Self {
         let (tx, rx) = mpsc::channel();
+        let busy = Arc::new(AtomicBool::new(false));
+        let published = Arc::clone(&busy);
 
         thread::spawn(move || {
+            let busy = published;
             let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                 let mut state = CoordinatorState::new();
 
@@ -587,8 +601,9 @@ impl TranscriptionCoordinator {
                             Err(mpsc::RecvTimeoutError::Timeout) => {
                                 let was_locked = state.is_recording_locked();
                                 if let Some(effect) = state.on_grace_expired() {
-                                    run_effect(&app, &mut state, effect);
+                                    run_effect(&app, &mut state, &busy, effect);
                                 }
+                                busy.store(state.is_busy(), Ordering::SeqCst);
                                 if !was_locked && state.is_recording_locked() {
                                     emit_recording_phase(&app, RecordingPhase::Locked);
                                 }
@@ -607,26 +622,32 @@ impl TranscriptionCoordinator {
                     match cmd {
                         Command::Input(input) => {
                             if let Some(effect) = state.on_input(input, Instant::now()) {
-                                run_effect(&app, &mut state, effect);
+                                run_effect(&app, &mut state, &busy, effect);
                             }
                         }
                         Command::Cancel {
                             recording_was_active,
                         } => {
-                            // A cancel while transcribing ends the take too.
-                            let busy =
+                            // A cancel while transcribing ends the take too, as
+                            // far as the user can tell: the phase goes out now,
+                            // while `busy` stays set until the cancelled
+                            // pipeline drains (ProcessingFinished). A press
+                            // during that drain is remembered and starts once
+                            // it finishes, like any press while busy.
+                            let take_active =
                                 recording_was_active || matches!(state.stage, Stage::Processing);
                             state.on_cancel(recording_was_active);
-                            if busy {
+                            if take_active {
                                 emit_recording_phase(&app, RecordingPhase::Cancelled);
                             }
                         }
                         Command::ProcessingFinished => {
                             if let Some(effect) = state.on_processing_finished() {
-                                run_effect(&app, &mut state, effect);
+                                run_effect(&app, &mut state, &busy, effect);
                             }
                         }
                     }
+                    busy.store(state.is_busy(), Ordering::SeqCst);
                     if !was_locked && state.is_recording_locked() {
                         emit_recording_phase(&app, RecordingPhase::Locked);
                     }
@@ -636,9 +657,17 @@ impl TranscriptionCoordinator {
             if let Err(e) = result {
                 error!("Transcription coordinator panicked: {e:?}");
             }
+            // Nothing tracks dictation any more; don't hold other work back.
+            busy.store(false, Ordering::SeqCst);
         });
 
-        Self { tx }
+        Self { tx, busy }
+    }
+
+    /// Whether a dictation is recording, or its pipeline (transcription and
+    /// post-processing, up to the paste) hasn't finished yet. Lock-free.
+    pub fn is_busy(&self) -> bool {
+        self.busy.load(Ordering::SeqCst)
     }
 
     /// Send a keyboard input event for a transcribe binding. `hold_threshold`
@@ -718,7 +747,10 @@ impl TranscriptionCoordinator {
     }
 }
 
-fn run_effect(app: &AppHandle, state: &mut CoordinatorState, effect: Effect) {
+/// Runs `effect`, publishing the transition it follows first: starting and
+/// stopping take a while, and other work must see the dictation meanwhile.
+fn run_effect(app: &AppHandle, state: &mut CoordinatorState, busy: &AtomicBool, effect: Effect) {
+    busy.store(state.is_busy(), Ordering::SeqCst);
     match effect {
         Effect::Start {
             binding_id,
@@ -1131,6 +1163,10 @@ mod tests {
             Stage::Processing,
             "cancel must not reset mid-processing — the pipeline still finishes"
         );
+        assert!(
+            state.is_busy(),
+            "the cancelled pipeline still holds the engine until it drains"
+        );
 
         let effect = state.on_processing_finished();
         assert!(
@@ -1138,6 +1174,7 @@ mod tests {
             "cancelled session must not spawn a deferred recording"
         );
         assert_eq!(state.stage, Stage::Idle);
+        assert!(!state.is_busy());
     }
 
     fn toggle_input(external: bool) -> InputEvent {
