@@ -1,0 +1,190 @@
+name: "Windows build"
+
+# Builds the NSIS and MSI installers for every push to main and every pull
+# request, smoke-tests both, and keeps them as a downloadable artifact for 30
+# days. A manual run with `release` checked publishes them, plus the signed
+# updater manifest, as a draft GitHub release.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      release:
+        description: "Create a draft GitHub release with the installers and updater manifest"
+        type: boolean
+        default: false
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    env:
+      # Pull requests from forks get no secrets; they build without updater artifacts.
+      HAS_UPDATER_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY != '' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Read version from tauri.conf.json
+        id: version
+        shell: bash
+        run: |
+          VERSION=$(grep -o '"version": "[^"]*"' src-tauri/tauri.conf.json | cut -d'"' -f4)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        # Releases compile from scratch so no stale cached native library ships.
+        if: ${{ !inputs.release }}
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: "./src-tauri -> target"
+          cache-bin: false
+
+      - name: Install Vulkan SDK
+        uses: humbletim/install-vulkan-sdk@v1.2
+        with:
+          version: 1.4.309.0
+          cache: true
+
+      # ggml-vulkan does `find_package(SPIRV-Headers CONFIG REQUIRED)`, and the
+      # SDK installed above has no SPIRV-HeadersConfig.cmake. The header-only
+      # vcpkg package provides one; the cmake crate forwards CMAKE_PREFIX_PATH.
+      - name: Install SPIRV-Headers
+        shell: pwsh
+        run: |
+          vcpkg install spirv-headers:x64-windows
+          if ($LASTEXITCODE -ne 0) { throw "vcpkg install spirv-headers failed" }
+          $prefix = "$env:VCPKG_INSTALLATION_ROOT/installed/x64-windows" -replace '\\','/'
+          $combined = if ($env:CMAKE_PREFIX_PATH) { "$prefix;$env:CMAKE_PREFIX_PATH" } else { $prefix }
+          Add-Content $env:GITHUB_ENV "CMAKE_PREFIX_PATH=$combined"
+          Write-Host "CMAKE_PREFIX_PATH=$combined"
+
+      # Ship the VC++ runtime beside winparakeet.exe so it starts on machines
+      # without a current redistributable. build.rs stages the DLLs from these
+      # dirs into transcribe-libs/, from the same Visual Studio install that
+      # compiles the native code.
+      - name: Locate VC++ runtime redist
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          $vsRoot = & $vswhere -latest -products * -property installationPath
+          if (-not $vsRoot) { throw "vswhere found no Visual Studio installation" }
+          $versionFile = Join-Path $vsRoot "VC\Auxiliary\Build\Microsoft.VCRedistVersion.default.txt"
+          $redistVersion = (Get-Content $versionFile).Trim()
+          $archDir = Join-Path $vsRoot "VC\Redist\MSVC\$redistVersion\x64"
+          if (-not (Test-Path $archDir)) { throw "VC++ redist dir not found: $archDir" }
+          # Glob the VC generation folder; the runtime DLL names stay ABI-stable.
+          $crt = Get-ChildItem $archDir -Directory -Filter "Microsoft.VC*.CRT" |
+            Sort-Object Name | Select-Object -Last 1
+          if (-not $crt -or -not (Test-Path (Join-Path $crt.FullName "msvcp140.dll"))) {
+            throw "VC++ CRT redist dir not found or incomplete under: $archDir"
+          }
+          $omp = Get-ChildItem $archDir -Directory -Filter "Microsoft.VC*.OpenMP" |
+            Sort-Object Name | Select-Object -Last 1
+          if (-not $omp -or -not (Test-Path (Join-Path $omp.FullName "vcomp140.dll"))) {
+            throw "VC++ OpenMP redist dir not found or incomplete under: $archDir"
+          }
+          $dirs = "$($crt.FullName);$($omp.FullName)"
+          Write-Host "HANDY_VC_REDIST_DIRS=$dirs"
+          Add-Content -Path $env:GITHUB_ENV -Value "HANDY_VC_REDIST_DIRS=$dirs"
+
+      - name: Install frontend dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Skip updater artifacts without a signing key
+        if: env.HAS_UPDATER_KEY != 'true'
+        shell: bash
+        run: echo "TAURI_BUILD_ARGS=--config '{\"bundle\":{\"createUpdaterArtifacts\":false}}'" >> "$GITHUB_ENV"
+
+      - name: Build with Tauri
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          tagName: ${{ inputs.release && format('v{0}', steps.version.outputs.version) || '' }}
+          releaseName: ${{ inputs.release && format('WinParakeet v{0}', steps.version.outputs.version) || '' }}
+          releaseDraft: true
+          args: ${{ env.TAURI_BUILD_ARGS }}
+
+      # Both installers must contain winparakeet.exe and every staged DLL, and
+      # the installed app must start far enough to enumerate compute devices.
+      - name: Audit packages
+        shell: pwsh
+        run: |
+          $bundleBase = "src-tauri/target/release/bundle"
+          $stagedDlls = Get-ChildItem "src-tauri/transcribe-libs" -Filter "*.dll" -ErrorAction SilentlyContinue
+          if (-not $stagedDlls) { throw "src-tauri/transcribe-libs contains no DLLs" }
+          if (-not ($stagedDlls | Where-Object { $_.Name -like "*transcribe*" })) { throw "Staging is missing transcribe runtime DLLs" }
+          if (-not ($stagedDlls | Where-Object { $_.Name -like "*ggml*" })) { throw "Staging is missing ggml runtime DLLs" }
+          foreach ($name in @("msvcp140.dll", "vcruntime140.dll", "vcomp140.dll")) {
+            if (-not ($stagedDlls | Where-Object { $_.Name -ieq $name })) { throw "Staging is missing $name" }
+          }
+
+          function Assert-PackageContents {
+            param([string]$Root, [string]$Label)
+            $exe = Get-ChildItem $Root -Filter "winparakeet.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+            if (-not $exe) { throw "$Label package is missing winparakeet.exe" }
+            foreach ($dll in $stagedDlls) {
+              if (-not (Get-ChildItem $Root -Filter $dll.Name -Recurse -ErrorAction SilentlyContinue)) {
+                throw "$Label package is missing staged runtime DLL $($dll.Name)"
+              }
+            }
+            $deviceOutput = (& $exe.FullName --list-devices | Out-String)
+            $deviceOutput | Write-Host
+            if ($LASTEXITCODE -ne 0) { throw "$Label winparakeet.exe --list-devices failed" }
+          }
+
+          $nsisPackages = Get-ChildItem (Join-Path $bundleBase "nsis") -Filter "*.exe" -ErrorAction SilentlyContinue
+          if (-not $nsisPackages) { throw "No NSIS packages found under $bundleBase" }
+          foreach ($pkg in $nsisPackages) {
+            Write-Host "Auditing NSIS package: $($pkg.FullName)"
+            $installDir = Join-Path ([System.IO.Path]::GetTempPath()) ([System.Guid]::NewGuid().ToString())
+            New-Item -ItemType Directory -Path $installDir | Out-Null
+            $proc = Start-Process -FilePath $pkg.FullName -ArgumentList @("/S", "/PORTABLE", "/D=$installDir") -Wait -PassThru
+            if ($proc.ExitCode -ne 0) { throw "Silent portable install failed for $($pkg.FullName) with exit code $($proc.ExitCode)" }
+            Assert-PackageContents -Root $installDir -Label "Installed NSIS"
+            Remove-Item -Recurse -Force $installDir
+          }
+
+          # An administrative install extracts the MSI payload without elevation.
+          $msiPackages = Get-ChildItem (Join-Path $bundleBase "msi") -Filter "*.msi" -ErrorAction SilentlyContinue
+          if (-not $msiPackages) { throw "No MSI packages found under $bundleBase" }
+          foreach ($pkg in $msiPackages) {
+            Write-Host "Auditing MSI package: $($pkg.FullName)"
+            $installDir = Join-Path ([System.IO.Path]::GetTempPath()) ([System.Guid]::NewGuid().ToString())
+            New-Item -ItemType Directory -Path $installDir | Out-Null
+            $logFile = Join-Path $installDir "msi-admin-install.log"
+            $msiArgs = "/a `"$($pkg.FullName)`" /qn /L*v `"$logFile`" TARGETDIR=`"$installDir`""
+            $proc = Start-Process -FilePath "msiexec.exe" -ArgumentList $msiArgs -Wait -PassThru
+            if ($proc.ExitCode -ne 0) {
+              if (Test-Path $logFile) { Get-Content $logFile | Out-Host }
+              throw "Administrative install failed for $($pkg.FullName) with exit code $($proc.ExitCode)"
+            }
+            Assert-PackageContents -Root $installDir -Label "Installed MSI"
+            Remove-Item -Recurse -Force $installDir
+          }
+
+      - name: Upload installers
+        uses: actions/upload-artifact@v7
+        with:
+          name: winparakeet-windows-x64
+          path: |
+            src-tauri/target/release/bundle/msi/*.msi
+            src-tauri/target/release/bundle/nsis/*.exe
+          retention-days: 30
