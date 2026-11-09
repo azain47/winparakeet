@@ -6,9 +6,12 @@
 # it never touches an installed WinParakeet.
 #
 # Run from Windows:
-#   wsl -d Ubuntu -e bash /mnt/d/winparakeet/scripts/build-windows-wsl.sh [--run | --check]
+#   wsl -d Ubuntu -e bash /mnt/d/winparakeet/scripts/build-windows-wsl.sh [--run | --check | --test [FILTER]]
 # --check only type-checks the Rust code, tests included, for Windows (a minute
 # or two once the native libraries are built, instead of a full release link).
+# --test builds the Rust unit tests for Windows and runs them there, through
+# WSL's interop, so the Windows-only tests run too (CI tests on Linux). FILTER
+# picks tests by name, as in `cargo test FILTER`.
 #
 # One-time requirements inside WSL:
 #   rustup target add x86_64-pc-windows-msvc
@@ -20,11 +23,21 @@ set -euo pipefail
 
 RUN_AFTER_BUILD=0
 CHECK_ONLY=0
+TEST_ONLY=0
+TEST_FILTER=()
 for arg in "$@"; do
     case "$arg" in
         --run) RUN_AFTER_BUILD=1 ;;
         --check) CHECK_ONLY=1 ;;
-        *) echo "usage: $0 [--run | --check]" >&2; exit 2 ;;
+        --test) TEST_ONLY=1 ;;
+        -*) echo "usage: $0 [--run | --check | --test [FILTER]]" >&2; exit 2 ;;
+        *)
+            if [[ "$TEST_ONLY" != 1 ]]; then
+                echo "usage: $0 [--run | --check | --test [FILTER]]" >&2
+                exit 2
+            fi
+            TEST_FILTER+=("$arg")
+            ;;
     esac
 done
 
@@ -120,6 +133,16 @@ if [[ "$CHECK_ONLY" == 1 ]]; then
     echo "==> Checking ($TARGET, target dir $CARGO_TARGET_DIR)"
     # Release, like the build, so the native libraries built for it are reused.
     (cd src-tauri && cargo check --release --target "$TARGET" --all-targets)
+    exit
+fi
+if [[ "$TEST_ONLY" == 1 ]]; then
+    echo "==> Testing ($TARGET, target dir $CARGO_TARGET_DIR)"
+    # Release, like --check. transcribe-cpp-sys stages its DLLs next to the
+    # test binary, and WSL starts the .exe as a Windows process.
+    tests="$(cd src-tauri && cargo test --release --target "$TARGET" --lib --no-run \
+        --message-format=json-render-diagnostics |
+        jq -r 'select(.profile.test == true and .executable != null) | .executable')"
+    "$tests" "${TEST_FILTER[@]}"
     exit
 fi
 echo "==> Installing frontend dependencies"

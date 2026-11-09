@@ -34,6 +34,8 @@ The script:
 
 `--check` instead only type-checks the Rust code for Windows, tests included, reusing the native libraries the last build made: about a minute instead of a full build.
 
+`--test [FILTER]` builds the Rust unit tests for Windows and runs them on Windows through WSL's interop, so the Windows-only tests run too; CI runs the tests on Linux. `FILTER` picks tests by name, as in `cargo test FILTER`, for example `--test overlay::`.
+
 How this build differs from the CI build:
 
 - One CPU backend module built for AVX2/FMA/F16C/BMI2 (Intel Haswell or AMD Zen and newer). ggml's per-ISA modules pass MSVC `/arch` flags only, and clang-cl rejects the AVX-VNNI and AMX ones; CI builds with MSVC and ships all of them.
