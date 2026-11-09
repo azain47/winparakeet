@@ -2,6 +2,13 @@
 
 Private, offline speech-to-text for Windows. Dictate into any app with a global shortcut, transcribe audio and video files, and (next) record and transcribe meetings. Speech recognition runs on your own machine; no audio leaves it.
 
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/history-dark.png">
+    <img src="docs/screenshots/history-light.png" alt="WinParakeet's History page: recent dictations with their recordings, one of them starred" width="640">
+  </picture>
+</p>
+
 WinParakeet is built on [Handy](https://github.com/cjpais/Handy) by CJ Pais and contributors. See [Built on Handy](#built-on-handy).
 
 ## Status
@@ -15,12 +22,25 @@ Today WinParakeet does what Handy 0.10 does, with a Windows-first focus:
 - Keep only the text if you like: **Advanced → Clean Up History → Don't save recordings** stops writing dictation audio to disk, and asks what to do with the recordings you already have (keep them, or move all or the older ones to the Bin).
 - Optional LLM clean-up of transcripts through OpenAI-compatible endpoints (Ollama, LM Studio, or a cloud provider).
 
+While you hold the shortcut, a small pill at the bottom of the screen shows that it's listening:
+
+<p align="center"><img src="docs/screenshots/recording-pill.png" alt="The recording pill: a green dot, the microphone level, and a cancel button" width="217"></p>
+
 Next: meeting recording.
 
 - [ ] Record the microphone and system audio (WASAPI loopback) as separate, crash-safe tracks
 - [ ] Live preview while recording; a final transcript of each track after the call, labelled "Me" and "Them"
 - [ ] Speaker diarization of the system track
 - [ ] Meeting library, summaries and chat through your own LLM endpoint
+
+## Screenshots
+
+|                                                                                                              |                                                                                                                     |
+| ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
+| <img src="docs/screenshots/bin.png" alt="The Bin page with a deleted dictation and a recording" width="420"> | <img src="docs/screenshots/models.png" alt="The Models page, grading each model for English and Hindi" width="420"> |
+| **Bin:** deleted dictations and recordings wait here until you restore them or delete them for good.         | **Models:** graded for the languages you speak, with sizes, speed, and which ones show live text.                   |
+| <img src="docs/screenshots/stop-saving-recordings.png" alt="The Stop saving recordings dialog" width="420">  | <img src="docs/screenshots/general.png" alt="The General settings page" width="420">                                |
+| **Stop saving recordings:** keep the ones you have, or move all or the older ones to the Bin.                | **General:** the shortcut, how it behaves, and your languages.                                                      |
 
 ## Install
 
