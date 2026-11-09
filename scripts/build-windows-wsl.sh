@@ -6,7 +6,9 @@
 # it never touches an installed WinParakeet.
 #
 # Run from Windows:
-#   wsl -d Ubuntu -e bash /mnt/d/winparakeet/scripts/build-windows-wsl.sh [--run]
+#   wsl -d Ubuntu -e bash /mnt/d/winparakeet/scripts/build-windows-wsl.sh [--run | --check]
+# --check only type-checks the Rust code, tests included, for Windows (a minute
+# or two once the native libraries are built, instead of a full release link).
 #
 # One-time requirements inside WSL:
 #   rustup target add x86_64-pc-windows-msvc
@@ -17,10 +19,12 @@
 set -euo pipefail
 
 RUN_AFTER_BUILD=0
+CHECK_ONLY=0
 for arg in "$@"; do
     case "$arg" in
         --run) RUN_AFTER_BUILD=1 ;;
-        *) echo "usage: $0 [--run]" >&2; exit 2 ;;
+        --check) CHECK_ONLY=1 ;;
+        *) echo "usage: $0 [--run | --check]" >&2; exit 2 ;;
     esac
 done
 
@@ -112,6 +116,12 @@ eval "$(cargo xwin env --target "$TARGET")"
 unset CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_RUSTFLAGS
 
 cd "$REPO"
+if [[ "$CHECK_ONLY" == 1 ]]; then
+    echo "==> Checking ($TARGET, target dir $CARGO_TARGET_DIR)"
+    # Release, like the build, so the native libraries built for it are reused.
+    (cd src-tauri && cargo check --release --target "$TARGET" --all-targets)
+    exit
+fi
 echo "==> Installing frontend dependencies"
 bun install --frozen-lockfile
 echo "==> Building ($TARGET, target dir $CARGO_TARGET_DIR)"

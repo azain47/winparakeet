@@ -32,6 +32,8 @@ The script:
 2. Runs `tauri build --target x86_64-pc-windows-msvc --no-bundle` with cargo-xwin's environment. Build output goes to `~/.cache/winparakeet-target` (`CARGO_TARGET_DIR` overrides it).
 3. Lays out `dist-windows/`: `winparakeet.exe`, the transcribe.cpp and ggml DLLs, `resources/`, and a `portable` marker, so settings, models and logs stay in `dist-windows/Data/`. A running copy is closed first; `--run` starts the new one.
 
+`--check` instead only type-checks the Rust code for Windows, tests included, reusing the native libraries the last build made: about a minute instead of a full build.
+
 How this build differs from the CI build:
 
 - One CPU backend module built for AVX2/FMA/F16C/BMI2 (Intel Haswell or AMD Zen and newer). ggml's per-ISA modules pass MSVC `/arch` flags only, and clang-cl rejects the AVX-VNNI and AMX ones; CI builds with MSVC and ships all of them.
