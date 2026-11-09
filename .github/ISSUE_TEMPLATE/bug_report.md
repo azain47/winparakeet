@@ -1,6 +1,6 @@
 ---
 name: Bug Report
-about: Create a report to help us improve Handy
+about: Create a report to help us improve WinParakeet
 title: "[BUG] "
 labels: ["bug"]
 assignees: ""
@@ -8,7 +8,7 @@ assignees: ""
 
 ## Before You Submit
 
-**Please search [existing issues](https://github.com/cjpais/Handy/issues) to avoid duplicates.** Your bug may already be reported! Right now it's just me maintaining this project so many issues can be overwhelming! Help me out by checking first.
+**Please search [existing issues](https://github.com/azain47/winparakeet/issues) to avoid duplicates.** If the bug also happens in [Handy](https://github.com/cjpais/Handy), please report it there too.
 
 ## Bug Description
 
@@ -22,15 +22,15 @@ A clear and concise description of what the bug is.
 
 **Operating System:**
 
-<!-- e.g., macOS 14.1, Windows 11, Ubuntu 22.04 -->
+<!-- e.g., Windows 11 24H2 -->
 
 **CPU:**
 
-<!-- e.g., Apple M2, Intel i7-12700K, AMD Ryzen 7 5800X -->
+<!-- e.g., Intel i7-12700K, AMD Ryzen 7 5800X -->
 
 **GPU:**
 
-<!-- e.g., Apple M2 GPU, NVIDIA RTX 4080, AMD RX 6800 XT, Intel UHD Graphics -->
+<!-- e.g., NVIDIA RTX 4080, AMD RX 6800 XT, Intel UHD Graphics -->
 
 ## Logs
 

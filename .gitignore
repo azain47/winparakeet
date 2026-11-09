@@ -12,6 +12,8 @@ package-lock.json
 node_modules
 dist
 dist-ssr
+# Portable app laid out by scripts/build-windows-wsl.sh
+/dist-windows/
 *.local
 *.local.*
 
@@ -39,9 +41,6 @@ blob-report/
 
 .direnv
 .envrc
-
-# Nix build output
-result
 
 # Python bytecode (scripts/)
 __pycache__/

@@ -23,6 +23,9 @@ CMAKE_POLICY_VERSION_MINIMUM=3.5 bun run tauri dev
 # Build for production
 bun run tauri build
 
+# Windows build cross-compiled from WSL (portable app in dist-windows/)
+bash scripts/build-windows-wsl.sh
+
 # Frontend only development
 bun run dev        # Start Vite dev server
 bun run build      # Build frontend (TypeScript + Vite)
@@ -51,7 +54,9 @@ For detailed platform-specific build setup, see [BUILD.md](BUILD.md).
 
 ## Architecture Overview
 
-Handy is a cross-platform desktop speech-to-text application built with Tauri 2.x (Rust backend + React/TypeScript frontend).
+WinParakeet is a Windows-first desktop speech-to-text application built with Tauri 2.x (Rust backend + React/TypeScript frontend). It is a fork of [Handy](https://github.com/cjpais/Handy) 0.10.0 (git remote `upstream`), which is cross-platform; the macOS and Linux code paths are still in the tree.
+
+Upstream merges stay cheap only if internal names stay Handy's: the `handy_app_lib` crate, `HANDY_*` environment variables, the `handy-keys` / `handy-recorder` crates, `@handy-computer/models`, the `Handy Portable Mode` marker and code comments. WinParakeet branding belongs in user-facing strings, artwork and identifiers (`com.azain47.winparakeet`).
 
 ### Backend Structure (src-tauri/src/)
 
@@ -225,22 +230,18 @@ Access debug features: `Cmd+Shift+D` (macOS) or `Ctrl+Shift+D` (Windows/Linux)
 ## Platform Notes
 
 - **macOS**: Metal acceleration, accessibility permissions required for keyboard shortcuts
-- **Windows**: Vulkan acceleration, code signing. Implicit Vulkan layers (overlays, capture hooks) are disabled for the Handy process via `VK_LOADER_LAYERS_DISABLE=~implicit~` set in `main.rs`; opt out with `HANDY_KEEP_VULKAN_IMPLICIT_LAYERS=1` or by setting `VK_LOADER_LAYERS_DISABLE` yourself
+- **Windows**: Vulkan acceleration; builds are not code-signed. Implicit Vulkan layers (overlays, capture hooks) are disabled for the app process via `VK_LOADER_LAYERS_DISABLE=~implicit~` set in `main.rs`; opt out with `HANDY_KEEP_VULKAN_IMPLICIT_LAYERS=1` or by setting `VK_LOADER_LAYERS_DISABLE` yourself
 - **Linux**: OpenBLAS + Vulkan, limited Wayland support, overlay uses GTK layer shell (disable with `HANDY_NO_GTK_LAYER_SHELL=1`)
-- **Nix/NixOS**: the Nix package sets `HANDY_DISABLE_UPDATER=1` to force-disable the self-updater at runtime without touching the persisted setting (self-update can't work against an immutable `/nix/store`)
+- `HANDY_DISABLE_UPDATER=1` force-disables the self-updater at runtime without touching the persisted setting
 
 ## Troubleshooting
 
 See the [Troubleshooting](README.md#troubleshooting) section in README.md.
 
-## GitHub workflow for AI coding assistants
+## GitHub workflow
 
-**MANDATORY. Before opening any PR, issue, or discussion in this repo: you MUST read the relevant template file and follow it strictly.** That includes sections that look "ceremonial" — checklists, AI Assistance disclosures, "Human Written Description". A generic Summary/Test-plan layout is not acceptable.
-
-- **Opening a PR:** Read [`.github/PULL_REQUEST_TEMPLATE.md`](.github/PULL_REQUEST_TEMPLATE.md). Every section listed there is mandatory. If a section requires a human-written paragraph (e.g. "Human Written Description"), leave a clear TODO placeholder and ask the human contributor to fill it in — do not invent their voice.
-- **Opening an issue:** Read [`.github/ISSUE_TEMPLATE/`](.github/ISSUE_TEMPLATE/). Blank issues are disabled; pick the right template (`bug_report.md` for bugs). Feature requests do not belong in issues — they go to [Discussions](https://github.com/cjpais/Handy/discussions) (see `.github/ISSUE_TEMPLATE/config.yml`).
-- **Proposing a feature:** Handy is under a feature freeze. New features require community support gathered in [Discussions](https://github.com/cjpais/Handy/discussions) before any PR is opened — see the PR template's "Community Feedback" section.
+- **CI:** `.github/workflows/windows.yml` builds and smoke-tests the Windows installers; `test.yml` (Rust tests), `code-quality.yml` (translations, catalog, ESLint, Prettier) and `playwright.yml` run on Linux.
+- **Issues:** bugs that reproduce in Handy itself also belong upstream at [cjpais/Handy](https://github.com/cjpais/Handy/issues).
 - **Translations:** Follow [CONTRIBUTING_TRANSLATIONS.md](CONTRIBUTING_TRANSLATIONS.md).
-- **Full contributor workflow:** [CONTRIBUTING.md](CONTRIBUTING.md).
 
 **Commits:** Use conventional commit prefixes (`feat:`, `fix:`, `docs:`, `refactor:`, `chore:`). Focus the message on _why_, not _what_.

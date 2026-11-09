@@ -34,7 +34,7 @@ export const Button: React.FC<ButtonProps> = ({
     outline:
       "text-text bg-background border-line-strong hover:border-plum focus-visible:ring-1 focus-visible:ring-logo-primary",
     // Secondary's neutral resting look, but hover/focus use the semantic
-    // --color-warning token (theme.css) instead of the pink accent — for
+    // --color-warning token (theme.css) instead of the brand accent — for
     // buttons sitting on warning surfaces like SecureInputWarning
     warning:
       "text-text bg-wash border-line hover:bg-warning-wash hover:border-warning focus:ring-1 focus:ring-warning",

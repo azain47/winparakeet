@@ -1,7 +1,7 @@
 {
-  "name": "handy-app",
+  "name": "winparakeet",
   "private": true,
-  "version": "0.10.0",
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -22,8 +22,7 @@
     "sync:catalog": "bun scripts/sync-catalog.ts",
     "check:catalog": "bun scripts/sync-catalog.ts --check",
     "build:cjk-font": "bun scripts/build-cjk-font.ts",
-    "check:cjk-font": "bun scripts/build-cjk-font.ts --check",
-    "postinstall": "bun scripts/check-nix-deps.ts"
+    "check:cjk-font": "bun scripts/build-cjk-font.ts --check"
   },
   "dependencies": {
     "@handy-computer/models": "0.2.3",

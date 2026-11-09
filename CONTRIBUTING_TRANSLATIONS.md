@@ -1,6 +1,6 @@
-# Contributing Translations to Handy
+# Contributing Translations to WinParakeet
 
-Thank you for helping translate Handy! This guide explains how to add or improve translations.
+Thank you for helping translate WinParakeet! This guide explains how to add or improve translations.
 
 ## Quick Start
 
@@ -120,7 +120,7 @@ Found a typo or better translation?
 
 ### Don't:
 
-- Translate brand names (Handy, transcribe.cpp, ggml, OpenAI)
+- Translate brand names (WinParakeet, Handy, transcribe.cpp, ggml, OpenAI)
 - Change or remove `{{variables}}`
 - Modify JSON keys
 - Add extra spaces or formatting
@@ -161,4 +161,4 @@ We welcome additional languages that are not yet in the [locale folders](src/i18
 
 ---
 
-Thank you for making Handy accessible to more people around the world!
+Thank you for making WinParakeet accessible to more people around the world!
