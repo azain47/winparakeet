@@ -10,7 +10,9 @@
     "secureInputWarning": "⚠ Genveje blokeret af Secure Input",
     "language": "Sprog",
     "autoLanguage": "Automatisk",
-    "otherLanguages": "Andre sprog"
+    "otherLanguages": "Andre sprog",
+    "startMeeting": "Optag møde",
+    "stopMeeting": "Stop optagelse af møde"
   },
   "sidebar": {
     "general": "Generelt",
@@ -20,7 +22,152 @@
     "history": "Historik",
     "bin": "Papirkurv",
     "debug": "Fejlfinding",
-    "about": "Om"
+    "about": "Om",
+    "meetings": "Møder"
+  },
+  "meetings": {
+    "cancel": "Annuller",
+    "defaultTitle": "Møde {{date}}",
+    "duration": {
+      "seconds": "{{seconds}} sek.",
+      "minutes": "{{minutes}} min.",
+      "hours": "{{hours}} t. {{minutes}} min."
+    },
+    "speakers": {
+      "me": "Mig",
+      "them": "Dem",
+      "numbered": "Taler {{number}}"
+    },
+    "record": {
+      "title": "Optag et møde",
+      "sources": {
+        "both": "Optager din mikrofon (Mig) og alt, hvad din pc afspiller (Dem), og transskriberer begge efter opkaldet.",
+        "microphone": "Optager kun din mikrofon (Mig) og transskriberer den efter opkaldet.",
+        "system": "Optager kun det, din pc afspiller (Dem), og transskriberer det efter opkaldet."
+      },
+      "start": "Optag møde",
+      "stop": "Stop",
+      "recording": "Optager",
+      "sourceOff": "Optages ikke",
+      "sourceReconnecting": "Genopretter forbindelse...",
+      "sourceFailed": "Ikke tilgængelig",
+      "startFailed": "Kunne ikke starte optagelsen af mødet.",
+      "stopFailed": "Kunne ikke stoppe optagelsen af mødet."
+    },
+    "status": {
+      "recording": "Optager",
+      "queued": "I kø",
+      "transcribing": "Transskriberer",
+      "transcribingPercent": "Transskriberer {{percent}} %",
+      "failed": "Mislykkedes",
+      "notTranscribed": "Ikke transskriberet",
+      "recovered": "Gendannet"
+    },
+    "list": {
+      "loading": "Indlæser møder...",
+      "empty": "Ingen møder endnu. Optag et for at få en transskription af begge sider af et opkald.",
+      "today": "I dag",
+      "yesterday": "I går",
+      "speakers_one": "{{count}} taler",
+      "speakers_other": "{{count}} talere"
+    },
+    "detail": {
+      "back": "Tilbage til møder",
+      "title": "Mødets titel",
+      "recordingNow": "Mødet bliver optaget. Det transskriberes, når du stopper.",
+      "queued": "Venter på transskription.",
+      "failed": "Transskriptionen mislykkedes.",
+      "retry": "Prøv igen",
+      "notTranscribed": "Ikke transskriberet endnu.",
+      "transcribe": "Transskribér",
+      "recovered": "Appen blev lukket, mens mødet blev optaget. Lyden blev gemt indtil da.",
+      "audioBinned": "Lyden ligger i papirkurven, så den kan ikke afspilles eller transskriberes igen. Du kan gendanne den fra papirkurven.",
+      "restoreAudio": "Gendan lyd",
+      "audioDeleted": "Lyden blev slettet. Transskriptionen bliver.",
+      "retranscribe": "Transskribér igen...",
+      "copy": "Kopiér transskription",
+      "copied": "Kopieret",
+      "exportTranscript": "Eksportér transskription",
+      "saveAudio": "Gem lyd...",
+      "openFolder": "Åbn mappe",
+      "binAudio": "Flyt lyden til papirkurven",
+      "binMeeting": "Flyt mødet til papirkurven",
+      "speakers": "Talere",
+      "renameSpeaker": "Omdøb taler",
+      "transcript": "Transskription",
+      "noSpeech": "Der blev ikke fundet tale i mødet.",
+      "playFrom": "Afspil herfra",
+      "movedToBin": "Mødet blev flyttet til papirkurven",
+      "audioMovedToBin": "Lyden blev flyttet til papirkurven",
+      "undo": "Fortryd",
+      "undoFailed": "Det kunne ikke gendannes. Det er stadig i papirkurven.",
+      "renameFailed": "Kunne ikke omdøbe. Prøv igen.",
+      "transcribeFailed": "Kunne ikke starte transskriptionen.",
+      "cancelFailed": "Kunne ikke annullere transskriptionen.",
+      "copyFailed": "Kunne ikke kopiere transskriptionen.",
+      "exportFailed": "Kunne ikke eksportere transskriptionen.",
+      "saveAudioFailed": "Kunne ikke gemme lyden.",
+      "openFolderFailed": "Kunne ikke åbne mødets mappe.",
+      "audioFailed": "Kunne ikke indlæse mødets lyd.",
+      "binFailed": "Kunne ikke flytte mødet til papirkurven.",
+      "binAudioFailed": "Kunne ikke flytte lyden til papirkurven."
+    },
+    "export": {
+      "txt": "Tekst",
+      "md": "Markdown",
+      "srt": "Undertekster (SRT)",
+      "vtt": "WebVTT",
+      "json": "JSON",
+      "wav": "WAV-lyd"
+    },
+    "model": {
+      "sameAsDictation": "Samme som diktering",
+      "sameAsDictationNamed": "Samme som diktering ({{model}})"
+    },
+    "retranscribe": {
+      "title": "Transskribér mødet igen",
+      "model": "Model",
+      "hint": "Større modeller er langsommere, men mere præcise. Den nuværende transskription bliver, indtil den nye er færdig.",
+      "moreModels": "Brug for en anden model?",
+      "openModels": "Download flere under Modeller",
+      "confirm": "Transskribér igen"
+    },
+    "settings": {
+      "title": "Mødeindstillinger",
+      "description": "Hvad der optages, hvordan det transskriberes, og hvor længe lyden gemmes",
+      "sources": {
+        "title": "Optag",
+        "description": "Mig er mikrofonen, der er valgt under Generelt; Dem er alt, hvad din pc afspiller.",
+        "both": "Mikrofon og systemlyd",
+        "microphone": "Kun mikrofon",
+        "system": "Kun systemlyd"
+      },
+      "model": {
+        "title": "Transskriptionsmodel",
+        "description": "Møder kan bruge en større og mere præcis model end diktering."
+      },
+      "speakerLabels": {
+        "title": "Talermærkater",
+        "description": "Skeln mellem, hvem der taler i den anden ende af opkaldet, op til 4 talere.",
+        "downloadHint": "Når du slår dette til, downloades modellen til talermærkater.",
+        "downloadingHint": "Downloader modellen til talermærkater.",
+        "stopDownload": "Stop download af modellen til talermærkater"
+      },
+      "retention": {
+        "title": "Gem mødelyd",
+        "description": "Lyd, du ikke gemmer, flyttes til papirkurven. Transskriptioner bliver altid.",
+        "keep": "Behold",
+        "after_transcription": "Efter transskription",
+        "days_7": "Efter 7 dage",
+        "days_30": "Efter 30 dage",
+        "days_90": "Efter 90 dage",
+        "confirmTitle": "Flyt mødelyd til papirkurven?",
+        "confirmDescription_one": "Flytter lyden fra {{count}} møde til papirkurven. Transskriptionen bliver.",
+        "confirmDescription_other": "Flytter lyden fra {{count}} møder til papirkurven. Transskriptionerne bliver.",
+        "confirm": "Flyt til papirkurven",
+        "countFailed": "Kunne ikke kontrollere mødernes lyd. Prøv igen."
+      }
+    }
   },
   "onboarding": {
     "customModelDescription": "Ikke officielt understøttet",
@@ -724,7 +871,7 @@
     },
     "bin": {
       "loading": "Indlæser papirkurven...",
-      "empty": "Papirkurven er tom. Slettede dikteringer og optagelser bliver her, indtil du sletter dem permanent.",
+      "empty": "Papirkurven er tom. Slettede dikteringer, optagelser og møder bliver her, indtil du sletter dem permanent.",
       "loadFailed": "Papirkurven kunne ikke indlæses.",
       "emptyBin": "Tøm papirkurv",
       "emptyTitle": "Tøm papirkurven?",
@@ -742,7 +889,10 @@
       "deleteTitle": "Slet permanent?",
       "deleteDescription": "Dette element slettes permanent. Det kan ikke fortrydes.",
       "deleteFailed": "Det kunne ikke slettes. Filen er måske i brug.",
-      "cancel": "Annuller"
+      "cancel": "Annuller",
+      "meetingAudio": "Lyd fra {{meeting}}",
+      "meetingAudioNote": "Kun lyden er her. Mødet og dets transskription er stadig i Møder.",
+      "meetingNote": "Hele mødet med transskription og eventuel lyd."
     },
     "debug": {
       "logDirectory": {

@@ -13,12 +13,22 @@ interface LanguageDetectorDownloadProps {
   hint?: string;
   /** Offers a stop button while downloading, where nothing else can stop it. */
   onCancel?: () => void;
+  /** Another small model's download (the diarizer) shows its own size and stop label. */
+  size?: string;
+  stopLabel?: string;
 }
 
-/** The end of a row whose choice downloads the language detector: its size, then its progress. */
+/** The end of a row whose choice downloads a small helper model (the language detector by default): its size, then its progress. */
 export const LanguageDetectorDownload: React.FC<
   LanguageDetectorDownloadProps
-> = ({ downloading, percent, hint, onCancel }) => {
+> = ({
+  downloading,
+  percent,
+  hint,
+  onCancel,
+  size = LANGUAGE_DETECTOR_SIZE,
+  stopLabel,
+}) => {
   const { t } = useTranslation();
   const state = downloading ? (
     <span
@@ -31,11 +41,11 @@ export const LanguageDetectorDownload: React.FC<
     </span>
   ) : (
     <span className="flex items-center gap-1.5 text-xs whitespace-nowrap text-ink-3">
-      {LANGUAGE_DETECTOR_SIZE}
+      {size}
       <DownloadMark accent />
     </span>
   );
-  const stop = t("settings.general.language.stopDetectorDownload");
+  const stop = stopLabel ?? t("settings.general.language.stopDetectorDownload");
 
   return (
     <span className="flex items-center gap-1">

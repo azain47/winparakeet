@@ -10,7 +10,9 @@
     "secureInputWarning": "⚠ Scorciatoie bloccate da Secure Input",
     "language": "Lingua",
     "autoLanguage": "Automatico",
-    "otherLanguages": "Altre lingue"
+    "otherLanguages": "Altre lingue",
+    "startMeeting": "Registra riunione",
+    "stopMeeting": "Interrompi registrazione riunione"
   },
   "sidebar": {
     "general": "Generale",
@@ -20,7 +22,152 @@
     "history": "Cronologia",
     "bin": "Cestino",
     "debug": "Debug",
-    "about": "Informazioni"
+    "about": "Informazioni",
+    "meetings": "Riunioni"
+  },
+  "meetings": {
+    "cancel": "Annulla",
+    "defaultTitle": "Riunione del {{date}}",
+    "duration": {
+      "seconds": "{{seconds}} s",
+      "minutes": "{{minutes}} min",
+      "hours": "{{hours}} h {{minutes}} min"
+    },
+    "speakers": {
+      "me": "Io",
+      "them": "Altri",
+      "numbered": "Interlocutore {{number}}"
+    },
+    "record": {
+      "title": "Registra una riunione",
+      "sources": {
+        "both": "Registra il tuo microfono (Io) e tutto ciò che riproduce il PC (Altri), poi trascrive entrambi dopo la chiamata.",
+        "microphone": "Registra solo il tuo microfono (Io), poi lo trascrive dopo la chiamata.",
+        "system": "Registra solo ciò che riproduce il PC (Altri), poi lo trascrive dopo la chiamata."
+      },
+      "start": "Registra riunione",
+      "stop": "Interrompi",
+      "recording": "Registrazione in corso",
+      "sourceOff": "Non registrato",
+      "sourceReconnecting": "Riconnessione...",
+      "sourceFailed": "Non disponibile",
+      "startFailed": "Impossibile avviare la registrazione della riunione.",
+      "stopFailed": "Impossibile interrompere la registrazione della riunione."
+    },
+    "status": {
+      "recording": "Registrazione in corso",
+      "queued": "In coda",
+      "transcribing": "Trascrizione",
+      "transcribingPercent": "Trascrizione, {{percent}}%",
+      "failed": "Non riuscita",
+      "notTranscribed": "Non trascritta",
+      "recovered": "Recuperata"
+    },
+    "list": {
+      "loading": "Caricamento riunioni...",
+      "empty": "Ancora nessuna riunione. Registrane una per ottenere la trascrizione di entrambi i lati di una chiamata.",
+      "today": "Oggi",
+      "yesterday": "Ieri",
+      "speakers_one": "{{count}} interlocutore",
+      "speakers_other": "{{count}} interlocutori"
+    },
+    "detail": {
+      "back": "Torna alle riunioni",
+      "title": "Titolo della riunione",
+      "recordingNow": "Questa riunione è in registrazione. Verrà trascritta quando la interrompi.",
+      "queued": "In attesa di trascrizione.",
+      "failed": "Trascrizione non riuscita.",
+      "retry": "Riprova",
+      "notTranscribed": "Non ancora trascritta.",
+      "transcribe": "Trascrivi",
+      "recovered": "L'app si è chiusa durante la registrazione di questa riunione. L'audio è stato salvato fino a quel momento.",
+      "audioBinned": "L'audio è nel cestino, quindi non può essere riprodotto né ritrascritto. Puoi ripristinarlo dal cestino.",
+      "restoreAudio": "Ripristina audio",
+      "audioDeleted": "L'audio è stato eliminato. La trascrizione resta.",
+      "retranscribe": "Ri-trascrivi...",
+      "copy": "Copia trascrizione",
+      "copied": "Copiato",
+      "exportTranscript": "Esporta trascrizione",
+      "saveAudio": "Salva audio...",
+      "openFolder": "Apri cartella",
+      "binAudio": "Sposta l'audio nel cestino",
+      "binMeeting": "Sposta la riunione nel cestino",
+      "speakers": "Interlocutori",
+      "renameSpeaker": "Rinomina interlocutore",
+      "transcript": "Trascrizione",
+      "noSpeech": "Nessun parlato rilevato in questa riunione.",
+      "playFrom": "Riproduci da qui",
+      "movedToBin": "Riunione spostata nel cestino",
+      "audioMovedToBin": "Audio spostato nel cestino",
+      "undo": "Annulla",
+      "undoFailed": "Impossibile ripristinarlo. È ancora nel cestino.",
+      "renameFailed": "Impossibile rinominare. Riprova.",
+      "transcribeFailed": "Impossibile avviare la trascrizione.",
+      "cancelFailed": "Impossibile annullare la trascrizione.",
+      "copyFailed": "Impossibile copiare la trascrizione.",
+      "exportFailed": "Impossibile esportare la trascrizione.",
+      "saveAudioFailed": "Impossibile salvare l'audio.",
+      "openFolderFailed": "Impossibile aprire la cartella della riunione.",
+      "audioFailed": "Impossibile caricare l'audio della riunione.",
+      "binFailed": "Impossibile spostare la riunione nel cestino.",
+      "binAudioFailed": "Impossibile spostare l'audio nel cestino."
+    },
+    "export": {
+      "txt": "Testo",
+      "md": "Markdown",
+      "srt": "Sottotitoli (SRT)",
+      "vtt": "WebVTT",
+      "json": "JSON",
+      "wav": "Audio WAV"
+    },
+    "model": {
+      "sameAsDictation": "Come la dettatura",
+      "sameAsDictationNamed": "Come la dettatura ({{model}})"
+    },
+    "retranscribe": {
+      "title": "Ri-trascrivi riunione",
+      "model": "Modello",
+      "hint": "I modelli più grandi sono più lenti ma più precisi. La trascrizione attuale resta finché quella nuova non è pronta.",
+      "moreModels": "Serve un altro modello?",
+      "openModels": "Scaricane altri in Modelli",
+      "confirm": "Ri-trascrivi"
+    },
+    "settings": {
+      "title": "Impostazioni riunioni",
+      "description": "Cosa viene registrato, come viene trascritto e per quanto tempo viene conservato l'audio",
+      "sources": {
+        "title": "Registra",
+        "description": "Io è il microfono scelto in Generale; Altri è tutto ciò che riproduce il PC.",
+        "both": "Microfono e audio di sistema",
+        "microphone": "Solo microfono",
+        "system": "Solo audio di sistema"
+      },
+      "model": {
+        "title": "Modello di trascrizione",
+        "description": "Le riunioni possono usare un modello più grande e preciso della dettatura."
+      },
+      "speakerLabels": {
+        "title": "Etichette interlocutori",
+        "description": "Distingue chi parla dall'altro lato della chiamata, fino a 4 interlocutori.",
+        "downloadHint": "Attivandolo viene scaricato il modello delle etichette interlocutori.",
+        "downloadingHint": "Download del modello delle etichette interlocutori in corso.",
+        "stopDownload": "Interrompi il download del modello delle etichette interlocutori"
+      },
+      "retention": {
+        "title": "Conserva l'audio delle riunioni",
+        "description": "L'audio non conservato finisce nel cestino. Le trascrizioni restano sempre.",
+        "keep": "Conserva",
+        "after_transcription": "Dopo la trascrizione",
+        "days_7": "Dopo 7 giorni",
+        "days_30": "Dopo 30 giorni",
+        "days_90": "Dopo 90 giorni",
+        "confirmTitle": "Spostare l'audio delle riunioni nel cestino?",
+        "confirmDescription_one": "Sposta nel cestino l'audio di {{count}} riunione. La sua trascrizione resta.",
+        "confirmDescription_other": "Sposta nel cestino l'audio di {{count}} riunioni. Le loro trascrizioni restano.",
+        "confirm": "Sposta nel cestino",
+        "countFailed": "Impossibile controllare l'audio delle riunioni. Riprova."
+      }
+    }
   },
   "onboarding": {
     "customModelDescription": "Non ufficialmente supportato",
@@ -724,7 +871,7 @@
     },
     "bin": {
       "loading": "Caricamento del cestino...",
-      "empty": "Il cestino è vuoto. Dettature e registrazioni eliminate restano qui finché non le elimini definitivamente.",
+      "empty": "Il cestino è vuoto. Dettature, registrazioni e riunioni eliminate restano qui finché non le elimini definitivamente.",
       "loadFailed": "Impossibile caricare il cestino.",
       "emptyBin": "Svuota cestino",
       "emptyTitle": "Svuotare il cestino?",
@@ -742,7 +889,10 @@
       "deleteTitle": "Eliminare definitivamente?",
       "deleteDescription": "Questo elemento verrà eliminato definitivamente. L'operazione non può essere annullata.",
       "deleteFailed": "Impossibile eliminarlo. Il suo file potrebbe essere in uso.",
-      "cancel": "Annulla"
+      "cancel": "Annulla",
+      "meetingAudio": "Audio di {{meeting}}",
+      "meetingAudioNote": "Qui c'è solo l'audio. La riunione e la sua trascrizione sono ancora in Riunioni.",
+      "meetingNote": "L'intera riunione, con la sua trascrizione e l'eventuale audio."
     },
     "debug": {
       "logDirectory": {

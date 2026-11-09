@@ -10,7 +10,9 @@
     "secureInputWarning": "⚠ Atalhos bloqueados pelo Secure Input",
     "language": "Idioma",
     "autoLanguage": "Automático",
-    "otherLanguages": "Outros idiomas"
+    "otherLanguages": "Outros idiomas",
+    "startMeeting": "Gravar Reunião",
+    "stopMeeting": "Parar Gravação da Reunião"
   },
   "sidebar": {
     "general": "Geral",
@@ -20,7 +22,152 @@
     "history": "Histórico",
     "bin": "Lixeira",
     "debug": "Depuração",
-    "about": "Sobre"
+    "about": "Sobre",
+    "meetings": "Reuniões"
+  },
+  "meetings": {
+    "cancel": "Cancelar",
+    "defaultTitle": "Reunião de {{date}}",
+    "duration": {
+      "seconds": "{{seconds}} s",
+      "minutes": "{{minutes}} min",
+      "hours": "{{hours}} h {{minutes}} min"
+    },
+    "speakers": {
+      "me": "Eu",
+      "them": "Outros",
+      "numbered": "Participante {{number}}"
+    },
+    "record": {
+      "title": "Gravar uma reunião",
+      "sources": {
+        "both": "Grava seu microfone (Eu) e tudo o que o seu PC reproduz (Outros) e transcreve os dois depois da chamada.",
+        "microphone": "Grava só o seu microfone (Eu) e transcreve depois da chamada.",
+        "system": "Grava só o que o seu PC reproduz (Outros) e transcreve depois da chamada."
+      },
+      "start": "Gravar reunião",
+      "stop": "Parar",
+      "recording": "Gravando",
+      "sourceOff": "Não gravado",
+      "sourceReconnecting": "Reconectando...",
+      "sourceFailed": "Indisponível",
+      "startFailed": "Não foi possível iniciar a gravação da reunião.",
+      "stopFailed": "Não foi possível parar a gravação da reunião."
+    },
+    "status": {
+      "recording": "Gravando",
+      "queued": "Na fila",
+      "transcribing": "Transcrevendo",
+      "transcribingPercent": "Transcrevendo, {{percent}}%",
+      "failed": "Falhou",
+      "notTranscribed": "Não transcrita",
+      "recovered": "Recuperada"
+    },
+    "list": {
+      "loading": "Carregando reuniões...",
+      "empty": "Nenhuma reunião ainda. Grave uma para obter a transcrição dos dois lados de uma chamada.",
+      "today": "Hoje",
+      "yesterday": "Ontem",
+      "speakers_one": "{{count}} participante",
+      "speakers_other": "{{count}} participantes"
+    },
+    "detail": {
+      "back": "Voltar para reuniões",
+      "title": "Título da reunião",
+      "recordingNow": "Esta reunião está sendo gravada. Ela será transcrita quando você parar.",
+      "queued": "Aguardando transcrição.",
+      "failed": "A transcrição falhou.",
+      "retry": "Tentar novamente",
+      "notTranscribed": "Ainda não transcrita.",
+      "transcribe": "Transcrever",
+      "recovered": "O app fechou enquanto esta reunião era gravada. O áudio foi salvo até aquele momento.",
+      "audioBinned": "O áudio está na lixeira, então não pode ser reproduzido nem transcrito novamente. Você pode restaurá-lo da lixeira.",
+      "restoreAudio": "Restaurar áudio",
+      "audioDeleted": "O áudio foi excluído. A transcrição continua.",
+      "retranscribe": "Re-transcrever...",
+      "copy": "Copiar transcrição",
+      "copied": "Copiado",
+      "exportTranscript": "Exportar transcrição",
+      "saveAudio": "Salvar áudio...",
+      "openFolder": "Abrir pasta",
+      "binAudio": "Mover áudio para a lixeira",
+      "binMeeting": "Mover reunião para a lixeira",
+      "speakers": "Participantes",
+      "renameSpeaker": "Renomear participante",
+      "transcript": "Transcrição",
+      "noSpeech": "Nenhuma fala foi encontrada nesta reunião.",
+      "playFrom": "Reproduzir daqui",
+      "movedToBin": "Reunião movida para a lixeira",
+      "audioMovedToBin": "Áudio movido para a lixeira",
+      "undo": "Desfazer",
+      "undoFailed": "Não foi possível restaurar. Continua na lixeira.",
+      "renameFailed": "Não foi possível renomear. Tente novamente.",
+      "transcribeFailed": "Não foi possível iniciar a transcrição.",
+      "cancelFailed": "Não foi possível cancelar a transcrição.",
+      "copyFailed": "Não foi possível copiar a transcrição.",
+      "exportFailed": "Não foi possível exportar a transcrição.",
+      "saveAudioFailed": "Não foi possível salvar o áudio.",
+      "openFolderFailed": "Não foi possível abrir a pasta da reunião.",
+      "audioFailed": "Não foi possível carregar o áudio da reunião.",
+      "binFailed": "Não foi possível mover a reunião para a lixeira.",
+      "binAudioFailed": "Não foi possível mover o áudio para a lixeira."
+    },
+    "export": {
+      "txt": "Texto",
+      "md": "Markdown",
+      "srt": "Legendas (SRT)",
+      "vtt": "WebVTT",
+      "json": "JSON",
+      "wav": "Áudio WAV"
+    },
+    "model": {
+      "sameAsDictation": "Igual ao ditado",
+      "sameAsDictationNamed": "Igual ao ditado ({{model}})"
+    },
+    "retranscribe": {
+      "title": "Re-transcrever reunião",
+      "model": "Modelo",
+      "hint": "Modelos maiores são mais lentos, mas mais precisos. A transcrição atual continua até a nova ficar pronta.",
+      "moreModels": "Precisa de outro modelo?",
+      "openModels": "Baixe mais em Modelos",
+      "confirm": "Re-transcrever"
+    },
+    "settings": {
+      "title": "Configurações de reuniões",
+      "description": "O que é gravado, como é transcrito e por quanto tempo o áudio é mantido",
+      "sources": {
+        "title": "Gravar",
+        "description": "Eu é o microfone escolhido em Geral; Outros é tudo o que o seu PC reproduz.",
+        "both": "Microfone e áudio do sistema",
+        "microphone": "Só microfone",
+        "system": "Só áudio do sistema"
+      },
+      "model": {
+        "title": "Modelo de transcrição",
+        "description": "Reuniões podem usar um modelo maior e mais preciso que o ditado."
+      },
+      "speakerLabels": {
+        "title": "Identificação de participantes",
+        "description": "Distingue quem está falando do outro lado da chamada, até 4 participantes.",
+        "downloadHint": "Ativar isto baixa o modelo de identificação de participantes.",
+        "downloadingHint": "Baixando o modelo de identificação de participantes.",
+        "stopDownload": "Parar o download do modelo de identificação de participantes"
+      },
+      "retention": {
+        "title": "Manter áudio das reuniões",
+        "description": "O áudio que não for mantido vai para a lixeira. As transcrições sempre continuam.",
+        "keep": "Manter",
+        "after_transcription": "Após a transcrição",
+        "days_7": "Após 7 dias",
+        "days_30": "Após 30 dias",
+        "days_90": "Após 90 dias",
+        "confirmTitle": "Mover o áudio das reuniões para a lixeira?",
+        "confirmDescription_one": "Move o áudio de {{count}} reunião para a lixeira. A transcrição continua.",
+        "confirmDescription_other": "Move o áudio de {{count}} reuniões para a lixeira. As transcrições continuam.",
+        "confirm": "Mover para a lixeira",
+        "countFailed": "Não foi possível verificar o áudio das reuniões. Tente novamente."
+      }
+    }
   },
   "onboarding": {
     "customModelDescription": "Não suportado oficialmente",
@@ -724,7 +871,7 @@
     },
     "bin": {
       "loading": "Carregando a lixeira...",
-      "empty": "A lixeira está vazia. Ditados e gravações excluídos ficam aqui até você excluí-los permanentemente.",
+      "empty": "A lixeira está vazia. Ditados, gravações e reuniões excluídos ficam aqui até você excluí-los permanentemente.",
       "loadFailed": "Não foi possível carregar a lixeira.",
       "emptyBin": "Esvaziar lixeira",
       "emptyTitle": "Esvaziar a lixeira?",
@@ -742,7 +889,10 @@
       "deleteTitle": "Excluir permanentemente?",
       "deleteDescription": "Este item será excluído permanentemente. Isso não pode ser desfeito.",
       "deleteFailed": "Não foi possível excluir. O arquivo pode estar em uso.",
-      "cancel": "Cancelar"
+      "cancel": "Cancelar",
+      "meetingAudio": "Áudio de {{meeting}}",
+      "meetingAudioNote": "Só o áudio está aqui. A reunião e a transcrição continuam em Reuniões.",
+      "meetingNote": "A reunião inteira, com a transcrição e o áudio que tiver."
     },
     "debug": {
       "logDirectory": {

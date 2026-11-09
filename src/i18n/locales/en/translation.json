@@ -10,7 +10,9 @@
     "secureInputWarning": "⚠ Shortcuts blocked by Secure Input",
     "language": "Language",
     "autoLanguage": "Auto",
-    "otherLanguages": "Other Languages"
+    "otherLanguages": "Other Languages",
+    "startMeeting": "Record Meeting",
+    "stopMeeting": "Stop Meeting Recording"
   },
   "sidebar": {
     "general": "General",
@@ -20,7 +22,152 @@
     "history": "History",
     "bin": "Bin",
     "debug": "Debug",
-    "about": "About"
+    "about": "About",
+    "meetings": "Meetings"
+  },
+  "meetings": {
+    "cancel": "Cancel",
+    "defaultTitle": "Meeting on {{date}}",
+    "duration": {
+      "seconds": "{{seconds}} s",
+      "minutes": "{{minutes}} min",
+      "hours": "{{hours}} h {{minutes}} min"
+    },
+    "speakers": {
+      "me": "Me",
+      "them": "Them",
+      "numbered": "Speaker {{number}}"
+    },
+    "record": {
+      "title": "Record a meeting",
+      "sources": {
+        "both": "Records your microphone (Me) and everything your PC plays (Them), then transcribes both after the call.",
+        "microphone": "Records only your microphone (Me), then transcribes it after the call.",
+        "system": "Records only what your PC plays (Them), then transcribes it after the call."
+      },
+      "start": "Record meeting",
+      "stop": "Stop",
+      "recording": "Recording",
+      "sourceOff": "Not recorded",
+      "sourceReconnecting": "Reconnecting...",
+      "sourceFailed": "Unavailable",
+      "startFailed": "Couldn't start recording the meeting.",
+      "stopFailed": "Couldn't stop recording the meeting."
+    },
+    "status": {
+      "recording": "Recording",
+      "queued": "Queued",
+      "transcribing": "Transcribing",
+      "transcribingPercent": "Transcribing {{percent}}%",
+      "failed": "Failed",
+      "notTranscribed": "Not transcribed",
+      "recovered": "Recovered"
+    },
+    "list": {
+      "loading": "Loading meetings...",
+      "empty": "No meetings yet. Record one to get a transcript of both sides of a call.",
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "speakers_one": "{{count}} speaker",
+      "speakers_other": "{{count}} speakers"
+    },
+    "detail": {
+      "back": "Back to meetings",
+      "title": "Meeting title",
+      "recordingNow": "This meeting is being recorded. It'll be transcribed when you stop.",
+      "queued": "Waiting to transcribe.",
+      "failed": "Transcription failed.",
+      "retry": "Retry",
+      "notTranscribed": "Not transcribed yet.",
+      "transcribe": "Transcribe",
+      "recovered": "The app closed while this meeting was recording. Its audio was saved up to that point.",
+      "audioBinned": "The audio is in the Bin, so it can't be played or transcribed again. You can restore it from the Bin.",
+      "restoreAudio": "Restore audio",
+      "audioDeleted": "The audio was deleted. The transcript stays.",
+      "retranscribe": "Re-transcribe...",
+      "copy": "Copy transcript",
+      "copied": "Copied",
+      "exportTranscript": "Export transcript",
+      "saveAudio": "Save audio...",
+      "openFolder": "Open folder",
+      "binAudio": "Move audio to Bin",
+      "binMeeting": "Move meeting to Bin",
+      "speakers": "Speakers",
+      "renameSpeaker": "Rename speaker",
+      "transcript": "Transcript",
+      "noSpeech": "No speech was found in this meeting.",
+      "playFrom": "Play from here",
+      "movedToBin": "Meeting moved to the Bin",
+      "audioMovedToBin": "Audio moved to the Bin",
+      "undo": "Undo",
+      "undoFailed": "Couldn't restore it. It's still in the Bin.",
+      "renameFailed": "Couldn't rename it. Please try again.",
+      "transcribeFailed": "Couldn't start the transcription.",
+      "cancelFailed": "Couldn't cancel the transcription.",
+      "copyFailed": "Couldn't copy the transcript.",
+      "exportFailed": "Couldn't export the transcript.",
+      "saveAudioFailed": "Couldn't save the audio.",
+      "openFolderFailed": "Couldn't open the meeting's folder.",
+      "audioFailed": "Couldn't load the meeting's audio.",
+      "binFailed": "Couldn't move the meeting to the Bin.",
+      "binAudioFailed": "Couldn't move the audio to the Bin."
+    },
+    "export": {
+      "txt": "Text",
+      "md": "Markdown",
+      "srt": "Subtitles (SRT)",
+      "vtt": "WebVTT",
+      "json": "JSON",
+      "wav": "WAV audio"
+    },
+    "model": {
+      "sameAsDictation": "Same as dictation",
+      "sameAsDictationNamed": "Same as dictation ({{model}})"
+    },
+    "retranscribe": {
+      "title": "Re-transcribe meeting",
+      "model": "Model",
+      "hint": "Bigger models are slower but more accurate. The current transcript stays until the new one is done.",
+      "moreModels": "Need another model?",
+      "openModels": "Download more in Models",
+      "confirm": "Re-transcribe"
+    },
+    "settings": {
+      "title": "Meeting settings",
+      "description": "What's recorded, how it's transcribed and how long its audio is kept",
+      "sources": {
+        "title": "Record",
+        "description": "Me is the microphone chosen in General; Them is everything your PC plays.",
+        "both": "Microphone and system audio",
+        "microphone": "Microphone only",
+        "system": "System audio only"
+      },
+      "model": {
+        "title": "Transcription model",
+        "description": "Meetings can use a bigger, more accurate model than dictation."
+      },
+      "speakerLabels": {
+        "title": "Speaker labels",
+        "description": "Tell apart who is speaking on the other side of the call, up to 4 speakers.",
+        "downloadHint": "Turning this on downloads the speaker-label model.",
+        "downloadingHint": "Downloading the speaker-label model.",
+        "stopDownload": "Stop downloading the speaker-label model"
+      },
+      "retention": {
+        "title": "Keep meeting audio",
+        "description": "Audio you don't keep moves to the Bin. Transcripts always stay.",
+        "keep": "Keep",
+        "after_transcription": "After transcription",
+        "days_7": "After 7 days",
+        "days_30": "After 30 days",
+        "days_90": "After 90 days",
+        "confirmTitle": "Move meeting audio to the Bin?",
+        "confirmDescription_one": "Moves the audio of {{count}} meeting to the Bin. Its transcript stays.",
+        "confirmDescription_other": "Moves the audio of {{count}} meetings to the Bin. Their transcripts stay.",
+        "confirm": "Move to Bin",
+        "countFailed": "Couldn't check the meetings' audio. Please try again."
+      }
+    }
   },
   "onboarding": {
     "customModelDescription": "Not officially supported",
@@ -724,7 +871,7 @@
     },
     "bin": {
       "loading": "Loading the Bin...",
-      "empty": "The Bin is empty. Deleted dictations and recordings stay here until you delete them permanently.",
+      "empty": "The Bin is empty. Deleted dictations, recordings and meetings stay here until you delete them permanently.",
       "loadFailed": "Couldn't load the Bin.",
       "emptyBin": "Empty Bin",
       "emptyTitle": "Empty the Bin?",
@@ -742,7 +889,10 @@
       "deleteTitle": "Delete permanently?",
       "deleteDescription": "This item will be deleted permanently. This can't be undone.",
       "deleteFailed": "Couldn't delete it. Its file may be in use.",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "meetingAudio": "Audio of {{meeting}}",
+      "meetingAudioNote": "Only the audio is here. The meeting and its transcript are still in Meetings.",
+      "meetingNote": "The whole meeting, with its transcript and any audio it had."
     },
     "debug": {
       "logDirectory": {

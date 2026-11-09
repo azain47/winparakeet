@@ -10,6 +10,8 @@ import type {
   ShortcutActivation,
   VadBackend,
   LanguageDetectionMode,
+  MeetingSources,
+  MeetingAudioRetention,
 } from "@/bindings";
 import { commands } from "@/bindings";
 import { notify } from "@/stores/noticeStore";
@@ -146,6 +148,14 @@ const settingUpdaters: {
     ),
   recording_retention_period: (value) =>
     commands.updateRecordingRetentionPeriod(value as string),
+  meeting_sources: (value) =>
+    commands.changeMeetingSourcesSetting(value as MeetingSources),
+  meeting_model: (value) =>
+    commands.changeMeetingModelSetting((value as string | null) ?? null),
+  meeting_speaker_labels: (value) =>
+    commands.changeMeetingSpeakerLabelsSetting(value as boolean),
+  meeting_audio_retention: (value) =>
+    commands.changeMeetingAudioRetentionSetting(value as MeetingAudioRetention),
   translate_to_english: (value) =>
     commands.changeTranslateToEnglishSetting(value as boolean),
   selected_language: (value) =>

@@ -10,7 +10,9 @@
     "secureInputWarning": "⚠ 快捷键被 Secure Input 阻止",
     "language": "语言",
     "autoLanguage": "自动",
-    "otherLanguages": "其他语言"
+    "otherLanguages": "其他语言",
+    "startMeeting": "录制会议",
+    "stopMeeting": "停止录制会议"
   },
   "sidebar": {
     "general": "通用",
@@ -20,7 +22,152 @@
     "history": "历史记录",
     "bin": "回收站",
     "debug": "调试",
-    "about": "关于"
+    "about": "关于",
+    "meetings": "会议"
+  },
+  "meetings": {
+    "cancel": "取消",
+    "defaultTitle": "{{date}} 的会议",
+    "duration": {
+      "seconds": "{{seconds}} 秒",
+      "minutes": "{{minutes}} 分钟",
+      "hours": "{{hours}} 小时 {{minutes}} 分钟"
+    },
+    "speakers": {
+      "me": "我",
+      "them": "对方",
+      "numbered": "发言人 {{number}}"
+    },
+    "record": {
+      "title": "录制会议",
+      "sources": {
+        "both": "录制你的麦克风（我）和电脑播放的所有声音（对方），通话结束后转录两者。",
+        "microphone": "仅录制你的麦克风（我），通话结束后进行转录。",
+        "system": "仅录制电脑播放的声音（对方），通话结束后进行转录。"
+      },
+      "start": "录制会议",
+      "stop": "停止",
+      "recording": "正在录制",
+      "sourceOff": "不录制",
+      "sourceReconnecting": "正在重新连接...",
+      "sourceFailed": "不可用",
+      "startFailed": "无法开始录制会议。",
+      "stopFailed": "无法停止录制会议。"
+    },
+    "status": {
+      "recording": "录制中",
+      "queued": "排队中",
+      "transcribing": "转录中",
+      "transcribingPercent": "正在转录，{{percent}}%",
+      "failed": "失败",
+      "notTranscribed": "未转录",
+      "recovered": "已恢复"
+    },
+    "list": {
+      "loading": "正在加载会议...",
+      "empty": "还没有会议。录制一场会议，即可获得通话双方的转录。",
+      "today": "今天",
+      "yesterday": "昨天",
+      "speakers_one": "{{count}} 位发言人",
+      "speakers_other": "{{count}} 位发言人"
+    },
+    "detail": {
+      "back": "返回会议",
+      "title": "会议标题",
+      "recordingNow": "正在录制此会议，停止后将进行转录。",
+      "queued": "等待转录。",
+      "failed": "转录失败。",
+      "retry": "重试",
+      "notTranscribed": "尚未转录。",
+      "transcribe": "转录",
+      "recovered": "录制此会议时应用已关闭，截至该时间点的音频已保存。",
+      "audioBinned": "音频在回收站中，因此无法播放或重新转录。你可以从回收站恢复它。",
+      "restoreAudio": "恢复音频",
+      "audioDeleted": "音频已删除，转录仍保留。",
+      "retranscribe": "重新转录...",
+      "copy": "复制转录",
+      "copied": "已复制",
+      "exportTranscript": "导出转录",
+      "saveAudio": "保存音频...",
+      "openFolder": "打开文件夹",
+      "binAudio": "将音频移到回收站",
+      "binMeeting": "将会议移到回收站",
+      "speakers": "发言人",
+      "renameSpeaker": "重命名发言人",
+      "transcript": "转录",
+      "noSpeech": "此会议中未检测到语音。",
+      "playFrom": "从此处播放",
+      "movedToBin": "会议已移到回收站",
+      "audioMovedToBin": "音频已移到回收站",
+      "undo": "撤销",
+      "undoFailed": "无法恢复，它仍在回收站中。",
+      "renameFailed": "无法重命名，请重试。",
+      "transcribeFailed": "无法开始转录。",
+      "cancelFailed": "无法取消转录。",
+      "copyFailed": "无法复制转录。",
+      "exportFailed": "无法导出转录。",
+      "saveAudioFailed": "无法保存音频。",
+      "openFolderFailed": "无法打开会议文件夹。",
+      "audioFailed": "无法加载会议音频。",
+      "binFailed": "无法将会议移到回收站。",
+      "binAudioFailed": "无法将音频移到回收站。"
+    },
+    "export": {
+      "txt": "文本",
+      "md": "Markdown",
+      "srt": "字幕 (SRT)",
+      "vtt": "WebVTT",
+      "json": "JSON",
+      "wav": "WAV 音频"
+    },
+    "model": {
+      "sameAsDictation": "与听写相同",
+      "sameAsDictationNamed": "与听写相同（{{model}}）"
+    },
+    "retranscribe": {
+      "title": "重新转录会议",
+      "model": "模型",
+      "hint": "模型越大速度越慢，但越准确。新转录完成前，当前转录会保留。",
+      "moreModels": "需要其他模型？",
+      "openModels": "在“模型”中下载更多",
+      "confirm": "重新转录"
+    },
+    "settings": {
+      "title": "会议设置",
+      "description": "录制内容、转录方式以及音频保留时长",
+      "sources": {
+        "title": "录制",
+        "description": "“我”是在“通用”中选择的麦克风；“对方”是电脑播放的所有声音。",
+        "both": "麦克风和系统音频",
+        "microphone": "仅麦克风",
+        "system": "仅系统音频"
+      },
+      "model": {
+        "title": "转录模型",
+        "description": "会议可以使用比听写更大、更准确的模型。"
+      },
+      "speakerLabels": {
+        "title": "发言人标签",
+        "description": "区分通话另一方的发言人，最多 4 人。",
+        "downloadHint": "开启后将下载发言人标签模型。",
+        "downloadingHint": "正在下载发言人标签模型。",
+        "stopDownload": "停止下载发言人标签模型"
+      },
+      "retention": {
+        "title": "保留会议音频",
+        "description": "未保留的音频会移到回收站，转录始终保留。",
+        "keep": "保留",
+        "after_transcription": "转录后",
+        "days_7": "7 天后",
+        "days_30": "30 天后",
+        "days_90": "90 天后",
+        "confirmTitle": "将会议音频移到回收站？",
+        "confirmDescription_one": "将 {{count}} 场会议的音频移到回收站，转录仍保留。",
+        "confirmDescription_other": "将 {{count}} 场会议的音频移到回收站，转录仍保留。",
+        "confirm": "移到回收站",
+        "countFailed": "无法检查会议音频，请重试。"
+      }
+    }
   },
   "onboarding": {
     "customModelDescription": "非官方支持",
@@ -724,7 +871,7 @@
     },
     "bin": {
       "loading": "正在加载回收站...",
-      "empty": "回收站是空的。删除的听写和录音会一直保留在这里，直到你将其永久删除。",
+      "empty": "回收站是空的。删除的听写、录音和会议会一直保留在这里，直到你将其永久删除。",
       "loadFailed": "无法加载回收站。",
       "emptyBin": "清空回收站",
       "emptyTitle": "清空回收站？",
@@ -742,7 +889,10 @@
       "deleteTitle": "永久删除？",
       "deleteDescription": "此项目将被永久删除。此操作无法撤销。",
       "deleteFailed": "无法删除，其文件可能正在使用。",
-      "cancel": "取消"
+      "cancel": "取消",
+      "meetingAudio": "{{meeting}} 的音频",
+      "meetingAudioNote": "这里只有音频，会议及其转录仍在“会议”中。",
+      "meetingNote": "整个会议，包括其转录和所有音频。"
     },
     "debug": {
       "logDirectory": {

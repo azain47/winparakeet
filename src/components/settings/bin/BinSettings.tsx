@@ -1,12 +1,13 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { readFile } from "@tauri-apps/plugin-fs";
-import { AudioLines, FileAudio, Mic, Trash2 } from "lucide-react";
+import { AudioLines, FileAudio, Mic, Trash2, Users } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { notify } from "@/stores/noticeStore";
 import { commands, events, type BinItem } from "@/bindings";
 import { useOsType } from "@/hooks/useOsType";
 import { formatDateTime } from "@/utils/dateFormat";
+import { formatDuration, meetingTitle } from "../meetings/format";
 import { AudioPlayer, AudioPlayerGroup } from "../../ui/AudioPlayer";
 import { Button } from "../../ui/Button";
 import { Dialog } from "../../ui/Dialog";
@@ -15,7 +16,10 @@ import { Dialog } from "../../ui/Dialog";
 // reading them.
 const CLAMPED_LINES = 3;
 
-const itemKey = (item: BinItem) => `${item.kind}-${item.entry.id}`;
+// Restoring or deleting takes the entry's id, or the meeting's.
+const itemId = (item: BinItem) => item.meeting?.id ?? item.entry?.id ?? 0;
+
+const itemKey = (item: BinItem) => `${item.kind}-${itemId(item)}`;
 
 export const BinSettings: React.FC = () => {
   const { t } = useTranslation();
@@ -81,7 +85,7 @@ export const BinSettings: React.FC = () => {
 
   const restore = async (item: BinItem) => {
     try {
-      const result = await commands.restoreBinItem(item.entry.id, item.kind);
+      const result = await commands.restoreBinItem(itemId(item), item.kind);
       if (result.status !== "ok") throw new Error(result.error);
       setItems((prev) => prev.filter((i) => itemKey(i) !== itemKey(item)));
     } catch (error) {
@@ -95,7 +99,7 @@ export const BinSettings: React.FC = () => {
     const item = pendingDelete;
     setBusy(true);
     try {
-      const result = await commands.deleteBinItem(item.entry.id, item.kind);
+      const result = await commands.deleteBinItem(itemId(item), item.kind);
       if (result.status !== "ok") throw new Error(result.error);
       setItems((prev) => prev.filter((i) => itemKey(i) !== itemKey(item)));
     } catch (error) {
@@ -257,8 +261,10 @@ const BinRow: React.FC<BinRowProps> = ({
   onDelete,
 }) => {
   const { t, i18n } = useTranslation();
-  const { entry, kind, recording } = item;
-  const text = entry.post_processed_text ?? entry.transcription_text;
+  const { entry, meeting, kind, recording } = item;
+  const text = entry
+    ? (entry.post_processed_text ?? entry.transcription_text)
+    : "";
   const hasText = text.trim().length > 0;
 
   const handleLoadAudio = useCallback(
@@ -268,15 +274,32 @@ const BinRow: React.FC<BinRowProps> = ({
 
   let Icon: React.ComponentType<{ className?: string }> = Mic;
   let label = t("settings.bin.dictation");
-  if (kind === "recording") {
-    Icon = AudioLines;
-    label = t("settings.bin.recording");
-  } else if (entry.source_name) {
-    Icon = FileAudio;
-    label = entry.source_name;
+  let created = "";
+  let note: string | null = null;
+  if (meeting) {
+    const title = meetingTitle(meeting, t, i18n.language);
+    Icon = kind === "meeting_audio" ? AudioLines : Users;
+    label =
+      kind === "meeting_audio"
+        ? t("settings.bin.meetingAudio", { meeting: title })
+        : title;
+    created = `${formatDateTime(String(meeting.started_at), i18n.language)} · ${formatDuration(meeting.duration_ms, t)}`;
+    note =
+      kind === "meeting_audio"
+        ? t("settings.bin.meetingAudioNote")
+        : t("settings.bin.meetingNote");
+  } else if (entry) {
+    if (kind === "recording") {
+      Icon = AudioLines;
+      label = t("settings.bin.recording");
+      note = t("settings.bin.recordingNote");
+    } else if (entry.source_name) {
+      Icon = FileAudio;
+      label = entry.source_name;
+    }
+    created = formatDateTime(String(entry.timestamp), i18n.language);
   }
 
-  const created = formatDateTime(String(entry.timestamp), i18n.language);
   const deleted = formatDateTime(String(item.binned_at), i18n.language);
 
   return (
@@ -297,11 +320,7 @@ const BinRow: React.FC<BinRowProps> = ({
               {t("settings.bin.deletedAt", { date: deleted })}
             </span>
           </span>
-          {kind === "recording" && (
-            <span className="text-xs text-ink-3">
-              {t("settings.bin.recordingNote")}
-            </span>
-          )}
+          {note && <span className="text-xs text-ink-3">{note}</span>}
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <Button variant="secondary" size="sm" onClick={onRestore}>
@@ -313,25 +332,27 @@ const BinRow: React.FC<BinRowProps> = ({
         </div>
       </div>
 
-      <p
-        className={`italic text-sm w-full ${
-          hasText
-            ? "text-text select-text cursor-text whitespace-pre-wrap break-words"
-            : "text-ink-3"
-        }`}
-        style={
-          hasText
-            ? {
-                display: "-webkit-box",
-                WebkitLineClamp: CLAMPED_LINES,
-                WebkitBoxOrient: "vertical",
-                overflow: "hidden",
-              }
-            : undefined
-        }
-      >
-        {hasText ? text : t("settings.bin.noText")}
-      </p>
+      {entry && (
+        <p
+          className={`italic text-sm w-full ${
+            hasText
+              ? "text-text select-text cursor-text whitespace-pre-wrap break-words"
+              : "text-ink-3"
+          }`}
+          style={
+            hasText
+              ? {
+                  display: "-webkit-box",
+                  WebkitLineClamp: CLAMPED_LINES,
+                  WebkitBoxOrient: "vertical",
+                  overflow: "hidden",
+                }
+              : undefined
+          }
+        >
+          {hasText ? text : t("settings.bin.noText")}
+        </p>
+      )}
 
       {recording !== "" && (
         <AudioPlayer onLoadRequest={handleLoadAudio} className="w-full" />

@@ -10,7 +10,9 @@
     "secureInputWarning": "⚠ Kısayollar Secure Input tarafından engelleniyor",
     "language": "Dil",
     "autoLanguage": "Otomatik",
-    "otherLanguages": "Diğer Diller"
+    "otherLanguages": "Diğer Diller",
+    "startMeeting": "Toplantıyı Kaydet",
+    "stopMeeting": "Toplantı Kaydını Durdur"
   },
   "sidebar": {
     "general": "Genel",
@@ -20,7 +22,152 @@
     "history": "Geçmiş",
     "bin": "Çöp Kutusu",
     "debug": "Hata Ayıklama",
-    "about": "Hakkında"
+    "about": "Hakkında",
+    "meetings": "Toplantılar"
+  },
+  "meetings": {
+    "cancel": "İptal",
+    "defaultTitle": "{{date}} toplantısı",
+    "duration": {
+      "seconds": "{{seconds}} sn",
+      "minutes": "{{minutes}} dk",
+      "hours": "{{hours}} sa {{minutes}} dk"
+    },
+    "speakers": {
+      "me": "Ben",
+      "them": "Onlar",
+      "numbered": "Konuşmacı {{number}}"
+    },
+    "record": {
+      "title": "Toplantı kaydet",
+      "sources": {
+        "both": "Mikrofonunuzu (Ben) ve bilgisayarınızın çaldığı her şeyi (Onlar) kaydeder, ardından görüşmeden sonra her ikisini de yazıya döker.",
+        "microphone": "Yalnızca mikrofonunuzu (Ben) kaydeder, ardından görüşmeden sonra yazıya döker.",
+        "system": "Yalnızca bilgisayarınızın çaldığı sesi (Onlar) kaydeder, ardından görüşmeden sonra yazıya döker."
+      },
+      "start": "Toplantıyı kaydet",
+      "stop": "Durdur",
+      "recording": "Kaydediliyor",
+      "sourceOff": "Kaydedilmiyor",
+      "sourceReconnecting": "Yeniden bağlanıyor...",
+      "sourceFailed": "Kullanılamıyor",
+      "startFailed": "Toplantı kaydı başlatılamadı.",
+      "stopFailed": "Toplantı kaydı durdurulamadı."
+    },
+    "status": {
+      "recording": "Kaydediliyor",
+      "queued": "Sırada",
+      "transcribing": "Yazıya dökülüyor",
+      "transcribingPercent": "Yazıya dökülüyor, %{{percent}}",
+      "failed": "Başarısız",
+      "notTranscribed": "Yazıya dökülmedi",
+      "recovered": "Kurtarıldı"
+    },
+    "list": {
+      "loading": "Toplantılar yükleniyor...",
+      "empty": "Henüz toplantı yok. Bir görüşmenin her iki tarafının transkriptini almak için bir toplantı kaydedin.",
+      "today": "Bugün",
+      "yesterday": "Dün",
+      "speakers_one": "{{count}} konuşmacı",
+      "speakers_other": "{{count}} konuşmacı"
+    },
+    "detail": {
+      "back": "Toplantılara dön",
+      "title": "Toplantı başlığı",
+      "recordingNow": "Bu toplantı kaydediliyor. Kaydı durdurduğunuzda yazıya dökülecek.",
+      "queued": "Yazıya dökülmeyi bekliyor.",
+      "failed": "Yazıya dökme başarısız oldu.",
+      "retry": "Tekrar dene",
+      "notTranscribed": "Henüz yazıya dökülmedi.",
+      "transcribe": "Yazıya dök",
+      "recovered": "Bu toplantı kaydedilirken uygulama kapandı. Ses o ana kadar kaydedildi.",
+      "audioBinned": "Ses Çöp Kutusunda olduğu için oynatılamaz veya yeniden yazıya dökülemez. Çöp Kutusundan geri yükleyebilirsiniz.",
+      "restoreAudio": "Sesi geri yükle",
+      "audioDeleted": "Ses silindi. Transkript duruyor.",
+      "retranscribe": "Yeniden yazıya dök...",
+      "copy": "Transkripti kopyala",
+      "copied": "Kopyalandı",
+      "exportTranscript": "Transkripti dışa aktar",
+      "saveAudio": "Sesi kaydet...",
+      "openFolder": "Klasörü aç",
+      "binAudio": "Sesi Çöp Kutusuna taşı",
+      "binMeeting": "Toplantıyı Çöp Kutusuna taşı",
+      "speakers": "Konuşmacılar",
+      "renameSpeaker": "Konuşmacıyı yeniden adlandır",
+      "transcript": "Transkript",
+      "noSpeech": "Bu toplantıda konuşma bulunamadı.",
+      "playFrom": "Buradan oynat",
+      "movedToBin": "Toplantı Çöp Kutusuna taşındı",
+      "audioMovedToBin": "Ses Çöp Kutusuna taşındı",
+      "undo": "Geri al",
+      "undoFailed": "Geri yüklenemedi. Hâlâ Çöp Kutusunda.",
+      "renameFailed": "Yeniden adlandırılamadı. Lütfen tekrar deneyin.",
+      "transcribeFailed": "Yazıya dökme başlatılamadı.",
+      "cancelFailed": "Yazıya dökme iptal edilemedi.",
+      "copyFailed": "Transkript kopyalanamadı.",
+      "exportFailed": "Transkript dışa aktarılamadı.",
+      "saveAudioFailed": "Ses kaydedilemedi.",
+      "openFolderFailed": "Toplantının klasörü açılamadı.",
+      "audioFailed": "Toplantının sesi yüklenemedi.",
+      "binFailed": "Toplantı Çöp Kutusuna taşınamadı.",
+      "binAudioFailed": "Ses Çöp Kutusuna taşınamadı."
+    },
+    "export": {
+      "txt": "Metin",
+      "md": "Markdown",
+      "srt": "Altyazı (SRT)",
+      "vtt": "WebVTT",
+      "json": "JSON",
+      "wav": "WAV ses"
+    },
+    "model": {
+      "sameAsDictation": "Dikteyle aynı",
+      "sameAsDictationNamed": "Dikteyle aynı ({{model}})"
+    },
+    "retranscribe": {
+      "title": "Toplantıyı yeniden yazıya dök",
+      "model": "Model",
+      "hint": "Büyük modeller daha yavaş ama daha doğrudur. Mevcut transkript, yenisi hazır olana kadar kalır.",
+      "moreModels": "Başka bir model mi gerekiyor?",
+      "openModels": "Modeller'den daha fazlasını indirin",
+      "confirm": "Yeniden yazıya dök"
+    },
+    "settings": {
+      "title": "Toplantı ayarları",
+      "description": "Neyin kaydedileceği, nasıl yazıya döküleceği ve sesin ne kadar saklanacağı",
+      "sources": {
+        "title": "Kayıt",
+        "description": "Ben, Genel'de seçilen mikrofondur; Onlar, bilgisayarınızın çaldığı her şeydir.",
+        "both": "Mikrofon ve sistem sesi",
+        "microphone": "Yalnızca mikrofon",
+        "system": "Yalnızca sistem sesi"
+      },
+      "model": {
+        "title": "Yazıya dökme modeli",
+        "description": "Toplantılar, dikteden daha büyük ve daha doğru bir model kullanabilir."
+      },
+      "speakerLabels": {
+        "title": "Konuşmacı etiketleri",
+        "description": "Görüşmenin diğer tarafında kimin konuştuğunu ayırt eder, en fazla 4 konuşmacı.",
+        "downloadHint": "Bunu açmak konuşmacı etiketi modelini indirir.",
+        "downloadingHint": "Konuşmacı etiketi modeli indiriliyor.",
+        "stopDownload": "Konuşmacı etiketi modelinin indirilmesini durdur"
+      },
+      "retention": {
+        "title": "Toplantı sesini sakla",
+        "description": "Saklanmayan ses Çöp Kutusuna taşınır. Transkriptler her zaman kalır.",
+        "keep": "Sakla",
+        "after_transcription": "Yazıya döküldükten sonra",
+        "days_7": "7 gün sonra",
+        "days_30": "30 gün sonra",
+        "days_90": "90 gün sonra",
+        "confirmTitle": "Toplantı sesi Çöp Kutusuna taşınsın mı?",
+        "confirmDescription_one": "{{count}} toplantının sesi Çöp Kutusuna taşınır. Transkripti kalır.",
+        "confirmDescription_other": "{{count}} toplantının sesi Çöp Kutusuna taşınır. Transkriptleri kalır.",
+        "confirm": "Çöp Kutusuna taşı",
+        "countFailed": "Toplantıların sesi kontrol edilemedi. Lütfen tekrar deneyin."
+      }
+    }
   },
   "onboarding": {
     "customModelDescription": "Resmi olarak desteklenmiyor",
@@ -724,7 +871,7 @@
     },
     "bin": {
       "loading": "Çöp Kutusu yükleniyor...",
-      "empty": "Çöp Kutusu boş. Silinen dikteler ve ses kayıtları, siz kalıcı olarak silene kadar burada kalır.",
+      "empty": "Çöp Kutusu boş. Silinen dikteler, ses kayıtları ve toplantılar, siz kalıcı olarak silene kadar burada kalır.",
       "loadFailed": "Çöp Kutusu yüklenemedi.",
       "emptyBin": "Çöp Kutusunu boşalt",
       "emptyTitle": "Çöp Kutusu boşaltılsın mı?",
@@ -742,7 +889,10 @@
       "deleteTitle": "Kalıcı olarak silinsin mi?",
       "deleteDescription": "Bu öğe kalıcı olarak silinecek. Bu işlem geri alınamaz.",
       "deleteFailed": "Silinemedi. Dosyası kullanımda olabilir.",
-      "cancel": "İptal"
+      "cancel": "İptal",
+      "meetingAudio": "{{meeting}} sesi",
+      "meetingAudioNote": "Burada yalnızca ses var. Toplantı ve transkripti hâlâ Toplantılar'da.",
+      "meetingNote": "Transkripti ve varsa sesiyle birlikte toplantının tamamı."
     },
     "debug": {
       "logDirectory": {

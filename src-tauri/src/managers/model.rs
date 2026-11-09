@@ -528,6 +528,10 @@ fn local_caps(probe: &CapabilityProbe) -> LocalCaps {
 /// progress, completion and cancellation, like a model's.
 pub const LANGUAGE_DETECTOR_ID: &str = "language-detector";
 
+/// Download id under which the meeting speaker diarizer's download reports
+/// progress, completion and cancellation, like the language detector's.
+pub const DIARIZER_ID: &str = "diarizer";
+
 /// Where one file's download progress is reported: under `model_id`, its bytes
 /// counted from `offset`, out of `total` (default: `offset` + the file's own
 /// size). Lets two files (the language detector, then a model) fill one bar.
@@ -875,6 +879,8 @@ pub struct ModelManager {
     /// One language detector transfer at a time, however many downloads
     /// want it.
     detector_download: tokio::sync::Mutex<()>,
+    /// One diarizer transfer at a time.
+    diarizer_download: tokio::sync::Mutex<()>,
 }
 
 impl ModelManager {
@@ -1079,6 +1085,7 @@ impl ModelManager {
             cancel_flags: Arc::new(Mutex::new(HashMap::new())),
             is_rescanning: Arc::new(AtomicBool::new(false)),
             detector_download: tokio::sync::Mutex::new(()),
+            diarizer_download: tokio::sync::Mutex::new(()),
         };
 
         // Migrate any bundled models to user directory
@@ -1563,12 +1570,16 @@ impl ModelManager {
                 continue;
             };
 
-            // Skip predefined model files, and the language detector (a mirror
-            // download lands here), which isn't a transcription model.
+            // Skip predefined model files, and the language detector and
+            // diarizer (a mirror download lands here), which aren't
+            // transcription models.
             if predefined_filenames.contains(&filename)
                 || crate::catalog::LANGUAGE_DETECTOR
                     .as_ref()
                     .is_some_and(|detector| detector.filename == filename)
+                || crate::catalog::DIARIZER
+                    .as_ref()
+                    .is_some_and(|diarizer| diarizer.filename == filename)
             {
                 continue;
             }
@@ -1982,6 +1993,45 @@ impl ModelManager {
             filename: &detector.filename,
             mirrors: crate::catalog::language_detector_mirrors(),
             progress,
+        };
+        self.fetch_hf_file(&transfer, cancel_token).await
+    }
+
+    /// Download the meeting speaker diarizer, tracked and cancelled under
+    /// [`DIARIZER_ID`] like the language detector.
+    pub async fn download_diarizer(&self) -> Result<()> {
+        let cancel_token = CancellationToken::new();
+        self.cancel_flags
+            .lock()
+            .unwrap()
+            .insert(DIARIZER_ID.to_string(), cancel_token.clone());
+        let fetched = self.fetch_diarizer(&cancel_token).await;
+        self.cancel_flags.lock().unwrap().remove(DIARIZER_ID);
+        if fetched? {
+            let _ = self.app_handle.emit("model-download-complete", DIARIZER_ID);
+        }
+        Ok(())
+    }
+
+    /// Fetch the diarizer unless it's on disk; `Ok(false)` if cancelled.
+    async fn fetch_diarizer(&self, cancel_token: &CancellationToken) -> Result<bool> {
+        let diarizer = crate::catalog::DIARIZER
+            .as_ref()
+            .ok_or_else(|| anyhow::anyhow!("The catalog has no speaker diarizer"))?;
+        let _single = tokio::select! {
+            guard = self.diarizer_download.lock() => guard,
+            _ = cancel_token.cancelled() => return Ok(false),
+        };
+        if self.diarizer_path().is_some() {
+            return Ok(true);
+        }
+        let transfer = FileTransfer {
+            label: "the speaker diarizer",
+            repo_id: &diarizer.repo_id,
+            revision: &diarizer.revision,
+            filename: &diarizer.filename,
+            mirrors: crate::catalog::diarizer_mirrors(),
+            progress: ProgressTarget::own(DIARIZER_ID),
         };
         self.fetch_hf_file(&transfer, cancel_token).await
     }
@@ -2573,6 +2623,16 @@ impl ModelManager {
         let detector = crate::catalog::LANGUAGE_DETECTOR.as_ref()?;
         hf_cached_path(&detector.repo_id, &detector.revision, &detector.filename).or_else(|| {
             let local = self.models_dir.join(&detector.filename);
+            local.is_file().then_some(local)
+        })
+    }
+
+    /// The meeting speaker diarizer's file, when it is fully on disk: in the
+    /// HF cache, or in the models dir (mirror fallback / manual drop-in).
+    pub fn diarizer_path(&self) -> Option<PathBuf> {
+        let diarizer = crate::catalog::DIARIZER.as_ref()?;
+        hf_cached_path(&diarizer.repo_id, &diarizer.revision, &diarizer.filename).or_else(|| {
+            let local = self.models_dir.join(&diarizer.filename);
             local.is_file().then_some(local)
         })
     }

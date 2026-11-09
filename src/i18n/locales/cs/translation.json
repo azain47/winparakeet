@@ -10,7 +10,9 @@
     "secureInputWarning": "⚠ Zkratky blokuje Secure Input",
     "language": "Jazyk",
     "autoLanguage": "Automaticky",
-    "otherLanguages": "Další jazyky"
+    "otherLanguages": "Další jazyky",
+    "startMeeting": "Nahrát schůzku",
+    "stopMeeting": "Zastavit nahrávání schůzky"
   },
   "sidebar": {
     "general": "Obecné",
@@ -20,7 +22,152 @@
     "history": "Historie",
     "bin": "Koš",
     "debug": "Ladění",
-    "about": "O aplikaci"
+    "about": "O aplikaci",
+    "meetings": "Schůzky"
+  },
+  "meetings": {
+    "cancel": "Zrušit",
+    "defaultTitle": "Schůzka {{date}}",
+    "duration": {
+      "seconds": "{{seconds}} s",
+      "minutes": "{{minutes}} min",
+      "hours": "{{hours}} h {{minutes}} min"
+    },
+    "speakers": {
+      "me": "Já",
+      "them": "Oni",
+      "numbered": "Mluvčí {{number}}"
+    },
+    "record": {
+      "title": "Nahrát schůzku",
+      "sources": {
+        "both": "Nahrává váš mikrofon (Já) a vše, co přehrává počítač (Oni), a po hovoru obojí přepíše.",
+        "microphone": "Nahrává jen váš mikrofon (Já) a po hovoru ho přepíše.",
+        "system": "Nahrává jen to, co přehrává počítač (Oni), a po hovoru to přepíše."
+      },
+      "start": "Nahrát schůzku",
+      "stop": "Zastavit",
+      "recording": "Nahrává se",
+      "sourceOff": "Nenahrává se",
+      "sourceReconnecting": "Opětovné připojování...",
+      "sourceFailed": "Nedostupné",
+      "startFailed": "Nahrávání schůzky se nepodařilo spustit.",
+      "stopFailed": "Nahrávání schůzky se nepodařilo zastavit."
+    },
+    "status": {
+      "recording": "Nahrává se",
+      "queued": "Ve frontě",
+      "transcribing": "Přepisuje se",
+      "transcribingPercent": "Přepisuje se {{percent}} %",
+      "failed": "Selhalo",
+      "notTranscribed": "Nepřepsáno",
+      "recovered": "Obnoveno"
+    },
+    "list": {
+      "loading": "Načítání schůzek...",
+      "empty": "Zatím žádné schůzky. Nahrajte schůzku a získáte přepis obou stran hovoru.",
+      "today": "Dnes",
+      "yesterday": "Včera",
+      "speakers_one": "{{count}} mluvčí",
+      "speakers_other": "Mluvčí: {{count}}"
+    },
+    "detail": {
+      "back": "Zpět na schůzky",
+      "title": "Název schůzky",
+      "recordingNow": "Tato schůzka se nahrává. Po zastavení se přepíše.",
+      "queued": "Čeká na přepis.",
+      "failed": "Přepis selhal.",
+      "retry": "Zkusit znovu",
+      "notTranscribed": "Zatím nepřepsáno.",
+      "transcribe": "Přepsat",
+      "recovered": "Aplikace se zavřela během nahrávání této schůzky. Zvuk se uložil až do té chvíle.",
+      "audioBinned": "Zvuk je v koši, takže ho nelze přehrát ani znovu přepsat. Můžete ho obnovit z koše.",
+      "restoreAudio": "Obnovit zvuk",
+      "audioDeleted": "Zvuk byl smazán. Přepis zůstává.",
+      "retranscribe": "Přepsat znovu...",
+      "copy": "Kopírovat přepis",
+      "copied": "Zkopírováno",
+      "exportTranscript": "Exportovat přepis",
+      "saveAudio": "Uložit zvuk...",
+      "openFolder": "Otevřít složku",
+      "binAudio": "Přesunout zvuk do koše",
+      "binMeeting": "Přesunout schůzku do koše",
+      "speakers": "Mluvčí",
+      "renameSpeaker": "Přejmenovat mluvčího",
+      "transcript": "Přepis",
+      "noSpeech": "V této schůzce nebyla nalezena žádná řeč.",
+      "playFrom": "Přehrát odsud",
+      "movedToBin": "Schůzka byla přesunuta do koše",
+      "audioMovedToBin": "Zvuk byl přesunut do koše",
+      "undo": "Zpět",
+      "undoFailed": "Obnovení se nezdařilo. Je stále v koši.",
+      "renameFailed": "Přejmenování se nezdařilo. Zkuste to znovu.",
+      "transcribeFailed": "Přepis se nepodařilo spustit.",
+      "cancelFailed": "Přepis se nepodařilo zrušit.",
+      "copyFailed": "Přepis se nepodařilo zkopírovat.",
+      "exportFailed": "Přepis se nepodařilo exportovat.",
+      "saveAudioFailed": "Zvuk se nepodařilo uložit.",
+      "openFolderFailed": "Složku schůzky se nepodařilo otevřít.",
+      "audioFailed": "Zvuk schůzky se nepodařilo načíst.",
+      "binFailed": "Schůzku se nepodařilo přesunout do koše.",
+      "binAudioFailed": "Zvuk se nepodařilo přesunout do koše."
+    },
+    "export": {
+      "txt": "Text",
+      "md": "Markdown",
+      "srt": "Titulky (SRT)",
+      "vtt": "WebVTT",
+      "json": "JSON",
+      "wav": "Zvuk WAV"
+    },
+    "model": {
+      "sameAsDictation": "Stejný jako pro diktování",
+      "sameAsDictationNamed": "Stejný jako pro diktování ({{model}})"
+    },
+    "retranscribe": {
+      "title": "Znovu přepsat schůzku",
+      "model": "Model",
+      "hint": "Větší modely jsou pomalejší, ale přesnější. Současný přepis zůstane, dokud nebude hotový nový.",
+      "moreModels": "Potřebujete jiný model?",
+      "openModels": "Stáhnout další v sekci Modely",
+      "confirm": "Přepsat znovu"
+    },
+    "settings": {
+      "title": "Nastavení schůzek",
+      "description": "Co se nahrává, jak se to přepisuje a jak dlouho se uchovává zvuk",
+      "sources": {
+        "title": "Nahrávat",
+        "description": "Já je mikrofon vybraný v sekci Obecné; Oni je vše, co přehrává počítač.",
+        "both": "Mikrofon a zvuk systému",
+        "microphone": "Jen mikrofon",
+        "system": "Jen zvuk systému"
+      },
+      "model": {
+        "title": "Model přepisu",
+        "description": "Schůzky mohou používat větší a přesnější model než diktování."
+      },
+      "speakerLabels": {
+        "title": "Označení mluvčích",
+        "description": "Rozlišit, kdo mluví na druhé straně hovoru, až 4 mluvčí.",
+        "downloadHint": "Zapnutím se stáhne model pro označení mluvčích.",
+        "downloadingHint": "Stahuje se model pro označení mluvčích.",
+        "stopDownload": "Zastavit stahování modelu pro označení mluvčích"
+      },
+      "retention": {
+        "title": "Ponechat zvuk schůzek",
+        "description": "Zvuk, který neponecháte, se přesune do koše. Přepisy zůstávají vždy.",
+        "keep": "Ponechat",
+        "after_transcription": "Po přepisu",
+        "days_7": "Po 7 dnech",
+        "days_30": "Po 30 dnech",
+        "days_90": "Po 90 dnech",
+        "confirmTitle": "Přesunout zvuk schůzek do koše?",
+        "confirmDescription_one": "Přesune zvuk {{count}} schůzky do koše. Její přepis zůstane.",
+        "confirmDescription_other": "Přesune zvuk {{count}} schůzek do koše. Jejich přepisy zůstanou.",
+        "confirm": "Přesunout do koše",
+        "countFailed": "Zvuk schůzek se nepodařilo zkontrolovat. Zkuste to znovu."
+      }
+    }
   },
   "onboarding": {
     "customModelDescription": "Oficiálně nepodporováno",
@@ -724,7 +871,7 @@
     },
     "bin": {
       "loading": "Načítání koše...",
-      "empty": "Koš je prázdný. Smazané diktáty a nahrávky tu zůstanou, dokud je trvale nesmažete.",
+      "empty": "Koš je prázdný. Smazané diktáty, nahrávky a schůzky tu zůstanou, dokud je trvale nesmažete.",
       "loadFailed": "Koš se nepodařilo načíst.",
       "emptyBin": "Vysypat koš",
       "emptyTitle": "Vysypat koš?",
@@ -742,7 +889,10 @@
       "deleteTitle": "Trvale smazat?",
       "deleteDescription": "Tato položka bude trvale smazána. Tuto akci nelze vrátit.",
       "deleteFailed": "Smazání se nezdařilo. Soubor se možná používá.",
-      "cancel": "Zrušit"
+      "cancel": "Zrušit",
+      "meetingAudio": "Zvuk schůzky {{meeting}}",
+      "meetingAudioNote": "Je tu jen zvuk. Schůzka a její přepis jsou stále ve Schůzkách.",
+      "meetingNote": "Celá schůzka včetně přepisu a případného zvuku."
     },
     "debug": {
       "logDirectory": {

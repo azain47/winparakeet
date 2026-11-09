@@ -9,10 +9,12 @@ import {
   Sparkles,
   Cpu,
   Trash2,
+  Users,
 } from "lucide-react";
 import AppMark from "./icons/AppMark";
 import { PRODUCT_NAME } from "../lib/brand";
 import { useSettings } from "../hooks/useSettings";
+import { useMeetingRecordingActive } from "../stores/meetingsStore";
 import {
   GeneralSettings,
   AdvancedSettings,
@@ -36,7 +38,7 @@ interface IconProps {
 interface SectionConfig {
   labelKey: string;
   icon: React.ComponentType<IconProps>;
-  /** `null` when App renders the section itself (Debug, with its handlers). */
+  /** `null` when App renders the section itself (Meetings and Debug, with their handlers). */
   component: React.ComponentType | null;
   enabled: (settings: any) => boolean;
 }
@@ -52,6 +54,12 @@ export const SECTIONS_CONFIG = {
     labelKey: "sidebar.history",
     icon: History,
     component: HistorySettings,
+    enabled: () => true,
+  },
+  meetings: {
+    labelKey: "sidebar.meetings",
+    icon: Users,
+    component: null,
     enabled: () => true,
   },
   bin: {
@@ -103,6 +111,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const { t } = useTranslation();
   const { settings } = useSettings();
+  const meetingRecording = useMeetingRecordingActive();
 
   const availableSections = Object.entries(SECTIONS_CONFIG)
     .filter(([_, config]) => config.enabled(settings))
@@ -137,12 +146,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
               {isActive && (
                 <span className="absolute start-0 top-1/2 h-4 w-[3px] -translate-y-1/2 rounded-full bg-logo-primary" />
               )}
-              <Icon
-                width={18}
-                height={18}
-                strokeWidth={1.75}
-                className="shrink-0"
-              />
+              <span className="relative shrink-0">
+                <Icon width={18} height={18} strokeWidth={1.75} />
+                {/* A meeting is recording. */}
+                {section.id === "meetings" && meetingRecording && (
+                  <span className="absolute -end-0.5 -top-0.5 size-2 rounded-full bg-error ring-2 ring-background" />
+                )}
+              </span>
               <span className="truncate">{t(section.labelKey)}</span>
             </button>
           );

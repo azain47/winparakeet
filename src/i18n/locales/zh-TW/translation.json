@@ -10,7 +10,9 @@
     "secureInputWarning": "⚠ 快捷鍵被 Secure Input 阻擋",
     "language": "語言",
     "autoLanguage": "自動",
-    "otherLanguages": "其他語言"
+    "otherLanguages": "其他語言",
+    "startMeeting": "錄製會議",
+    "stopMeeting": "停止錄製會議"
   },
   "sidebar": {
     "general": "一般",
@@ -20,7 +22,152 @@
     "history": "歷史紀錄",
     "bin": "資源回收筒",
     "debug": "偵錯",
-    "about": "關於"
+    "about": "關於",
+    "meetings": "會議"
+  },
+  "meetings": {
+    "cancel": "取消",
+    "defaultTitle": "{{date}} 的會議",
+    "duration": {
+      "seconds": "{{seconds}} 秒",
+      "minutes": "{{minutes}} 分鐘",
+      "hours": "{{hours}} 小時 {{minutes}} 分鐘"
+    },
+    "speakers": {
+      "me": "我",
+      "them": "對方",
+      "numbered": "說話者 {{number}}"
+    },
+    "record": {
+      "title": "錄製會議",
+      "sources": {
+        "both": "錄製你的麥克風（我）和電腦播放的所有聲音（對方），通話結束後轉錄兩者。",
+        "microphone": "僅錄製你的麥克風（我），通話結束後進行轉錄。",
+        "system": "僅錄製電腦播放的聲音（對方），通話結束後進行轉錄。"
+      },
+      "start": "錄製會議",
+      "stop": "停止",
+      "recording": "正在錄製",
+      "sourceOff": "不錄製",
+      "sourceReconnecting": "正在重新連線...",
+      "sourceFailed": "無法使用",
+      "startFailed": "無法開始錄製會議。",
+      "stopFailed": "無法停止錄製會議。"
+    },
+    "status": {
+      "recording": "錄製中",
+      "queued": "排隊中",
+      "transcribing": "轉錄中",
+      "transcribingPercent": "正在轉錄，{{percent}}%",
+      "failed": "失敗",
+      "notTranscribed": "未轉錄",
+      "recovered": "已復原"
+    },
+    "list": {
+      "loading": "正在載入會議...",
+      "empty": "還沒有會議。錄製一場會議，即可取得通話雙方的轉錄。",
+      "today": "今天",
+      "yesterday": "昨天",
+      "speakers_one": "{{count}} 位說話者",
+      "speakers_other": "{{count}} 位說話者"
+    },
+    "detail": {
+      "back": "返回會議",
+      "title": "會議標題",
+      "recordingNow": "正在錄製此會議，停止後將進行轉錄。",
+      "queued": "等待轉錄。",
+      "failed": "轉錄失敗。",
+      "retry": "重試",
+      "notTranscribed": "尚未轉錄。",
+      "transcribe": "轉錄",
+      "recovered": "錄製此會議時應用程式已關閉，截至該時間點的音訊已儲存。",
+      "audioBinned": "音訊在資源回收筒中，因此無法播放或重新轉錄。你可以從資源回收筒還原。",
+      "restoreAudio": "還原音訊",
+      "audioDeleted": "音訊已刪除，轉錄仍保留。",
+      "retranscribe": "重新轉錄...",
+      "copy": "複製轉錄",
+      "copied": "已複製",
+      "exportTranscript": "匯出轉錄",
+      "saveAudio": "儲存音訊...",
+      "openFolder": "開啟資料夾",
+      "binAudio": "將音訊移至資源回收筒",
+      "binMeeting": "將會議移至資源回收筒",
+      "speakers": "說話者",
+      "renameSpeaker": "重新命名說話者",
+      "transcript": "轉錄",
+      "noSpeech": "此會議中未偵測到語音。",
+      "playFrom": "從這裡播放",
+      "movedToBin": "會議已移至資源回收筒",
+      "audioMovedToBin": "音訊已移至資源回收筒",
+      "undo": "復原",
+      "undoFailed": "無法還原，它仍在資源回收筒中。",
+      "renameFailed": "無法重新命名，請再試一次。",
+      "transcribeFailed": "無法開始轉錄。",
+      "cancelFailed": "無法取消轉錄。",
+      "copyFailed": "無法複製轉錄。",
+      "exportFailed": "無法匯出轉錄。",
+      "saveAudioFailed": "無法儲存音訊。",
+      "openFolderFailed": "無法開啟會議資料夾。",
+      "audioFailed": "無法載入會議音訊。",
+      "binFailed": "無法將會議移至資源回收筒。",
+      "binAudioFailed": "無法將音訊移至資源回收筒。"
+    },
+    "export": {
+      "txt": "文字",
+      "md": "Markdown",
+      "srt": "字幕 (SRT)",
+      "vtt": "WebVTT",
+      "json": "JSON",
+      "wav": "WAV 音訊"
+    },
+    "model": {
+      "sameAsDictation": "與聽寫相同",
+      "sameAsDictationNamed": "與聽寫相同（{{model}}）"
+    },
+    "retranscribe": {
+      "title": "重新轉錄會議",
+      "model": "模型",
+      "hint": "模型越大速度越慢，但越準確。新轉錄完成前，目前的轉錄會保留。",
+      "moreModels": "需要其他模型嗎？",
+      "openModels": "在「模型」中下載更多",
+      "confirm": "重新轉錄"
+    },
+    "settings": {
+      "title": "會議設定",
+      "description": "錄製內容、轉錄方式及音訊保留時間",
+      "sources": {
+        "title": "錄製",
+        "description": "「我」是在「一般」中選擇的麥克風；「對方」是電腦播放的所有聲音。",
+        "both": "麥克風和系統音訊",
+        "microphone": "僅麥克風",
+        "system": "僅系統音訊"
+      },
+      "model": {
+        "title": "轉錄模型",
+        "description": "會議可使用比聽寫更大、更準確的模型。"
+      },
+      "speakerLabels": {
+        "title": "說話者標籤",
+        "description": "區分通話另一方的說話者，最多 4 位。",
+        "downloadHint": "開啟後將下載說話者標籤模型。",
+        "downloadingHint": "正在下載說話者標籤模型。",
+        "stopDownload": "停止下載說話者標籤模型"
+      },
+      "retention": {
+        "title": "保留會議音訊",
+        "description": "未保留的音訊會移至資源回收筒，轉錄一律保留。",
+        "keep": "保留",
+        "after_transcription": "轉錄後",
+        "days_7": "7 天後",
+        "days_30": "30 天後",
+        "days_90": "90 天後",
+        "confirmTitle": "要將會議音訊移至資源回收筒嗎？",
+        "confirmDescription_one": "將 {{count}} 場會議的音訊移至資源回收筒，轉錄仍保留。",
+        "confirmDescription_other": "將 {{count}} 場會議的音訊移至資源回收筒，轉錄仍保留。",
+        "confirm": "移至資源回收筒",
+        "countFailed": "無法檢查會議音訊，請再試一次。"
+      }
+    }
   },
   "onboarding": {
     "customModelDescription": "官方不支援",
@@ -724,7 +871,7 @@
     },
     "bin": {
       "loading": "正在載入資源回收筒...",
-      "empty": "資源回收筒是空的。刪除的聽寫和錄音會留在這裡，直到你將其永久刪除。",
+      "empty": "資源回收筒是空的。刪除的聽寫、錄音和會議會留在這裡，直到你將其永久刪除。",
       "loadFailed": "無法載入資源回收筒。",
       "emptyBin": "清理資源回收筒",
       "emptyTitle": "要清理資源回收筒嗎？",
@@ -742,7 +889,10 @@
       "deleteTitle": "要永久刪除嗎？",
       "deleteDescription": "此項目將被永久刪除，且無法復原。",
       "deleteFailed": "無法刪除，其檔案可能正在使用。",
-      "cancel": "取消"
+      "cancel": "取消",
+      "meetingAudio": "{{meeting}} 的音訊",
+      "meetingAudioNote": "這裡只有音訊，會議及其轉錄仍在「會議」中。",
+      "meetingNote": "整個會議，包含其轉錄和所有音訊。"
     },
     "debug": {
       "logDirectory": {

@@ -38,9 +38,11 @@ use transcribe_cpp::{Backend, RunOptions, Task, Transcript};
 mod chunked;
 mod job;
 mod live;
+mod meeting;
 pub mod policy;
 
 pub use job::ChunkControl;
+pub use meeting::TimedUnit;
 
 const STREAM_PERF_LOG_INTERVAL: Duration = Duration::from_secs(5);
 
@@ -278,6 +280,14 @@ pub struct TranscriptionManager {
     /// True while a background job is queued or running. It holds the model,
     /// so one transcript is never written by two models.
     job_active: Arc<AtomicBool>,
+    /// The model a background job loaded instead of the selected one (a
+    /// meeting transcribed with another model), while it may still be the
+    /// loaded one. Dictation never runs on it: its start loads the selected
+    /// model first. Any other load clears it.
+    job_model: Arc<Mutex<Option<String>>>,
+    /// Counts model loads begun, so a job's run can tell whether a load (a
+    /// dictation's) may have swapped the model under it.
+    loads_begun: Arc<AtomicU64>,
     /// Handy's spoken-language detector, loaded in this process on first
     /// use and unloaded with the model.
     language_detector: Arc<LanguageDetector>,
@@ -300,6 +310,8 @@ impl TranscriptionManager {
             next_stream_worker_id: Arc::new(AtomicU64::new(1)),
             active_stream_worker: Arc::new(AtomicU64::new(0)),
             job_active: Arc::new(AtomicBool::new(false)),
+            job_model: Arc::new(Mutex::new(None)),
+            loads_begun: Arc::new(AtomicU64::new(0)),
             language_detector: Arc::new(LanguageDetector::default()),
         };
 
@@ -450,8 +462,10 @@ impl TranscriptionManager {
     /// An automatic unload can still land between a use's start (which saw
     /// the model loaded, so started no load) and this first read; the model
     /// is then loaded again here instead of failing the transcription.
+    /// A model loaded only for a background job is swapped for the selected
+    /// one first.
     fn wait_for_model(&self) -> Option<(String, LoadedInfo)> {
-        self.wait_for_load();
+        self.wait_for_selected_model();
         if let Some(model) = self.engine.loaded_model() {
             return Some(model);
         }
@@ -460,6 +474,78 @@ impl TranscriptionManager {
         }
         self.wait_for_load();
         self.engine.loaded_model()
+    }
+
+    /// Waits out any model load. If the model is then one a background job
+    /// loaded instead of the selected one (the job's load was under way when
+    /// this use started, so the use started none), loads the selected model
+    /// and waits for that too. The job waits while a dictation is under way,
+    /// so it can't load its model again before this use is done.
+    fn wait_for_selected_model(&self) {
+        self.wait_for_load();
+        if self.holds_job_model() {
+            info!("Loading the selected model in place of a background job's");
+            self.initiate_model_load(false);
+            self.wait_for_load();
+        }
+    }
+
+    /// Whether the loaded model is one a background job loaded in place of
+    /// the selected one.
+    fn holds_job_model(&self) -> bool {
+        let job_model = self.job_model.lock().unwrap().clone();
+        let Some(job_model) = job_model else {
+            return false;
+        };
+        self.engine.loaded_model_id().as_deref() == Some(job_model.as_str())
+            && get_settings(&self.app_handle).selected_model != job_model
+    }
+
+    /// Makes `model_id` the loaded model for a background job's next run,
+    /// loading it on this thread when another is loaded. `Ok(false)` while a
+    /// dictation is under way: it has the engine, with the selected model,
+    /// and the job asks again once it is over. Decided under the loading
+    /// lock, which a dictation's start also takes, so the two never load at
+    /// once.
+    pub fn ensure_job_model(&self, model_id: &str) -> Result<bool> {
+        let mut is_loading = self.is_loading.lock().unwrap();
+        loop {
+            if crate::tray::dictation_in_progress(&self.app_handle) {
+                return Ok(false);
+            }
+            if !*is_loading {
+                break;
+            }
+            is_loading = self.loading_condvar.wait(is_loading).unwrap();
+        }
+        self.touch_activity();
+        let reload_pending = self.reload_model_on_next_use.load(Ordering::Acquire);
+        if !reload_pending && self.engine.loaded_model_id().as_deref() == Some(model_id) {
+            return Ok(true);
+        }
+        *is_loading = true;
+        let _loading = LoadingGuard {
+            is_loading: self.is_loading.clone(),
+            loading_condvar: self.loading_condvar.clone(),
+        };
+        drop(is_loading);
+        info!(
+            "Loading model '{}' for a background transcription",
+            model_id
+        );
+        self.load_model(model_id)?;
+        if get_settings(&self.app_handle).selected_model != model_id {
+            *self.job_model.lock().unwrap() = Some(model_id.to_string());
+        }
+        Ok(true)
+    }
+
+    /// After the background jobs end: a model a job loaded in place of the
+    /// selected one is replaced on the next use.
+    pub fn release_job_model(&self) {
+        if self.holds_job_model() {
+            self.reload_model_on_next_use();
+        }
     }
 
     /// The unload every automatic path uses (idle timeout, "Immediately").
@@ -583,6 +669,10 @@ impl TranscriptionManager {
     ) -> Result<()> {
         let load_start = std::time::Instant::now();
         debug!("Starting to load model: {}", model_id);
+        // Before the load is sent: a job's run that started earlier sees
+        // the count change and doesn't trust the model it ran on.
+        self.loads_begun.fetch_add(1, Ordering::SeqCst);
+        *self.job_model.lock().unwrap() = None;
 
         // Emit loading started event
         let _ = self.app_handle.emit(
@@ -762,7 +852,7 @@ impl TranscriptionManager {
         }
 
         let reload_pending = self.reload_model_on_next_use.load(Ordering::Acquire);
-        if !reload_pending && self.is_model_loaded() {
+        if !reload_pending && self.is_model_loaded() && !self.holds_job_model() {
             return false;
         }
 
@@ -837,7 +927,9 @@ impl TranscriptionManager {
     /// model.
     pub fn ensure_model_unlocked(&self) -> std::result::Result<(), String> {
         if self.job_active() {
-            return Err("The model can't change while a file is transcribing".to_string());
+            return Err(
+                "The model can't change while a background transcription is running".to_string(),
+            );
         }
         Ok(())
     }
@@ -898,8 +990,9 @@ impl TranscriptionManager {
         };
 
         // Wait for any in-progress model load to finish (start_stream races the
-        // background load kicked off when recording starts).
-        self.wait_for_load();
+        // background load kicked off when recording starts), and never stream
+        // on a model a background job loaded.
+        self.wait_for_selected_model();
 
         // The loaded model (not the ModelManager copy) is the source of truth
         // for run-path capabilities.
@@ -1474,7 +1567,12 @@ fn join_chunks(transcripts: Vec<Transcript>) -> (String, Option<String>) {
 
 /// The language every chunk's model reported, if they all agree.
 fn agreed_language(transcripts: &[Transcript]) -> Option<String> {
-    let mut detected = transcripts.iter().map(|t| t.language.clone());
+    agree_on(transcripts.iter().map(|t| t.language.clone()))
+}
+
+/// The language every run reported, if they all agree.
+fn agree_on(languages: impl IntoIterator<Item = Option<String>>) -> Option<String> {
+    let mut detected = languages.into_iter();
     detected
         .next()
         .flatten()

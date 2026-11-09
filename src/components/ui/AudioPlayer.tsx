@@ -14,6 +14,12 @@ const revokeBlobSource = (src: string | null) => {
   if (src?.startsWith("blob:")) URL.revokeObjectURL(src);
 };
 
+/** Lets a parent move the playhead, e.g. from a transcript's timestamps. */
+export interface AudioPlayerControl {
+  /** Plays from `seconds`, loading the audio first if it isn't yet. */
+  seek: (seconds: number) => void;
+}
+
 interface AudioPlayerProps {
   /** Audio source URL. If not provided, onLoadRequest must be provided. */
   src?: string;
@@ -21,6 +27,7 @@ interface AudioPlayerProps {
   onLoadRequest?: () => Promise<string | null>;
   className?: string;
   autoPlay?: boolean;
+  controlRef?: React.MutableRefObject<AudioPlayerControl | null>;
 }
 
 interface AudioPlayerGroupContextValue {
@@ -60,6 +67,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
   onLoadRequest,
   className = "",
   autoPlay = false,
+  controlRef,
 }) => {
   const { t } = useTranslation();
   const group = useContext(AudioPlayerGroupContext);
@@ -80,6 +88,8 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
   // Use refs to avoid stale closures in animation loop
   const isPlayingRef = useRef(false);
   const isDraggingRef = useRef(false);
+  // Where a seek asked to start before the audio had loaded.
+  const pendingSeekRef = useRef<number | null>(null);
 
   // Keep refs in sync with state
   useEffect(() => {
@@ -132,7 +142,10 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
 
     const handleLoadedMetadata = () => {
       setDuration(audio.duration || 0);
-      setCurrentTime(0);
+      const seek = pendingSeekRef.current;
+      pendingSeekRef.current = null;
+      if (seek !== null) audio.currentTime = seek;
+      setCurrentTime(seek ?? 0);
     };
 
     const handleEnded = () => {
@@ -233,31 +246,62 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
       if (isPlaying) {
         audio.pause();
       } else {
-        // If no src loaded yet, request it
-        if (!src && onLoadRequest) {
-          setIsLoading(true);
-          try {
-            const newSrc = await onLoadRequest();
-            if (audioRef.current !== audio) {
-              revokeBlobSource(newSrc);
-              return;
-            }
-            if (newSrc) {
-              pendingSrcRef.current = newSrc;
-              setLoadedSrc(newSrc);
-              // Playback will be triggered by the useEffect watching loadedSrc
-            }
-          } finally {
-            if (audioRef.current === audio) setIsLoading(false);
-          }
-        } else if (src) {
-          await audio.play();
-        }
+        await startPlayback();
       }
     } catch (error) {
       console.error("Playback failed:", error);
     }
   };
+
+  const startPlayback = async () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    // If no src loaded yet, request it
+    if (!src && onLoadRequest) {
+      setIsLoading(true);
+      try {
+        const newSrc = await onLoadRequest();
+        if (audioRef.current !== audio) {
+          revokeBlobSource(newSrc);
+          return;
+        }
+        if (newSrc) {
+          pendingSrcRef.current = newSrc;
+          setLoadedSrc(newSrc);
+          // Playback will be triggered by the useEffect watching loadedSrc
+        }
+      } finally {
+        if (audioRef.current === audio) setIsLoading(false);
+      }
+    } else if (src) {
+      await audio.play();
+    }
+  };
+
+  // Reassigned after every render so the control always sees the current source.
+  useEffect(() => {
+    if (!controlRef) return;
+    controlRef.current = {
+      seek: (seconds) => {
+        const audio = audioRef.current;
+        if (!audio || isLoading) return;
+        if (src) {
+          audio.currentTime = seconds;
+          setCurrentTime(seconds);
+          if (!isPlaying) {
+            audio.play().catch((error) => {
+              console.error("Playback failed:", error);
+            });
+          }
+          return;
+        }
+        pendingSeekRef.current = seconds;
+        startPlayback().catch((error) => {
+          console.error("Playback failed:", error);
+        });
+      },
+    };
+  });
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newTime = parseFloat(e.target.value);

@@ -29,8 +29,10 @@ import "./i18n";
 import { useModelStore } from "./stores/modelStore";
 import { useNoticeStore } from "./stores/noticeStore";
 import { useTranscriptionJobsStore } from "./stores/transcriptionJobsStore";
+import { useMeetingsStore } from "./stores/meetingsStore";
 useModelStore.getState().initialize();
 useTranscriptionJobsStore.getState().initialize();
+useMeetingsStore.getState().initialize();
 useNoticeStore.getState().initialize();
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(

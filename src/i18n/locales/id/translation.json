@@ -10,7 +10,9 @@
     "secureInputWarning": "⚠ Pintasan diblokir oleh Secure Input",
     "language": "Bahasa",
     "autoLanguage": "Otomatis",
-    "otherLanguages": "Bahasa Lain"
+    "otherLanguages": "Bahasa Lain",
+    "startMeeting": "Rekam Rapat",
+    "stopMeeting": "Hentikan Perekaman Rapat"
   },
   "sidebar": {
     "general": "Umum",
@@ -20,7 +22,152 @@
     "history": "Riwayat",
     "bin": "Tempat Sampah",
     "debug": "Debug",
-    "about": "Tentang"
+    "about": "Tentang",
+    "meetings": "Rapat"
+  },
+  "meetings": {
+    "cancel": "Batal",
+    "defaultTitle": "Rapat pada {{date}}",
+    "duration": {
+      "seconds": "{{seconds}} dtk",
+      "minutes": "{{minutes}} mnt",
+      "hours": "{{hours}} j {{minutes}} mnt"
+    },
+    "speakers": {
+      "me": "Saya",
+      "them": "Mereka",
+      "numbered": "Pembicara {{number}}"
+    },
+    "record": {
+      "title": "Rekam rapat",
+      "sources": {
+        "both": "Merekam mikrofon Anda (Saya) dan semua yang diputar PC Anda (Mereka), lalu mentranskripsikan keduanya setelah panggilan.",
+        "microphone": "Hanya merekam mikrofon Anda (Saya), lalu mentranskripsikannya setelah panggilan.",
+        "system": "Hanya merekam yang diputar PC Anda (Mereka), lalu mentranskripsikannya setelah panggilan."
+      },
+      "start": "Rekam rapat",
+      "stop": "Hentikan",
+      "recording": "Merekam",
+      "sourceOff": "Tidak direkam",
+      "sourceReconnecting": "Menyambungkan ulang...",
+      "sourceFailed": "Tidak tersedia",
+      "startFailed": "Tidak dapat mulai merekam rapat.",
+      "stopFailed": "Tidak dapat menghentikan perekaman rapat."
+    },
+    "status": {
+      "recording": "Merekam",
+      "queued": "Dalam antrean",
+      "transcribing": "Mentranskripsikan",
+      "transcribingPercent": "Mentranskripsikan, {{percent}}%",
+      "failed": "Gagal",
+      "notTranscribed": "Belum ditranskripsikan",
+      "recovered": "Dipulihkan"
+    },
+    "list": {
+      "loading": "Memuat rapat...",
+      "empty": "Belum ada rapat. Rekam satu rapat untuk mendapatkan transkripsi dari kedua pihak dalam panggilan.",
+      "today": "Hari ini",
+      "yesterday": "Kemarin",
+      "speakers_one": "{{count}} pembicara",
+      "speakers_other": "{{count}} pembicara"
+    },
+    "detail": {
+      "back": "Kembali ke rapat",
+      "title": "Judul rapat",
+      "recordingNow": "Rapat ini sedang direkam. Rapat akan ditranskripsikan saat Anda menghentikannya.",
+      "queued": "Menunggu untuk ditranskripsikan.",
+      "failed": "Transkripsi gagal.",
+      "retry": "Coba lagi",
+      "notTranscribed": "Belum ditranskripsikan.",
+      "transcribe": "Transkripsikan",
+      "recovered": "Aplikasi tertutup saat rapat ini sedang direkam. Audionya tersimpan hingga saat itu.",
+      "audioBinned": "Audio ada di Tempat Sampah, jadi tidak dapat diputar atau ditranskripsikan lagi. Anda dapat memulihkannya dari Tempat Sampah.",
+      "restoreAudio": "Pulihkan audio",
+      "audioDeleted": "Audio telah dihapus. Transkripsinya tetap ada.",
+      "retranscribe": "Transkripsikan ulang...",
+      "copy": "Salin transkripsi",
+      "copied": "Disalin",
+      "exportTranscript": "Ekspor transkripsi",
+      "saveAudio": "Simpan audio...",
+      "openFolder": "Buka folder",
+      "binAudio": "Pindahkan audio ke Tempat Sampah",
+      "binMeeting": "Pindahkan rapat ke Tempat Sampah",
+      "speakers": "Pembicara",
+      "renameSpeaker": "Ganti nama pembicara",
+      "transcript": "Transkripsi",
+      "noSpeech": "Tidak ada ucapan yang ditemukan dalam rapat ini.",
+      "playFrom": "Putar dari sini",
+      "movedToBin": "Rapat dipindahkan ke Tempat Sampah",
+      "audioMovedToBin": "Audio dipindahkan ke Tempat Sampah",
+      "undo": "Urungkan",
+      "undoFailed": "Tidak dapat memulihkannya. Item masih ada di Tempat Sampah.",
+      "renameFailed": "Tidak dapat mengganti nama. Silakan coba lagi.",
+      "transcribeFailed": "Tidak dapat memulai transkripsi.",
+      "cancelFailed": "Tidak dapat membatalkan transkripsi.",
+      "copyFailed": "Tidak dapat menyalin transkripsi.",
+      "exportFailed": "Tidak dapat mengekspor transkripsi.",
+      "saveAudioFailed": "Tidak dapat menyimpan audio.",
+      "openFolderFailed": "Tidak dapat membuka folder rapat.",
+      "audioFailed": "Tidak dapat memuat audio rapat.",
+      "binFailed": "Tidak dapat memindahkan rapat ke Tempat Sampah.",
+      "binAudioFailed": "Tidak dapat memindahkan audio ke Tempat Sampah."
+    },
+    "export": {
+      "txt": "Teks",
+      "md": "Markdown",
+      "srt": "Subtitel (SRT)",
+      "vtt": "WebVTT",
+      "json": "JSON",
+      "wav": "Audio WAV"
+    },
+    "model": {
+      "sameAsDictation": "Sama dengan dikte",
+      "sameAsDictationNamed": "Sama dengan dikte ({{model}})"
+    },
+    "retranscribe": {
+      "title": "Transkripsikan ulang rapat",
+      "model": "Model",
+      "hint": "Model yang lebih besar lebih lambat tetapi lebih akurat. Transkripsi saat ini tetap ada sampai yang baru selesai.",
+      "moreModels": "Butuh model lain?",
+      "openModels": "Unduh lebih banyak di Model",
+      "confirm": "Transkripsikan ulang"
+    },
+    "settings": {
+      "title": "Pengaturan rapat",
+      "description": "Apa yang direkam, cara mentranskripsikannya, dan berapa lama audionya disimpan",
+      "sources": {
+        "title": "Rekam",
+        "description": "Saya adalah mikrofon yang dipilih di Umum; Mereka adalah semua yang diputar PC Anda.",
+        "both": "Mikrofon dan audio sistem",
+        "microphone": "Hanya mikrofon",
+        "system": "Hanya audio sistem"
+      },
+      "model": {
+        "title": "Model transkripsi",
+        "description": "Rapat dapat menggunakan model yang lebih besar dan lebih akurat daripada dikte."
+      },
+      "speakerLabels": {
+        "title": "Label pembicara",
+        "description": "Bedakan siapa yang berbicara di sisi lain panggilan, hingga 4 pembicara.",
+        "downloadHint": "Mengaktifkan ini akan mengunduh model label pembicara.",
+        "downloadingHint": "Mengunduh model label pembicara.",
+        "stopDownload": "Hentikan pengunduhan model label pembicara"
+      },
+      "retention": {
+        "title": "Simpan audio rapat",
+        "description": "Audio yang tidak Anda simpan dipindahkan ke Tempat Sampah. Transkripsi selalu tetap ada.",
+        "keep": "Simpan",
+        "after_transcription": "Setelah transkripsi",
+        "days_7": "Setelah 7 hari",
+        "days_30": "Setelah 30 hari",
+        "days_90": "Setelah 90 hari",
+        "confirmTitle": "Pindahkan audio rapat ke Tempat Sampah?",
+        "confirmDescription_one": "Memindahkan audio dari {{count}} rapat ke Tempat Sampah. Transkripsinya tetap ada.",
+        "confirmDescription_other": "Memindahkan audio dari {{count}} rapat ke Tempat Sampah. Transkripsinya tetap ada.",
+        "confirm": "Pindahkan ke Tempat Sampah",
+        "countFailed": "Tidak dapat memeriksa audio rapat. Silakan coba lagi."
+      }
+    }
   },
   "onboarding": {
     "customModelDescription": "Tidak didukung secara resmi",
@@ -724,7 +871,7 @@
     },
     "bin": {
       "loading": "Memuat Tempat Sampah...",
-      "empty": "Tempat Sampah kosong. Dikte dan rekaman yang dihapus tetap di sini sampai Anda menghapusnya secara permanen.",
+      "empty": "Tempat Sampah kosong. Dikte, rekaman, dan rapat yang dihapus tetap di sini sampai Anda menghapusnya secara permanen.",
       "loadFailed": "Tidak dapat memuat Tempat Sampah.",
       "emptyBin": "Kosongkan Tempat Sampah",
       "emptyTitle": "Kosongkan Tempat Sampah?",
@@ -742,7 +889,10 @@
       "deleteTitle": "Hapus secara permanen?",
       "deleteDescription": "Item ini akan dihapus secara permanen. Tindakan ini tidak dapat diurungkan.",
       "deleteFailed": "Tidak dapat menghapusnya. Filenya mungkin sedang digunakan.",
-      "cancel": "Batal"
+      "cancel": "Batal",
+      "meetingAudio": "Audio {{meeting}}",
+      "meetingAudioNote": "Hanya audionya yang ada di sini. Rapat dan transkripsinya masih ada di Rapat.",
+      "meetingNote": "Seluruh rapat, beserta transkripsinya dan audio apa pun yang dimilikinya."
     },
     "debug": {
       "logDirectory": {

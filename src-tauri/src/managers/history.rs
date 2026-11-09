@@ -7,10 +7,13 @@ use serde::{Deserialize, Serialize};
 use specta::Type;
 use std::fs;
 use std::path::PathBuf;
-use tauri::AppHandle;
+use std::sync::Arc;
+use tauri::{AppHandle, Manager};
 use tauri_specta::Event;
 
 use crate::language_detection::{LanguageDecision, LanguageSource};
+use crate::managers::meeting::store::MEETINGS_TABLE;
+use crate::managers::meeting::{Meeting, MeetingStore};
 use crate::settings::RecordingRetentionPeriod;
 
 /// Database migrations for transcription history.
@@ -89,7 +92,8 @@ pub enum HistoryUpdatePayload {
     Toggled { id: i64 },
 }
 
-/// What a Bin item holds.
+/// What a Bin item holds. Restoring or deleting one takes the entry's id, or
+/// the meeting's.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[serde(rename_all = "snake_case")]
 pub enum BinItemKind {
@@ -97,19 +101,40 @@ pub enum BinItemKind {
     Entry,
     /// Only a recording; its entry is still in History, keeping its text.
     Recording,
+    /// A whole meeting, with its audio if it still had it.
+    Meeting,
+    /// Only a meeting's audio; the meeting is still in Meetings, keeping its
+    /// transcript.
+    MeetingAudio,
 }
 
 /// Something in the Bin. Nothing leaves the Bin except by restoring it or
 /// deleting it for good.
 #[derive(Clone, Debug, Serialize, Deserialize, Type)]
 pub struct BinItem {
-    /// The entry it belongs to. A `recording` item's entry is still in History.
-    pub entry: HistoryEntry,
+    /// The entry, for `entry` and `recording` items. A `recording` item's entry
+    /// is still in History.
+    pub entry: Option<HistoryEntry>,
+    /// The meeting, for `meeting` and `meeting_audio` items. A `meeting_audio`
+    /// item's meeting is still in Meetings.
+    pub meeting: Option<Meeting>,
     pub kind: BinItemKind,
     /// When it went to the Bin, in Unix seconds.
     pub binned_at: i64,
-    /// Its recording in the recordings folder; empty when it has none.
+    /// An entry's recording in the recordings folder; empty when it has none,
+    /// and for meetings.
     pub recording: String,
+}
+
+impl BinItem {
+    /// The id restoring or deleting it takes.
+    fn id(&self) -> i64 {
+        match (&self.entry, &self.meeting) {
+            (Some(entry), _) => entry.id,
+            (None, Some(meeting)) => meeting.id,
+            (None, None) => 0,
+        }
+    }
 }
 
 /// The Bin's contents changed; `count` items are in it now.
@@ -231,6 +256,8 @@ impl HistoryManager {
         // the database, while an extra table or nullable column is invisible
         // to them.
         conn.execute_batch(BIN_TABLES)?;
+        // The Bin lists meetings too, so their table is always there.
+        conn.execute_batch(MEETINGS_TABLE)?;
         for table in ["transcription_history", "binned_entries"] {
             for column in ADDED_COLUMNS {
                 if !Self::has_column(conn, table, column)? {
@@ -714,7 +741,8 @@ impl HistoryManager {
                 let entry = Self::map_history_entry(row)?;
                 Ok(BinItem {
                     recording: entry.file_name.clone(),
-                    entry,
+                    entry: Some(entry),
+                    meeting: None,
                     kind: BinItemKind::Entry,
                     binned_at: row.get("binned_at")?,
                 })
@@ -730,7 +758,8 @@ impl HistoryManager {
         for (id, recording, binned_at) in recordings {
             if let Some(entry) = Self::entry_with_conn(conn, id).optional()? {
                 items.push(BinItem {
-                    entry,
+                    entry: Some(entry),
+                    meeting: None,
                     kind: BinItemKind::Recording,
                     binned_at,
                     recording,
@@ -738,16 +767,34 @@ impl HistoryManager {
             }
         }
 
-        items.sort_by(|a, b| {
-            b.binned_at
-                .cmp(&a.binned_at)
-                .then(b.entry.id.cmp(&a.entry.id))
-        });
+        for binned in MeetingStore::binned_with_conn(conn)? {
+            items.push(BinItem {
+                entry: None,
+                kind: if binned.whole {
+                    BinItemKind::Meeting
+                } else {
+                    BinItemKind::MeetingAudio
+                },
+                meeting: Some(binned.meeting),
+                binned_at: binned.binned_at,
+                recording: String::new(),
+            });
+        }
+
+        items.sort_by(|a, b| b.binned_at.cmp(&a.binned_at).then(b.id().cmp(&a.id())));
         Ok(items)
     }
 
+    /// The meeting store, for the Bin's meeting items.
+    fn meetings(&self) -> Result<Arc<MeetingStore>> {
+        self.app_handle
+            .try_state::<Arc<MeetingStore>>()
+            .map(|store| Arc::clone(&store))
+            .ok_or_else(|| anyhow!("Meetings are not available"))
+    }
+
     /// Puts a Bin item back: an entry returns to History, a recording to its
-    /// entry.
+    /// entry, a meeting to Meetings and a meeting's audio to its meeting.
     pub fn restore_bin_item(&self, id: i64, kind: BinItemKind) -> Result<()> {
         let mut conn = self.get_connection()?;
         let payload = match kind {
@@ -757,6 +804,12 @@ impl HistoryManager {
             BinItemKind::Recording => HistoryUpdatePayload::Updated {
                 entry: Self::restore_recording_with_conn(&mut conn, id)?,
             },
+            BinItemKind::Meeting | BinItemKind::MeetingAudio => {
+                self.meetings()?
+                    .restore_bin_item(id, kind == BinItemKind::Meeting)?;
+                self.announce_bin(&conn);
+                return Ok(());
+            }
         };
         debug!("Restored {:?} {} from the Bin", kind, id);
         self.announce(payload);
@@ -835,6 +888,12 @@ impl HistoryManager {
     /// keeping the item, when the file can't be deleted.
     pub fn delete_bin_item(&self, id: i64, kind: BinItemKind) -> Result<()> {
         let conn = self.get_connection()?;
+        if matches!(kind, BinItemKind::Meeting | BinItemKind::MeetingAudio) {
+            self.meetings()?
+                .delete_bin_item(id, kind == BinItemKind::Meeting)?;
+            self.announce_bin(&conn);
+            return Ok(());
+        }
         let (select, delete) = Self::bin_item_queries(kind);
         let file_name: String = conn
             .query_row(select, params![id], |row| row.get(0))
@@ -855,7 +914,7 @@ impl HistoryManager {
         for kind in [BinItemKind::Entry, BinItemKind::Recording] {
             let query = match kind {
                 BinItemKind::Entry => "SELECT id, file_name FROM binned_entries",
-                BinItemKind::Recording => "SELECT entry_id, file_name FROM binned_recordings",
+                _ => "SELECT entry_id, file_name FROM binned_recordings",
             };
             let rows: Vec<(i64, String)> = conn
                 .prepare(query)?
@@ -873,19 +932,24 @@ impl HistoryManager {
             conn.execute(Self::bin_item_queries(kind).1, params![id])?;
             deleted += 1;
         }
+        match self.meetings() {
+            Ok(meetings) => deleted += meetings.empty_bin()?,
+            Err(e) => warn!("Emptying the Bin without meetings: {}", e),
+        }
         info!("Emptied the Bin: {} items deleted for good", deleted);
         self.announce_bin(&conn);
         Ok(deleted)
     }
 
-    /// The queries that read a Bin item's file name and delete the item.
+    /// The queries that read an entry or recording Bin item's file name and
+    /// delete the item.
     fn bin_item_queries(kind: BinItemKind) -> (&'static str, &'static str) {
         match kind {
             BinItemKind::Entry => (
                 "SELECT file_name FROM binned_entries WHERE id = ?1",
                 "DELETE FROM binned_entries WHERE id = ?1",
             ),
-            BinItemKind::Recording => (
+            _ => (
                 "SELECT file_name FROM binned_recordings WHERE entry_id = ?1",
                 "DELETE FROM binned_recordings WHERE entry_id = ?1",
             ),
@@ -921,13 +985,23 @@ impl HistoryManager {
         }
     }
 
+    /// Tells the UI how many items the Bin holds now, after a meeting or its
+    /// audio moved.
+    pub fn announce_bin_changed(&self) {
+        match self.get_connection() {
+            Ok(conn) => self.announce_bin(&conn),
+            Err(e) => error!("Failed to count the Bin: {}", e),
+        }
+    }
+
     /// Tells the UI how many items the Bin holds now.
     fn announce_bin(&self, conn: &Connection) {
         let count = conn.query_row(
             "SELECT (SELECT COUNT(*) FROM binned_entries) + (SELECT COUNT(*) FROM binned_recordings)",
             [],
-            |row| row.get(0),
-        );
+            |row| row.get::<_, u32>(0),
+        )
+        .and_then(|entries| Ok(entries + MeetingStore::bin_count_with_conn(conn)?));
         match count {
             Ok(count) => {
                 if let Err(e) = (BinChanged { count }).emit(&self.app_handle) {
@@ -1283,6 +1357,8 @@ mod tests {
         assert_eq!(items[0].kind, BinItemKind::Entry);
         assert_eq!(items[0].recording, "handy-100.wav");
         assert_eq!(items[0].binned_at, 600);
+        assert_eq!(items[0].entry.as_ref().map(|e| e.id), Some(1));
+        assert!(items[0].meeting.is_none());
 
         // Restored, it has its id and text back, and the recording is in the
         // Bin again, as it was.
@@ -1348,5 +1424,46 @@ mod tests {
             HistoryManager::recordings_to_bin(&conn, None, in_use).unwrap(),
             vec![1, 5]
         );
+    }
+
+    #[test]
+    fn the_bin_lists_meetings_and_meeting_audio_beside_entries() {
+        let mut conn = migrated_conn();
+        insert_entry(&conn, 100, "said", None);
+        HistoryManager::bin_entries_with_conn(&mut conn, &[1], 500).unwrap();
+        conn.execute_batch(
+            "INSERT INTO meetings (started_at, status, binned_at) VALUES (10, 'ready', 700);
+             INSERT INTO meetings (started_at, status, audio, audio_binned_at)
+                 VALUES (20, 'ready', 'binned', 600);
+             INSERT INTO meetings (started_at, status) VALUES (30, 'ready');",
+        )
+        .unwrap();
+
+        let items = HistoryManager::bin_items_with_conn(&conn).unwrap();
+        let listed: Vec<(BinItemKind, i64)> = items
+            .iter()
+            .map(|item| (item.kind, item.binned_at))
+            .collect();
+        assert_eq!(
+            listed,
+            vec![
+                (BinItemKind::Meeting, 700),
+                (BinItemKind::MeetingAudio, 600),
+                (BinItemKind::Entry, 500),
+            ]
+        );
+        assert!(items[0].entry.is_none());
+        assert_eq!(items[0].meeting.as_ref().map(|m| m.id), Some(1));
+        assert_eq!(items[0].recording, "");
+        assert_eq!(items[1].meeting.as_ref().map(|m| m.id), Some(2));
+        assert_eq!(items[2].entry.as_ref().map(|e| e.id), Some(1));
+
+        // Restored whole, the meeting leaves the Bin; restored, the audio
+        // goes back to its meeting.
+        MeetingStore::restore_with_conn(&conn, 1).unwrap();
+        MeetingStore::restore_audio_with_conn(&conn, 2).unwrap();
+        let items = HistoryManager::bin_items_with_conn(&conn).unwrap();
+        assert_eq!(items.len(), 1);
+        assert_eq!(items[0].kind, BinItemKind::Entry);
     }
 }

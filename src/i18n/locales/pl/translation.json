@@ -10,7 +10,9 @@
     "secureInputWarning": "⚠ Skróty zablokowane przez Secure Input",
     "language": "Język",
     "autoLanguage": "Automatycznie",
-    "otherLanguages": "Inne języki"
+    "otherLanguages": "Inne języki",
+    "startMeeting": "Nagraj spotkanie",
+    "stopMeeting": "Zatrzymaj nagrywanie spotkania"
   },
   "sidebar": {
     "general": "Ogólne",
@@ -20,7 +22,152 @@
     "history": "Historia",
     "bin": "Kosz",
     "debug": "Debugowanie",
-    "about": "O programie"
+    "about": "O programie",
+    "meetings": "Spotkania"
+  },
+  "meetings": {
+    "cancel": "Anuluj",
+    "defaultTitle": "Spotkanie {{date}}",
+    "duration": {
+      "seconds": "{{seconds}} s",
+      "minutes": "{{minutes}} min",
+      "hours": "{{hours}} godz. {{minutes}} min"
+    },
+    "speakers": {
+      "me": "Ja",
+      "them": "Oni",
+      "numbered": "Mówca {{number}}"
+    },
+    "record": {
+      "title": "Nagraj spotkanie",
+      "sources": {
+        "both": "Nagrywa Twój mikrofon (Ja) i wszystko, co odtwarza komputer (Oni), a po rozmowie transkrybuje oba źródła.",
+        "microphone": "Nagrywa tylko Twój mikrofon (Ja), a po rozmowie go transkrybuje.",
+        "system": "Nagrywa tylko to, co odtwarza komputer (Oni), a po rozmowie to transkrybuje."
+      },
+      "start": "Nagraj spotkanie",
+      "stop": "Zatrzymaj",
+      "recording": "Nagrywanie",
+      "sourceOff": "Nie nagrywa",
+      "sourceReconnecting": "Ponowne łączenie...",
+      "sourceFailed": "Niedostępne",
+      "startFailed": "Nie udało się rozpocząć nagrywania spotkania.",
+      "stopFailed": "Nie udało się zatrzymać nagrywania spotkania."
+    },
+    "status": {
+      "recording": "Nagrywanie",
+      "queued": "W kolejce",
+      "transcribing": "Transkrypcja",
+      "transcribingPercent": "Transkrypcja {{percent}}%",
+      "failed": "Błąd",
+      "notTranscribed": "Bez transkrypcji",
+      "recovered": "Odzyskane"
+    },
+    "list": {
+      "loading": "Wczytywanie spotkań...",
+      "empty": "Nie ma jeszcze spotkań. Nagraj spotkanie, aby uzyskać transkrypcję obu stron rozmowy.",
+      "today": "Dzisiaj",
+      "yesterday": "Wczoraj",
+      "speakers_one": "{{count}} mówca",
+      "speakers_other": "Mówcy: {{count}}"
+    },
+    "detail": {
+      "back": "Wróć do spotkań",
+      "title": "Tytuł spotkania",
+      "recordingNow": "To spotkanie jest nagrywane. Transkrypcja nastąpi po zatrzymaniu.",
+      "queued": "Oczekuje na transkrypcję.",
+      "failed": "Transkrypcja nie powiodła się.",
+      "retry": "Spróbuj ponownie",
+      "notTranscribed": "Jeszcze bez transkrypcji.",
+      "transcribe": "Transkrybuj",
+      "recovered": "Aplikacja została zamknięta podczas nagrywania tego spotkania. Dźwięk zapisano do tego momentu.",
+      "audioBinned": "Dźwięk jest w koszu, więc nie można go odtworzyć ani ponownie transkrybować. Możesz go przywrócić z kosza.",
+      "restoreAudio": "Przywróć dźwięk",
+      "audioDeleted": "Dźwięk został usunięty. Transkrypcja pozostaje.",
+      "retranscribe": "Transkrybuj ponownie...",
+      "copy": "Kopiuj transkrypcję",
+      "copied": "Skopiowano",
+      "exportTranscript": "Eksportuj transkrypcję",
+      "saveAudio": "Zapisz dźwięk...",
+      "openFolder": "Otwórz folder",
+      "binAudio": "Przenieś dźwięk do kosza",
+      "binMeeting": "Przenieś spotkanie do kosza",
+      "speakers": "Mówcy",
+      "renameSpeaker": "Zmień nazwę mówcy",
+      "transcript": "Transkrypcja",
+      "noSpeech": "W tym spotkaniu nie wykryto mowy.",
+      "playFrom": "Odtwórz od tego miejsca",
+      "movedToBin": "Przeniesiono spotkanie do kosza",
+      "audioMovedToBin": "Przeniesiono dźwięk do kosza",
+      "undo": "Cofnij",
+      "undoFailed": "Nie udało się przywrócić. Nadal jest w koszu.",
+      "renameFailed": "Nie udało się zmienić nazwy. Spróbuj ponownie.",
+      "transcribeFailed": "Nie udało się rozpocząć transkrypcji.",
+      "cancelFailed": "Nie udało się anulować transkrypcji.",
+      "copyFailed": "Nie udało się skopiować transkrypcji.",
+      "exportFailed": "Nie udało się wyeksportować transkrypcji.",
+      "saveAudioFailed": "Nie udało się zapisać dźwięku.",
+      "openFolderFailed": "Nie udało się otworzyć folderu spotkania.",
+      "audioFailed": "Nie udało się wczytać dźwięku spotkania.",
+      "binFailed": "Nie udało się przenieść spotkania do kosza.",
+      "binAudioFailed": "Nie udało się przenieść dźwięku do kosza."
+    },
+    "export": {
+      "txt": "Tekst",
+      "md": "Markdown",
+      "srt": "Napisy (SRT)",
+      "vtt": "WebVTT",
+      "json": "JSON",
+      "wav": "Dźwięk WAV"
+    },
+    "model": {
+      "sameAsDictation": "Taki sam jak przy dyktowaniu",
+      "sameAsDictationNamed": "Taki sam jak przy dyktowaniu ({{model}})"
+    },
+    "retranscribe": {
+      "title": "Ponowna transkrypcja spotkania",
+      "model": "Model",
+      "hint": "Większe modele są wolniejsze, ale dokładniejsze. Obecna transkrypcja pozostanie, dopóki nowa nie będzie gotowa.",
+      "moreModels": "Potrzebujesz innego modelu?",
+      "openModels": "Pobierz więcej w sekcji Modele",
+      "confirm": "Transkrybuj ponownie"
+    },
+    "settings": {
+      "title": "Ustawienia spotkań",
+      "description": "Co jest nagrywane, jak jest transkrybowane i jak długo przechowywany jest dźwięk",
+      "sources": {
+        "title": "Nagrywaj",
+        "description": "Ja to mikrofon wybrany w sekcji Ogólne; Oni to wszystko, co odtwarza komputer.",
+        "both": "Mikrofon i dźwięk systemowy",
+        "microphone": "Tylko mikrofon",
+        "system": "Tylko dźwięk systemowy"
+      },
+      "model": {
+        "title": "Model transkrypcji",
+        "description": "Spotkania mogą używać większego, dokładniejszego modelu niż dyktowanie."
+      },
+      "speakerLabels": {
+        "title": "Oznaczanie mówców",
+        "description": "Rozróżniaj, kto mówi po drugiej stronie rozmowy (do 4 mówców).",
+        "downloadHint": "Włączenie tej opcji pobierze model oznaczania mówców.",
+        "downloadingHint": "Pobieranie modelu oznaczania mówców.",
+        "stopDownload": "Zatrzymaj pobieranie modelu oznaczania mówców"
+      },
+      "retention": {
+        "title": "Przechowywanie dźwięku spotkań",
+        "description": "Dźwięk, którego nie zachowasz, trafia do kosza. Transkrypcje zawsze pozostają.",
+        "keep": "Zachowaj",
+        "after_transcription": "Po transkrypcji",
+        "days_7": "Po 7 dniach",
+        "days_30": "Po 30 dniach",
+        "days_90": "Po 90 dniach",
+        "confirmTitle": "Przenieść dźwięk spotkań do kosza?",
+        "confirmDescription_one": "Przenosi do kosza dźwięk z {{count}} spotkania. Jego transkrypcja pozostaje.",
+        "confirmDescription_other": "Przenosi do kosza dźwięk z {{count}} spotkań. Ich transkrypcje pozostają.",
+        "confirm": "Przenieś do kosza",
+        "countFailed": "Nie udało się sprawdzić dźwięku spotkań. Spróbuj ponownie."
+      }
+    }
   },
   "onboarding": {
     "customModelDescription": "Nieoficjalnie wspierane",
@@ -724,7 +871,7 @@
     },
     "bin": {
       "loading": "Wczytywanie kosza...",
-      "empty": "Kosz jest pusty. Usunięte dyktowania i nagrania zostają tutaj, dopóki nie usuniesz ich na stałe.",
+      "empty": "Kosz jest pusty. Usunięte dyktowania, nagrania i spotkania zostają tutaj, dopóki nie usuniesz ich na stałe.",
       "loadFailed": "Nie udało się wczytać kosza.",
       "emptyBin": "Opróżnij kosz",
       "emptyTitle": "Opróżnić kosz?",
@@ -742,7 +889,10 @@
       "deleteTitle": "Usunąć na stałe?",
       "deleteDescription": "Ten element zostanie usunięty na stałe. Tej operacji nie można cofnąć.",
       "deleteFailed": "Nie udało się usunąć. Plik może być w użyciu.",
-      "cancel": "Anuluj"
+      "cancel": "Anuluj",
+      "meetingAudio": "Dźwięk ze spotkania {{meeting}}",
+      "meetingAudioNote": "Tutaj jest tylko dźwięk. Spotkanie i jego transkrypcja są nadal w Spotkaniach.",
+      "meetingNote": "Całe spotkanie wraz z transkrypcją i ewentualnym dźwiękiem."
     },
     "debug": {
       "logDirectory": {

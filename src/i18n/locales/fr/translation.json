@@ -10,7 +10,9 @@
     "secureInputWarning": "⚠ Raccourcis bloqués par Secure Input",
     "language": "Langue",
     "autoLanguage": "Automatique",
-    "otherLanguages": "Autres langues"
+    "otherLanguages": "Autres langues",
+    "startMeeting": "Enregistrer une réunion",
+    "stopMeeting": "Arrêter l'enregistrement de la réunion"
   },
   "sidebar": {
     "general": "Général",
@@ -20,7 +22,152 @@
     "history": "Historique",
     "bin": "Corbeille",
     "debug": "Débogage",
-    "about": "À propos"
+    "about": "À propos",
+    "meetings": "Réunions"
+  },
+  "meetings": {
+    "cancel": "Annuler",
+    "defaultTitle": "Réunion du {{date}}",
+    "duration": {
+      "seconds": "{{seconds}} s",
+      "minutes": "{{minutes}} min",
+      "hours": "{{hours}} h {{minutes}} min"
+    },
+    "speakers": {
+      "me": "Moi",
+      "them": "Eux",
+      "numbered": "Intervenant {{number}}"
+    },
+    "record": {
+      "title": "Enregistrer une réunion",
+      "sources": {
+        "both": "Enregistre votre micro (Moi) et tout ce que votre PC diffuse (Eux), puis transcrit les deux après l'appel.",
+        "microphone": "Enregistre uniquement votre micro (Moi), puis le transcrit après l'appel.",
+        "system": "Enregistre uniquement ce que votre PC diffuse (Eux), puis le transcrit après l'appel."
+      },
+      "start": "Enregistrer la réunion",
+      "stop": "Arrêter",
+      "recording": "Enregistrement",
+      "sourceOff": "Non enregistré",
+      "sourceReconnecting": "Reconnexion...",
+      "sourceFailed": "Indisponible",
+      "startFailed": "Impossible de démarrer l'enregistrement de la réunion.",
+      "stopFailed": "Impossible d'arrêter l'enregistrement de la réunion."
+    },
+    "status": {
+      "recording": "Enregistrement",
+      "queued": "En file d'attente",
+      "transcribing": "Transcription",
+      "transcribingPercent": "Transcription, {{percent}} %",
+      "failed": "Échec",
+      "notTranscribed": "Non transcrit",
+      "recovered": "Récupéré"
+    },
+    "list": {
+      "loading": "Chargement des réunions...",
+      "empty": "Aucune réunion pour le moment. Enregistrez-en une pour obtenir la transcription des deux côtés d'un appel.",
+      "today": "Aujourd'hui",
+      "yesterday": "Hier",
+      "speakers_one": "{{count}} intervenant",
+      "speakers_other": "{{count}} intervenants"
+    },
+    "detail": {
+      "back": "Retour aux réunions",
+      "title": "Titre de la réunion",
+      "recordingNow": "Cette réunion est en cours d'enregistrement. Elle sera transcrite lorsque vous l'arrêterez.",
+      "queued": "En attente de transcription.",
+      "failed": "La transcription a échoué.",
+      "retry": "Réessayer",
+      "notTranscribed": "Pas encore transcrit.",
+      "transcribe": "Transcrire",
+      "recovered": "L'application s'est fermée pendant l'enregistrement de cette réunion. Son audio a été sauvegardé jusqu'à ce moment.",
+      "audioBinned": "L'audio est dans la corbeille, il ne peut donc pas être lu ni re-transcrit. Vous pouvez le restaurer depuis la corbeille.",
+      "restoreAudio": "Restaurer l'audio",
+      "audioDeleted": "L'audio a été supprimé. La transcription est conservée.",
+      "retranscribe": "Re-transcrire...",
+      "copy": "Copier la transcription",
+      "copied": "Copié",
+      "exportTranscript": "Exporter la transcription",
+      "saveAudio": "Enregistrer l'audio...",
+      "openFolder": "Ouvrir le dossier",
+      "binAudio": "Placer l'audio dans la corbeille",
+      "binMeeting": "Placer la réunion dans la corbeille",
+      "speakers": "Intervenants",
+      "renameSpeaker": "Renommer l'intervenant",
+      "transcript": "Transcription",
+      "noSpeech": "Aucune parole n'a été détectée dans cette réunion.",
+      "playFrom": "Lire à partir d'ici",
+      "movedToBin": "Réunion placée dans la corbeille",
+      "audioMovedToBin": "Audio placé dans la corbeille",
+      "undo": "Annuler",
+      "undoFailed": "Impossible de la restaurer. Elle est toujours dans la corbeille.",
+      "renameFailed": "Impossible de renommer. Veuillez réessayer.",
+      "transcribeFailed": "Impossible de démarrer la transcription.",
+      "cancelFailed": "Impossible d'annuler la transcription.",
+      "copyFailed": "Impossible de copier la transcription.",
+      "exportFailed": "Impossible d'exporter la transcription.",
+      "saveAudioFailed": "Impossible d'enregistrer l'audio.",
+      "openFolderFailed": "Impossible d'ouvrir le dossier de la réunion.",
+      "audioFailed": "Impossible de charger l'audio de la réunion.",
+      "binFailed": "Impossible de placer la réunion dans la corbeille.",
+      "binAudioFailed": "Impossible de placer l'audio dans la corbeille."
+    },
+    "export": {
+      "txt": "Texte",
+      "md": "Markdown",
+      "srt": "Sous-titres (SRT)",
+      "vtt": "WebVTT",
+      "json": "JSON",
+      "wav": "Audio WAV"
+    },
+    "model": {
+      "sameAsDictation": "Identique à la dictée",
+      "sameAsDictationNamed": "Identique à la dictée ({{model}})"
+    },
+    "retranscribe": {
+      "title": "Re-transcrire la réunion",
+      "model": "Modèle",
+      "hint": "Les modèles plus grands sont plus lents mais plus précis. La transcription actuelle est conservée jusqu'à ce que la nouvelle soit prête.",
+      "moreModels": "Besoin d'un autre modèle ?",
+      "openModels": "En télécharger d'autres dans Modèles",
+      "confirm": "Re-transcrire"
+    },
+    "settings": {
+      "title": "Paramètres des réunions",
+      "description": "Ce qui est enregistré, comment c'est transcrit et combien de temps l'audio est conservé",
+      "sources": {
+        "title": "Enregistrer",
+        "description": "Moi est le micro choisi dans Général ; Eux est tout ce que votre PC diffuse.",
+        "both": "Micro et audio système",
+        "microphone": "Micro uniquement",
+        "system": "Audio système uniquement"
+      },
+      "model": {
+        "title": "Modèle de transcription",
+        "description": "Les réunions peuvent utiliser un modèle plus grand et plus précis que la dictée."
+      },
+      "speakerLabels": {
+        "title": "Identification des intervenants",
+        "description": "Distingue qui parle de l'autre côté de l'appel, jusqu'à 4 intervenants.",
+        "downloadHint": "L'activation télécharge le modèle d'identification des intervenants.",
+        "downloadingHint": "Téléchargement du modèle d'identification des intervenants.",
+        "stopDownload": "Arrêter le téléchargement du modèle d'identification des intervenants"
+      },
+      "retention": {
+        "title": "Conserver l'audio des réunions",
+        "description": "L'audio non conservé passe dans la corbeille. Les transcriptions sont toujours conservées.",
+        "keep": "Conserver",
+        "after_transcription": "Après la transcription",
+        "days_7": "Après 7 jours",
+        "days_30": "Après 30 jours",
+        "days_90": "Après 90 jours",
+        "confirmTitle": "Placer l'audio des réunions dans la corbeille ?",
+        "confirmDescription_one": "Place l'audio de {{count}} réunion dans la corbeille. Sa transcription est conservée.",
+        "confirmDescription_other": "Place l'audio de {{count}} réunions dans la corbeille. Leurs transcriptions sont conservées.",
+        "confirm": "Placer dans la corbeille",
+        "countFailed": "Impossible de vérifier l'audio des réunions. Veuillez réessayer."
+      }
+    }
   },
   "onboarding": {
     "customModelDescription": "Non officiellement pris en charge",
@@ -724,7 +871,7 @@
     },
     "bin": {
       "loading": "Chargement de la corbeille...",
-      "empty": "La corbeille est vide. Les dictées et enregistrements supprimés restent ici jusqu'à leur suppression définitive.",
+      "empty": "La corbeille est vide. Les dictées, enregistrements et réunions supprimés restent ici jusqu'à leur suppression définitive.",
       "loadFailed": "Impossible de charger la corbeille.",
       "emptyBin": "Vider la corbeille",
       "emptyTitle": "Vider la corbeille ?",
@@ -742,7 +889,10 @@
       "deleteTitle": "Supprimer définitivement ?",
       "deleteDescription": "Cet élément sera supprimé définitivement. Cette action est irréversible.",
       "deleteFailed": "Impossible de le supprimer. Son fichier est peut-être en cours d'utilisation.",
-      "cancel": "Annuler"
+      "cancel": "Annuler",
+      "meetingAudio": "Audio de {{meeting}}",
+      "meetingAudioNote": "Seul l'audio est ici. La réunion et sa transcription sont toujours dans Réunions.",
+      "meetingNote": "La réunion entière, avec sa transcription et son éventuel audio."
     },
     "debug": {
       "logDirectory": {

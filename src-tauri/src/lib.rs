@@ -43,6 +43,8 @@ pub use utils::env_flag_enabled;
 use env_filter::Builder as EnvFilterBuilder;
 use managers::audio::AudioRecordingManager;
 use managers::history::HistoryManager;
+use managers::meeting::capture::{recover_interrupted, MeetingRecorder};
+use managers::meeting::MeetingStore;
 use managers::model::ModelManager;
 use managers::transcription::TranscriptionManager;
 use managers::transcription_jobs::TranscriptionJobManager;
@@ -221,7 +223,24 @@ fn initialize_core_logic(app_handle: &AppHandle) {
     app_handle.manage(transcription_manager.clone());
     app_handle.manage(history_manager.clone());
     app_handle.manage(tray::TrayState::new());
-    app_handle.manage(TranscriptionJobManager::new(app_handle));
+    // The store before the jobs and recorder that use it.
+    app_handle.manage(Arc::new(
+        MeetingStore::new(app_handle).expect("Failed to initialize meeting storage"),
+    ));
+    let jobs = TranscriptionJobManager::new(app_handle);
+    app_handle.manage(Arc::clone(&jobs));
+    app_handle.manage(MeetingRecorder::new(app_handle));
+
+    // Meetings left by the last run: recordings cut short are saved and
+    // queued, transcriptions that were queued or running are queued again,
+    // then the audio retention catches up. Off the startup path: a
+    // recovered track is repaired first.
+    let meetings_app = app_handle.clone();
+    std::thread::spawn(move || {
+        recover_interrupted(&meetings_app);
+        jobs.resume_meetings();
+        jobs.apply_meeting_retention();
+    });
 
     // Note: Shortcuts are NOT initialized here.
     // The frontend is responsible for calling the `initialize_shortcuts` command
@@ -329,7 +348,10 @@ fn initialize_core_logic(app_handle: &AppHandle) {
                 cancel_current_operation(app);
             }
             "quit" => {
-                app.exit(0);
+                tray::quit(app);
+            }
+            "meeting_toggle" => {
+                tray::toggle_meeting(app);
             }
             id if id.starts_with("model_select:") => {
                 let model_id = id.strip_prefix("model_select:").unwrap().to_string();
@@ -824,11 +846,36 @@ pub fn run(cli_args: CliArgs) {
             commands::history::empty_bin,
             commands::history::count_recordings,
             commands::history::bin_recordings,
+            commands::meetings::start_meeting,
+            commands::meetings::stop_meeting,
+            commands::meetings::get_meeting_recording,
+            commands::meetings::get_meetings,
+            commands::meetings::get_meeting,
+            commands::meetings::rename_meeting,
+            commands::meetings::rename_meeting_speaker,
+            commands::meetings::transcribe_meeting,
+            commands::meetings::cancel_meeting_transcription,
+            commands::meetings::bin_meeting,
+            commands::meetings::bin_meeting_audio,
+            commands::meetings::get_meeting_audio_path,
+            commands::meetings::export_meeting_audio,
+            commands::meetings::export_meeting_transcript,
+            commands::meetings::get_meeting_folder,
+            commands::meetings::count_meeting_audio_to_bin,
+            commands::meetings::change_meeting_sources_setting,
+            commands::meetings::change_meeting_model_setting,
+            commands::meetings::change_meeting_speaker_labels_setting,
+            commands::meetings::change_meeting_audio_retention_setting,
+            commands::meetings::is_diarizer_downloaded,
+            commands::meetings::download_diarizer,
         ])
         .events(collect_events![
             managers::history::HistoryUpdatePayload,
             managers::history::BinChanged,
             managers::transcription_jobs::TranscriptionJob,
+            managers::meeting::MeetingUpdate,
+            managers::meeting::capture::MeetingRecordingChanged,
+            managers::meeting::capture::MeetingLevels,
             managers::transcription::StreamTextEvent,
             managers::transcription::StreamPhaseEvent,
             transcription_coordinator::RecordingStateEvent,
@@ -921,6 +968,8 @@ pub fn run(cli_args: CliArgs) {
                 signal_handle::send_transcription_input(app, "transcribe_with_post_process", "CLI");
             } else if args.iter().any(|a| a == "--cancel") {
                 crate::utils::cancel_current_operation(app);
+            } else if args.iter().any(|a| a == "--toggle-meeting") {
+                tray::toggle_meeting(app);
             } else {
                 // A second process was launched without remote-control flags
                 // (e.g. the binary run from a shell). On macOS, relaunching the
@@ -1179,8 +1228,6 @@ pub fn run(cli_args: CliArgs) {
     #[cfg(target_os = "macos")]
     apply_startup_activation_policy(&mut app, headless_mode);
 
-    // `app` is only used by the macOS arm.
-    #[cfg_attr(not(target_os = "macos"), allow(unused_variables))]
     app.run(|app, event| match &event {
         #[cfg(target_os = "macos")]
         tauri::RunEvent::Reopen { .. } => {
@@ -1198,6 +1245,13 @@ pub fn run(cli_args: CliArgs) {
                 tray::recreate_tray_icon(app);
             }
             show_main_window(app);
+        }
+        // A meeting being recorded is saved (its tracks finalized and its
+        // transcription queued for the next launch); bounded to a few seconds.
+        tauri::RunEvent::Exit => {
+            if let Some(recorder) = app.try_state::<Arc<MeetingRecorder>>() {
+                recorder.shutdown();
+            }
         }
         // No transcription teardown on exit: transcribe.cpp runs only in the
         // worker process, which exits by itself as soon as this process's end

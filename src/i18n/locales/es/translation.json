@@ -10,7 +10,9 @@
     "secureInputWarning": "⚠ Atajos bloqueados por Secure Input",
     "language": "Idioma",
     "autoLanguage": "Automático",
-    "otherLanguages": "Otros idiomas"
+    "otherLanguages": "Otros idiomas",
+    "startMeeting": "Grabar reunión",
+    "stopMeeting": "Detener grabación de reunión"
   },
   "sidebar": {
     "general": "General",
@@ -20,7 +22,152 @@
     "history": "Historial",
     "bin": "Papelera",
     "debug": "Depuración",
-    "about": "Acerca de"
+    "about": "Acerca de",
+    "meetings": "Reuniones"
+  },
+  "meetings": {
+    "cancel": "Cancelar",
+    "defaultTitle": "Reunión del {{date}}",
+    "duration": {
+      "seconds": "{{seconds}} s",
+      "minutes": "{{minutes}} min",
+      "hours": "{{hours}} h {{minutes}} min"
+    },
+    "speakers": {
+      "me": "Yo",
+      "them": "Ellos",
+      "numbered": "Hablante {{number}}"
+    },
+    "record": {
+      "title": "Grabar una reunión",
+      "sources": {
+        "both": "Graba tu micrófono (Yo) y todo lo que reproduce tu PC (Ellos), y transcribe ambos después de la llamada.",
+        "microphone": "Graba solo tu micrófono (Yo) y lo transcribe después de la llamada.",
+        "system": "Graba solo lo que reproduce tu PC (Ellos) y lo transcribe después de la llamada."
+      },
+      "start": "Grabar reunión",
+      "stop": "Detener",
+      "recording": "Grabando",
+      "sourceOff": "Sin grabar",
+      "sourceReconnecting": "Reconectando...",
+      "sourceFailed": "No disponible",
+      "startFailed": "No se pudo iniciar la grabación de la reunión.",
+      "stopFailed": "No se pudo detener la grabación de la reunión."
+    },
+    "status": {
+      "recording": "Grabando",
+      "queued": "En cola",
+      "transcribing": "Transcribiendo",
+      "transcribingPercent": "Transcribiendo, {{percent}} %",
+      "failed": "Error",
+      "notTranscribed": "Sin transcribir",
+      "recovered": "Recuperada"
+    },
+    "list": {
+      "loading": "Cargando reuniones...",
+      "empty": "Aún no hay reuniones. Graba una para obtener la transcripción de ambos lados de una llamada.",
+      "today": "Hoy",
+      "yesterday": "Ayer",
+      "speakers_one": "{{count}} hablante",
+      "speakers_other": "{{count}} hablantes"
+    },
+    "detail": {
+      "back": "Volver a reuniones",
+      "title": "Título de la reunión",
+      "recordingNow": "Esta reunión se está grabando. Se transcribirá cuando la detengas.",
+      "queued": "Esperando para transcribir.",
+      "failed": "La transcripción falló.",
+      "retry": "Reintentar",
+      "notTranscribed": "Aún sin transcribir.",
+      "transcribe": "Transcribir",
+      "recovered": "La aplicación se cerró mientras se grababa esta reunión. Su audio se guardó hasta ese momento.",
+      "audioBinned": "El audio está en la papelera, así que no se puede reproducir ni volver a transcribir. Puedes restaurarlo desde la papelera.",
+      "restoreAudio": "Restaurar audio",
+      "audioDeleted": "El audio se eliminó. La transcripción se conserva.",
+      "retranscribe": "Re-transcribir...",
+      "copy": "Copiar transcripción",
+      "copied": "Copiado",
+      "exportTranscript": "Exportar transcripción",
+      "saveAudio": "Guardar audio...",
+      "openFolder": "Abrir carpeta",
+      "binAudio": "Mover audio a la papelera",
+      "binMeeting": "Mover reunión a la papelera",
+      "speakers": "Hablantes",
+      "renameSpeaker": "Cambiar nombre del hablante",
+      "transcript": "Transcripción",
+      "noSpeech": "No se detectó habla en esta reunión.",
+      "playFrom": "Reproducir desde aquí",
+      "movedToBin": "Reunión movida a la papelera",
+      "audioMovedToBin": "Audio movido a la papelera",
+      "undo": "Deshacer",
+      "undoFailed": "No se pudo restaurar. Sigue en la papelera.",
+      "renameFailed": "No se pudo cambiar el nombre. Inténtalo de nuevo.",
+      "transcribeFailed": "No se pudo iniciar la transcripción.",
+      "cancelFailed": "No se pudo cancelar la transcripción.",
+      "copyFailed": "No se pudo copiar la transcripción.",
+      "exportFailed": "No se pudo exportar la transcripción.",
+      "saveAudioFailed": "No se pudo guardar el audio.",
+      "openFolderFailed": "No se pudo abrir la carpeta de la reunión.",
+      "audioFailed": "No se pudo cargar el audio de la reunión.",
+      "binFailed": "No se pudo mover la reunión a la papelera.",
+      "binAudioFailed": "No se pudo mover el audio a la papelera."
+    },
+    "export": {
+      "txt": "Texto",
+      "md": "Markdown",
+      "srt": "Subtítulos (SRT)",
+      "vtt": "WebVTT",
+      "json": "JSON",
+      "wav": "Audio WAV"
+    },
+    "model": {
+      "sameAsDictation": "Igual que el dictado",
+      "sameAsDictationNamed": "Igual que el dictado ({{model}})"
+    },
+    "retranscribe": {
+      "title": "Re-transcribir reunión",
+      "model": "Modelo",
+      "hint": "Los modelos más grandes son más lentos pero más precisos. La transcripción actual se conserva hasta que la nueva esté lista.",
+      "moreModels": "¿Necesitas otro modelo?",
+      "openModels": "Descarga más en Modelos",
+      "confirm": "Re-transcribir"
+    },
+    "settings": {
+      "title": "Configuración de reuniones",
+      "description": "Qué se graba, cómo se transcribe y cuánto tiempo se conserva su audio",
+      "sources": {
+        "title": "Grabar",
+        "description": "Yo es el micrófono elegido en General; Ellos es todo lo que reproduce tu PC.",
+        "both": "Micrófono y audio del sistema",
+        "microphone": "Solo micrófono",
+        "system": "Solo audio del sistema"
+      },
+      "model": {
+        "title": "Modelo de transcripción",
+        "description": "Las reuniones pueden usar un modelo más grande y preciso que el dictado."
+      },
+      "speakerLabels": {
+        "title": "Etiquetas de hablantes",
+        "description": "Distingue quién habla al otro lado de la llamada, hasta 4 hablantes.",
+        "downloadHint": "Al activarlo se descarga el modelo de etiquetas de hablantes.",
+        "downloadingHint": "Descargando el modelo de etiquetas de hablantes.",
+        "stopDownload": "Detener la descarga del modelo de etiquetas de hablantes"
+      },
+      "retention": {
+        "title": "Conservar audio de reuniones",
+        "description": "El audio que no se conserva pasa a la papelera. Las transcripciones siempre se conservan.",
+        "keep": "Conservar",
+        "after_transcription": "Después de transcribir",
+        "days_7": "Después de 7 días",
+        "days_30": "Después de 30 días",
+        "days_90": "Después de 90 días",
+        "confirmTitle": "¿Mover el audio de las reuniones a la papelera?",
+        "confirmDescription_one": "Mueve el audio de {{count}} reunión a la papelera. Su transcripción se conserva.",
+        "confirmDescription_other": "Mueve el audio de {{count}} reuniones a la papelera. Sus transcripciones se conservan.",
+        "confirm": "Mover a la papelera",
+        "countFailed": "No se pudo comprobar el audio de las reuniones. Inténtalo de nuevo."
+      }
+    }
   },
   "onboarding": {
     "customModelDescription": "Sin soporte oficial",
@@ -724,7 +871,7 @@
     },
     "bin": {
       "loading": "Cargando la papelera...",
-      "empty": "La papelera está vacía. Los dictados y grabaciones eliminados se quedan aquí hasta que los elimines definitivamente.",
+      "empty": "La papelera está vacía. Los dictados, grabaciones y reuniones eliminados se quedan aquí hasta que los elimines definitivamente.",
       "loadFailed": "No se pudo cargar la papelera.",
       "emptyBin": "Vaciar papelera",
       "emptyTitle": "¿Vaciar la papelera?",
@@ -742,7 +889,10 @@
       "deleteTitle": "¿Eliminar definitivamente?",
       "deleteDescription": "Este elemento se eliminará definitivamente. No se puede deshacer.",
       "deleteFailed": "No se pudo eliminar. Puede que su archivo esté en uso.",
-      "cancel": "Cancelar"
+      "cancel": "Cancelar",
+      "meetingAudio": "Audio de {{meeting}}",
+      "meetingAudioNote": "Aquí solo está el audio. La reunión y su transcripción siguen en Reuniones.",
+      "meetingNote": "La reunión completa, con su transcripción y el audio que tuviera."
     },
     "debug": {
       "logDirectory": {

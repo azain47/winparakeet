@@ -1151,6 +1151,245 @@ async binRecordings(olderThanDays: number | null) : Promise<Result<number, strin
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
+},
+/**
+ * Starts recording a meeting from the sources `meeting_sources` asks for.
+ * Fails when a meeting is already recording or no source could open.
+ */
+async startMeeting() : Promise<Result<Meeting, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("start_meeting") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Stops the meeting being recorded, saves its audio and queues its
+ * transcription.
+ */
+async stopMeeting() : Promise<Result<Meeting, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("stop_meeting") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * The meeting being recorded, if any.
+ */
+async getMeetingRecording() : Promise<Result<MeetingRecording | null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_meeting_recording") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Every meeting that isn't in the Bin, newest first.
+ */
+async getMeetings() : Promise<Result<Meeting[], string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_meetings") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * A meeting with its transcript.
+ */
+async getMeeting(id: number) : Promise<Result<MeetingDetail, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_meeting", { id }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Sets a meeting's title; an empty one shows its date.
+ */
+async renameMeeting(id: number, title: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("rename_meeting", { id, title }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Names a speaker of a meeting; `null` goes back to the default label.
+ * Only the name changes, never the transcript.
+ */
+async renameMeetingSpeaker(id: number, speaker: string, name: string | null) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("rename_meeting_speaker", { id, speaker, name }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Queues a meeting's (re)transcription with `modelId`, or with the
+ * `meeting_model` setting when `null`. Its current transcript stays until the
+ * new one is done. Needs the meeting's audio.
+ */
+async transcribeMeeting(id: number, modelId: string | null) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("transcribe_meeting", { id, modelId }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Stops a meeting's queued or running transcription; its transcript from
+ * before, if any, stays.
+ */
+async cancelMeetingTranscription(id: number) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("cancel_meeting_transcription", { id }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Moves a meeting, with its audio, to the Bin.
+ */
+async binMeeting(id: number) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("bin_meeting", { id }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Moves only a meeting's audio to the Bin; its transcript stays.
+ */
+async binMeetingAudio(id: number) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("bin_meeting_audio", { id }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * The meeting's audio with both sides mixed, for playback: a 16 kHz mono
+ * WAV, made on first use.
+ */
+async getMeetingAudioPath(id: number) : Promise<Result<string, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_meeting_audio_path", { id }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Writes the mixed audio (see `get_meeting_audio_path`) to `path`.
+ */
+async exportMeetingAudio(id: number, path: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("export_meeting_audio", { id, path }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Writes the transcript to `path` in `format`. `speakerNames` has the name
+ * to print for every speaker key in it.
+ */
+async exportMeetingTranscript(id: number, format: MeetingTranscriptFormat, path: string, speakerNames: Partial<{ [key in string]: string }>) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("export_meeting_transcript", { id, format, path, speakerNames }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * The meeting's folder, holding each side's own track (`microphone.wav`,
+ * `system.wav`).
+ */
+async getMeetingFolder(id: number) : Promise<Result<string, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_meeting_folder", { id }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * How many meetings' audio `retention` would move to the Bin right now.
+ */
+async countMeetingAudioToBin(retention: MeetingAudioRetention) : Promise<Result<number, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("count_meeting_audio_to_bin", { retention }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async changeMeetingSourcesSetting(sources: MeetingSources) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_meeting_sources_setting", { sources }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async changeMeetingModelSetting(modelId: string | null) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_meeting_model_setting", { modelId }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async changeMeetingSpeakerLabelsSetting(enabled: boolean) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_meeting_speaker_labels_setting", { enabled }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Saves the setting and applies it: meetings whose audio it no longer keeps
+ * move it to the Bin.
+ */
+async changeMeetingAudioRetentionSetting(retention: MeetingAudioRetention) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("change_meeting_audio_retention_setting", { retention }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Whether the speaker-label model (Sortformer, 4 speakers) is downloaded.
+ */
+async isDiarizerDownloaded() : Promise<boolean> {
+    return await TAURI_INVOKE("is_diarizer_downloaded");
+},
+/**
+ * Downloads the speaker-label model; progress arrives like the language
+ * detector's.
+ */
+async downloadDiarizer() : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("download_diarizer") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 }
 }
 
@@ -1160,6 +1399,9 @@ async binRecordings(olderThanDays: number | null) : Promise<Result<number, strin
 export const events = __makeEvents__<{
 binChanged: BinChanged,
 historyUpdatePayload: HistoryUpdatePayload,
+meetingLevels: MeetingLevels,
+meetingRecordingChanged: MeetingRecordingChanged,
+meetingUpdate: MeetingUpdate,
 noticesChanged: NoticesChanged,
 recordingStateEvent: RecordingStateEvent,
 streamPhaseEvent: StreamPhaseEvent,
@@ -1169,6 +1411,9 @@ transcriptionJob: TranscriptionJob
 }>({
 binChanged: "bin-changed",
 historyUpdatePayload: "history-update-payload",
+meetingLevels: "meeting-levels",
+meetingRecordingChanged: "meeting-recording-changed",
+meetingUpdate: "meeting-update",
 noticesChanged: "notices-changed",
 recordingStateEvent: "recording-state-event",
 streamPhaseEvent: "stream-phase-event",
@@ -1228,7 +1473,15 @@ selected_channel?: number | null; clamshell_microphone?: string | null; selected
  * Every language the person dictates in (codes, e.g. ["en", "zh"]),
  * picked during onboarding. Empty until then.
  */
-spoken_languages?: string[]; overlay_position?: OverlayPosition; debug_mode?: boolean; log_level?: LogLevel; custom_words?: string[]; model_unload_timeout?: ModelUnloadTimeout; word_correction_threshold?: number; history_limit?: number; recording_retention_period?: RecordingRetentionPeriod; paste_method?: PasteMethod; clipboard_handling?: ClipboardHandling; auto_submit?: boolean; auto_submit_key?: AutoSubmitKey; post_process_enabled?: boolean; post_process_provider_id?: string; post_process_providers?: PostProcessProvider[]; post_process_api_keys?: SecretMap; post_process_models?: Partial<{ [key in string]: string }>; post_process_prompts?: LLMPrompt[]; post_process_selected_prompt_id?: string | null; mute_while_recording?: boolean; append_trailing_space?: boolean; app_language?: string; theme?: Theme; experimental_enabled?: boolean; lazy_stream_close?: boolean; 
+spoken_languages?: string[]; overlay_position?: OverlayPosition; debug_mode?: boolean; log_level?: LogLevel; custom_words?: string[]; model_unload_timeout?: ModelUnloadTimeout; word_correction_threshold?: number; history_limit?: number; recording_retention_period?: RecordingRetentionPeriod; meeting_sources?: MeetingSources; 
+/**
+ * The model meetings are transcribed with; `null` uses `selected_model`.
+ */
+meeting_model?: string | null; 
+/**
+ * Split the other side of a meeting into speakers (needs the diarizer).
+ */
+meeting_speaker_labels?: boolean; meeting_audio_retention?: MeetingAudioRetention; paste_method?: PasteMethod; clipboard_handling?: ClipboardHandling; auto_submit?: boolean; auto_submit_key?: AutoSubmitKey; post_process_enabled?: boolean; post_process_provider_id?: string; post_process_providers?: PostProcessProvider[]; post_process_api_keys?: SecretMap; post_process_models?: Partial<{ [key in string]: string }>; post_process_prompts?: LLMPrompt[]; post_process_selected_prompt_id?: string | null; mute_while_recording?: boolean; append_trailing_space?: boolean; app_language?: string; theme?: Theme; experimental_enabled?: boolean; lazy_stream_close?: boolean; 
 /**
  * Experimental, macOS only: move a Bluetooth headset (AirPods) to this
  * Mac while recording, so its microphone does not return silence while
@@ -1299,19 +1552,27 @@ export type BinChanged = { count: number }
  */
 export type BinItem = { 
 /**
- * The entry it belongs to. A `recording` item's entry is still in History.
+ * The entry, for `entry` and `recording` items. A `recording` item's entry
+ * is still in History.
  */
-entry: HistoryEntry; kind: BinItemKind; 
+entry: HistoryEntry | null; 
+/**
+ * The meeting, for `meeting` and `meeting_audio` items. A `meeting_audio`
+ * item's meeting is still in Meetings.
+ */
+meeting: Meeting | null; kind: BinItemKind; 
 /**
  * When it went to the Bin, in Unix seconds.
  */
 binned_at: number; 
 /**
- * Its recording in the recordings folder; empty when it has none.
+ * An entry's recording in the recordings folder; empty when it has none,
+ * and for meetings.
  */
 recording: string }
 /**
- * What a Bin item holds.
+ * What a Bin item holds. Restoring or deleting one takes the entry's id, or
+ * the meeting's.
  */
 export type BinItemKind = 
 /**
@@ -1321,8 +1582,129 @@ export type BinItemKind =
 /**
  * Only a recording; its entry is still in History, keeping its text.
  */
-"recording"
+"recording" | 
+/**
+ * A whole meeting, with its audio if it still had it.
+ */
+"meeting" | 
+/**
+ * Only a meeting's audio; the meeting is still in Meetings, keeping its
+ * transcript.
+ */
+"meeting_audio"
 export type BindingResponse = { success: boolean; binding: ShortcutBinding | null; error: string | null }
+/**
+ * A recorded meeting. `started_at` is in Unix seconds.
+ */
+export type Meeting = { id: number; 
+/**
+ * Empty until the user names it; the UI then shows its date.
+ */
+title: string; started_at: number; duration_ms: number; status: MeetingStatus; 
+/**
+ * 0-100 while `transcribing`, otherwise `null`.
+ */
+progress: number | null; 
+/**
+ * Why the last transcription failed, while `status` is `failed`.
+ */
+error: string | null; 
+/**
+ * The model the current transcript was made with; `null` before one is.
+ */
+model_id: string | null; language: string | null; 
+/**
+ * Which sides were recorded: `microphone.wav` and `system.wav`.
+ */
+has_microphone: boolean; has_system_audio: boolean; audio: MeetingAudio; 
+/**
+ * The recording was cut short (the app closed or crashed) and was saved up
+ * to that point on the next launch.
+ */
+recovered: boolean; 
+/**
+ * The speakers in the transcript, in order of first appearance.
+ */
+speakers: MeetingSpeaker[] }
+/**
+ * Where a meeting's audio is. Re-transcribing and playback need `kept`.
+ */
+export type MeetingAudio = "kept" | "binned" | "deleted"
+/**
+ * Which retention moves a meeting's audio to the Bin, and when. Transcripts
+ * always stay.
+ */
+export type MeetingAudioRetention = "keep" | "after_transcription" | "days_7" | "days_30" | "days_90"
+export type MeetingDetail = { meeting: Meeting; segments: MeetingSegment[] }
+/**
+ * Input levels of the meeting being recorded, about ten times a second.
+ * Levels run 0-1.
+ */
+export type MeetingLevels = { meeting_id: number; elapsed_ms: number; microphone: number; system_audio: number }
+/**
+ * The meeting being recorded. `started_at` is in Unix seconds.
+ */
+export type MeetingRecording = { meeting_id: number; started_at: number; elapsed_ms: number; microphone: MeetingSourceState; system_audio: MeetingSourceState }
+/**
+ * A meeting started or stopped recording, or a source's state changed.
+ */
+export type MeetingRecordingChanged = { recording: MeetingRecording | null }
+/**
+ * One utterance of the transcript, times from the start of the meeting.
+ * `speaker` is `me`, `them` (the other side, not split into speakers) or
+ * `s1`..`s4`.
+ */
+export type MeetingSegment = { speaker: string; start_ms: number; end_ms: number; text: string }
+export type MeetingSourceState = 
+/**
+ * Not recorded: the setting leaves it out.
+ */
+"off" | "recording" | 
+/**
+ * Lost its device and is opening it again; the gap is kept as silence.
+ */
+"reconnecting" | 
+/**
+ * Couldn't be opened; the meeting records without it.
+ */
+"failed"
+export type MeetingSources = "both" | "microphone" | "system"
+/**
+ * `name` is the user's name for the speaker; `null` shows the default label.
+ * `talk_ms` is how long they speak in the transcript.
+ */
+export type MeetingSpeaker = { key: string; name: string | null; talk_ms: number }
+export type MeetingStatus = 
+/**
+ * Its audio is being recorded.
+ */
+"recording" | 
+/**
+ * Recorded but not transcribed: its transcription was cancelled.
+ */
+"recorded" | 
+/**
+ * Waiting for its transcription to start.
+ */
+"queued" | 
+/**
+ * Being transcribed; `progress` says how far.
+ */
+"transcribing" | 
+/**
+ * Transcribed.
+ */
+"ready" | 
+/**
+ * The last transcription failed; a transcript from before, if any, stays.
+ */
+"failed"
+export type MeetingTranscriptFormat = "txt" | "md" | "srt" | "vtt" | "json"
+/**
+ * A meeting was added or changed (`upserted`), or left the list for the Bin
+ * (`removed`).
+ */
+export type MeetingUpdate = { action: "upserted"; meeting: Meeting } | { action: "removed"; id: number }
 /**
  * Script applied to Mandarin and Cantonese output. Traditional carries its region
  * (Taiwan vs Hong Kong forms, e.g. 裡/裏) rather than guessing it.

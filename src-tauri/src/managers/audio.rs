@@ -596,6 +596,18 @@ impl AudioRecordingManager {
         *self.cached_device.lock().unwrap() = None;
     }
 
+    /// The recorder device ID of the dictation microphone (`None`: the
+    /// system default, also when the selected one isn't connected), for a
+    /// meeting's own microphone recorder. `fresh` looks the device up again
+    /// instead of trusting the cached ID, after that ID failed to open.
+    pub(crate) fn meeting_microphone_device(&self, fresh: bool) -> Option<String> {
+        if fresh {
+            self.invalidate_device_cache();
+        }
+        self.resolve_microphone_device(&get_settings(&self.app_handle))
+            .device
+    }
+
     fn resolve_microphone_device(&self, settings: &AppSettings) -> MicrophoneResolution {
         let desired = self.desired_microphone(settings);
         let (device_name, selected_microphone) = match desired {
@@ -780,6 +792,16 @@ impl AudioRecordingManager {
     pub fn apply_mute(&self, generation: u64) {
         let settings = get_settings(&self.app_handle);
         if !settings.mute_while_recording {
+            return;
+        }
+        // Muting the output would silence the other side of a meeting
+        // being recorded through loopback.
+        if self
+            .app_handle
+            .try_state::<Arc<crate::managers::meeting::capture::MeetingRecorder>>()
+            .is_some_and(|meetings| meetings.is_recording())
+        {
+            info!("Not muting: a meeting is recording");
             return;
         }
 

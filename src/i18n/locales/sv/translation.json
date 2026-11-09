@@ -10,7 +10,9 @@
     "secureInputWarning": "⚠ Kortkommandon blockeras av Secure Input",
     "language": "Språk",
     "autoLanguage": "Automatiskt",
-    "otherLanguages": "Andra språk"
+    "otherLanguages": "Andra språk",
+    "startMeeting": "Spela in möte",
+    "stopMeeting": "Stoppa mötesinspelning"
   },
   "sidebar": {
     "general": "Allmänt",
@@ -20,7 +22,152 @@
     "history": "Historik",
     "bin": "Papperskorg",
     "debug": "Felsökning",
-    "about": "Om"
+    "about": "Om",
+    "meetings": "Möten"
+  },
+  "meetings": {
+    "cancel": "Avbryt",
+    "defaultTitle": "Möte {{date}}",
+    "duration": {
+      "seconds": "{{seconds}} s",
+      "minutes": "{{minutes}} min",
+      "hours": "{{hours}} tim {{minutes}} min"
+    },
+    "speakers": {
+      "me": "Jag",
+      "them": "De",
+      "numbered": "Talare {{number}}"
+    },
+    "record": {
+      "title": "Spela in ett möte",
+      "sources": {
+        "both": "Spelar in din mikrofon (Jag) och allt som datorn spelar upp (De) och transkriberar båda efter samtalet.",
+        "microphone": "Spelar bara in din mikrofon (Jag) och transkriberar den efter samtalet.",
+        "system": "Spelar bara in det som datorn spelar upp (De) och transkriberar det efter samtalet."
+      },
+      "start": "Spela in möte",
+      "stop": "Stoppa",
+      "recording": "Spelar in",
+      "sourceOff": "Spelas inte in",
+      "sourceReconnecting": "Ansluter igen...",
+      "sourceFailed": "Inte tillgänglig",
+      "startFailed": "Det gick inte att börja spela in mötet.",
+      "stopFailed": "Det gick inte att stoppa inspelningen av mötet."
+    },
+    "status": {
+      "recording": "Spelar in",
+      "queued": "I kö",
+      "transcribing": "Transkriberar",
+      "transcribingPercent": "Transkriberar {{percent}} %",
+      "failed": "Misslyckades",
+      "notTranscribed": "Inte transkriberad",
+      "recovered": "Återskapad"
+    },
+    "list": {
+      "loading": "Läser in möten...",
+      "empty": "Inga möten ännu. Spela in ett för att få en transkription av båda sidor av ett samtal.",
+      "today": "I dag",
+      "yesterday": "I går",
+      "speakers_one": "{{count}} talare",
+      "speakers_other": "{{count}} talare"
+    },
+    "detail": {
+      "back": "Tillbaka till möten",
+      "title": "Mötets titel",
+      "recordingNow": "Mötet spelas in. Det transkriberas när du stoppar.",
+      "queued": "Väntar på transkribering.",
+      "failed": "Transkriberingen misslyckades.",
+      "retry": "Försök igen",
+      "notTranscribed": "Inte transkriberad ännu.",
+      "transcribe": "Transkribera",
+      "recovered": "Appen stängdes medan mötet spelades in. Ljudet sparades fram till dess.",
+      "audioBinned": "Ljudet ligger i papperskorgen, så det kan inte spelas upp eller transkriberas igen. Du kan återställa det från papperskorgen.",
+      "restoreAudio": "Återställ ljud",
+      "audioDeleted": "Ljudet har tagits bort. Transkriptionen finns kvar.",
+      "retranscribe": "Transkribera igen...",
+      "copy": "Kopiera transkription",
+      "copied": "Kopierad",
+      "exportTranscript": "Exportera transkription",
+      "saveAudio": "Spara ljud...",
+      "openFolder": "Öppna mapp",
+      "binAudio": "Flytta ljudet till papperskorgen",
+      "binMeeting": "Flytta mötet till papperskorgen",
+      "speakers": "Talare",
+      "renameSpeaker": "Byt namn på talare",
+      "transcript": "Transkription",
+      "noSpeech": "Inget tal hittades i mötet.",
+      "playFrom": "Spela upp härifrån",
+      "movedToBin": "Mötet flyttades till papperskorgen",
+      "audioMovedToBin": "Ljudet flyttades till papperskorgen",
+      "undo": "Ångra",
+      "undoFailed": "Det gick inte att återställa. Det finns kvar i papperskorgen.",
+      "renameFailed": "Det gick inte att byta namn. Försök igen.",
+      "transcribeFailed": "Det gick inte att starta transkriberingen.",
+      "cancelFailed": "Det gick inte att avbryta transkriberingen.",
+      "copyFailed": "Det gick inte att kopiera transkriptionen.",
+      "exportFailed": "Det gick inte att exportera transkriptionen.",
+      "saveAudioFailed": "Det gick inte att spara ljudet.",
+      "openFolderFailed": "Det gick inte att öppna mötets mapp.",
+      "audioFailed": "Det gick inte att läsa in mötets ljud.",
+      "binFailed": "Det gick inte att flytta mötet till papperskorgen.",
+      "binAudioFailed": "Det gick inte att flytta ljudet till papperskorgen."
+    },
+    "export": {
+      "txt": "Text",
+      "md": "Markdown",
+      "srt": "Undertexter (SRT)",
+      "vtt": "WebVTT",
+      "json": "JSON",
+      "wav": "WAV-ljud"
+    },
+    "model": {
+      "sameAsDictation": "Samma som diktering",
+      "sameAsDictationNamed": "Samma som diktering ({{model}})"
+    },
+    "retranscribe": {
+      "title": "Transkribera mötet igen",
+      "model": "Modell",
+      "hint": "Större modeller är långsammare men mer exakta. Den nuvarande transkriptionen finns kvar tills den nya är klar.",
+      "moreModels": "Behöver du en annan modell?",
+      "openModels": "Ladda ner fler under Modeller",
+      "confirm": "Transkribera igen"
+    },
+    "settings": {
+      "title": "Mötesinställningar",
+      "description": "Vad som spelas in, hur det transkriberas och hur länge ljudet sparas",
+      "sources": {
+        "title": "Spela in",
+        "description": "Jag är mikrofonen som valts under Allmänt; De är allt som datorn spelar upp.",
+        "both": "Mikrofon och systemljud",
+        "microphone": "Bara mikrofon",
+        "system": "Bara systemljud"
+      },
+      "model": {
+        "title": "Transkriberingsmodell",
+        "description": "Möten kan använda en större och mer exakt modell än diktering."
+      },
+      "speakerLabels": {
+        "title": "Talaretiketter",
+        "description": "Skilj på vem som talar på andra sidan samtalet, upp till 4 talare.",
+        "downloadHint": "Om du aktiverar detta laddas modellen för talaretiketter ner.",
+        "downloadingHint": "Laddar ner modellen för talaretiketter.",
+        "stopDownload": "Sluta ladda ner modellen för talaretiketter"
+      },
+      "retention": {
+        "title": "Spara mötesljud",
+        "description": "Ljud som du inte sparar flyttas till papperskorgen. Transkriptioner finns alltid kvar.",
+        "keep": "Behåll",
+        "after_transcription": "Efter transkribering",
+        "days_7": "Efter 7 dagar",
+        "days_30": "Efter 30 dagar",
+        "days_90": "Efter 90 dagar",
+        "confirmTitle": "Flytta mötesljud till papperskorgen?",
+        "confirmDescription_one": "Flyttar ljudet från {{count}} möte till papperskorgen. Transkriptionen finns kvar.",
+        "confirmDescription_other": "Flyttar ljudet från {{count}} möten till papperskorgen. Transkriptionerna finns kvar.",
+        "confirm": "Flytta till papperskorgen",
+        "countFailed": "Det gick inte att kontrollera mötenas ljud. Försök igen."
+      }
+    }
   },
   "onboarding": {
     "customModelDescription": "Stöds inte officiellt",
@@ -724,7 +871,7 @@
     },
     "bin": {
       "loading": "Läser in papperskorgen...",
-      "empty": "Papperskorgen är tom. Borttagna dikteringar och inspelningar stannar här tills du tar bort dem permanent.",
+      "empty": "Papperskorgen är tom. Borttagna dikteringar, inspelningar och möten stannar här tills du tar bort dem permanent.",
       "loadFailed": "Det gick inte att läsa in papperskorgen.",
       "emptyBin": "Töm papperskorgen",
       "emptyTitle": "Tömma papperskorgen?",
@@ -742,7 +889,10 @@
       "deleteTitle": "Ta bort permanent?",
       "deleteDescription": "Det här objektet tas bort permanent. Det går inte att ångra.",
       "deleteFailed": "Det gick inte att ta bort. Filen kan vara i användning.",
-      "cancel": "Avbryt"
+      "cancel": "Avbryt",
+      "meetingAudio": "Ljud från {{meeting}}",
+      "meetingAudioNote": "Bara ljudet finns här. Mötet och dess transkription finns kvar under Möten.",
+      "meetingNote": "Hela mötet, med transkription och eventuellt ljud."
     },
     "debug": {
       "logDirectory": {

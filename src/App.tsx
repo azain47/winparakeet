@@ -25,7 +25,11 @@ import {
   clearOnboardingProgress,
   type OnboardingStep as OnboardingPreviewStep,
 } from "./components/onboarding/onboardingStore";
-import { DebugSettings, ModelsSettings } from "./components/settings";
+import {
+  DebugSettings,
+  MeetingsSettings,
+  ModelsSettings,
+} from "./components/settings";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { FileDropOverlay } from "./components/FileDropOverlay";
 import { Sidebar, SidebarSection, SECTIONS_CONFIG } from "./components/Sidebar";
@@ -57,6 +61,9 @@ const renderSettingsContent = (
     return (
       <ModelsSettings onChangeLanguages={() => onSectionChange("general")} />
     );
+  }
+  if (section === "meetings") {
+    return <MeetingsSettings onOpenModels={() => onSectionChange("models")} />;
   }
   if (section === "debug") {
     return (

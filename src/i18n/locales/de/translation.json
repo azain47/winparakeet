@@ -10,7 +10,9 @@
     "secureInputWarning": "⚠ Tastenkürzel durch Secure Input blockiert",
     "language": "Sprache",
     "autoLanguage": "Automatisch",
-    "otherLanguages": "Weitere Sprachen"
+    "otherLanguages": "Weitere Sprachen",
+    "startMeeting": "Meeting aufnehmen",
+    "stopMeeting": "Meeting-Aufnahme beenden"
   },
   "sidebar": {
     "general": "Allgemein",
@@ -20,7 +22,152 @@
     "history": "Verlauf",
     "bin": "Papierkorb",
     "debug": "Debug",
-    "about": "Info"
+    "about": "Info",
+    "meetings": "Meetings"
+  },
+  "meetings": {
+    "cancel": "Abbrechen",
+    "defaultTitle": "Meeting am {{date}}",
+    "duration": {
+      "seconds": "{{seconds}} s",
+      "minutes": "{{minutes}} Min.",
+      "hours": "{{hours}} Std. {{minutes}} Min."
+    },
+    "speakers": {
+      "me": "Ich",
+      "them": "Andere",
+      "numbered": "Sprecher {{number}}"
+    },
+    "record": {
+      "title": "Meeting aufnehmen",
+      "sources": {
+        "both": "Nimmt dein Mikrofon (Ich) und alles auf, was dein PC abspielt (Andere), und transkribiert beides nach dem Gespräch.",
+        "microphone": "Nimmt nur dein Mikrofon (Ich) auf und transkribiert es nach dem Gespräch.",
+        "system": "Nimmt nur auf, was dein PC abspielt (Andere), und transkribiert es nach dem Gespräch."
+      },
+      "start": "Meeting aufnehmen",
+      "stop": "Beenden",
+      "recording": "Aufnahme läuft",
+      "sourceOff": "Wird nicht aufgenommen",
+      "sourceReconnecting": "Verbinde neu...",
+      "sourceFailed": "Nicht verfügbar",
+      "startFailed": "Die Meeting-Aufnahme konnte nicht gestartet werden.",
+      "stopFailed": "Die Meeting-Aufnahme konnte nicht beendet werden."
+    },
+    "status": {
+      "recording": "Aufnahme läuft",
+      "queued": "In Warteschlange",
+      "transcribing": "Transkribiere",
+      "transcribingPercent": "Transkribiere, {{percent}} %",
+      "failed": "Fehlgeschlagen",
+      "notTranscribed": "Nicht transkribiert",
+      "recovered": "Wiederhergestellt"
+    },
+    "list": {
+      "loading": "Meetings werden geladen...",
+      "empty": "Noch keine Meetings. Nimm eines auf, um eine Transkription beider Seiten eines Gesprächs zu erhalten.",
+      "today": "Heute",
+      "yesterday": "Gestern",
+      "speakers_one": "{{count}} Sprecher",
+      "speakers_other": "{{count}} Sprecher"
+    },
+    "detail": {
+      "back": "Zurück zu den Meetings",
+      "title": "Meeting-Titel",
+      "recordingNow": "Dieses Meeting wird aufgenommen. Es wird transkribiert, sobald du die Aufnahme beendest.",
+      "queued": "Wartet auf Transkription.",
+      "failed": "Transkription fehlgeschlagen.",
+      "retry": "Erneut versuchen",
+      "notTranscribed": "Noch nicht transkribiert.",
+      "transcribe": "Transkribieren",
+      "recovered": "Die App wurde während der Aufnahme dieses Meetings geschlossen. Das Audio wurde bis zu diesem Zeitpunkt gespeichert.",
+      "audioBinned": "Das Audio ist im Papierkorb und kann daher nicht abgespielt oder erneut transkribiert werden. Du kannst es aus dem Papierkorb wiederherstellen.",
+      "restoreAudio": "Audio wiederherstellen",
+      "audioDeleted": "Das Audio wurde gelöscht. Die Transkription bleibt erhalten.",
+      "retranscribe": "Erneut transkribieren...",
+      "copy": "Transkription kopieren",
+      "copied": "Kopiert",
+      "exportTranscript": "Transkription exportieren",
+      "saveAudio": "Audio speichern...",
+      "openFolder": "Ordner öffnen",
+      "binAudio": "Audio in den Papierkorb verschieben",
+      "binMeeting": "Meeting in den Papierkorb verschieben",
+      "speakers": "Sprecher",
+      "renameSpeaker": "Sprecher umbenennen",
+      "transcript": "Transkription",
+      "noSpeech": "In diesem Meeting wurde keine Sprache erkannt.",
+      "playFrom": "Ab hier abspielen",
+      "movedToBin": "Meeting in den Papierkorb verschoben",
+      "audioMovedToBin": "Audio in den Papierkorb verschoben",
+      "undo": "Rückgängig",
+      "undoFailed": "Wiederherstellen fehlgeschlagen. Es ist weiterhin im Papierkorb.",
+      "renameFailed": "Umbenennen fehlgeschlagen. Bitte versuche es erneut.",
+      "transcribeFailed": "Die Transkription konnte nicht gestartet werden.",
+      "cancelFailed": "Die Transkription konnte nicht abgebrochen werden.",
+      "copyFailed": "Die Transkription konnte nicht kopiert werden.",
+      "exportFailed": "Die Transkription konnte nicht exportiert werden.",
+      "saveAudioFailed": "Das Audio konnte nicht gespeichert werden.",
+      "openFolderFailed": "Der Ordner des Meetings konnte nicht geöffnet werden.",
+      "audioFailed": "Das Audio des Meetings konnte nicht geladen werden.",
+      "binFailed": "Das Meeting konnte nicht in den Papierkorb verschoben werden.",
+      "binAudioFailed": "Das Audio konnte nicht in den Papierkorb verschoben werden."
+    },
+    "export": {
+      "txt": "Text",
+      "md": "Markdown",
+      "srt": "Untertitel (SRT)",
+      "vtt": "WebVTT",
+      "json": "JSON",
+      "wav": "WAV-Audio"
+    },
+    "model": {
+      "sameAsDictation": "Wie beim Diktat",
+      "sameAsDictationNamed": "Wie beim Diktat ({{model}})"
+    },
+    "retranscribe": {
+      "title": "Meeting erneut transkribieren",
+      "model": "Modell",
+      "hint": "Größere Modelle sind langsamer, aber genauer. Die aktuelle Transkription bleibt erhalten, bis die neue fertig ist.",
+      "moreModels": "Ein anderes Modell nötig?",
+      "openModels": "Weitere unter Modelle herunterladen",
+      "confirm": "Erneut transkribieren"
+    },
+    "settings": {
+      "title": "Meeting-Einstellungen",
+      "description": "Was aufgenommen wird, wie es transkribiert wird und wie lange das Audio aufbewahrt wird",
+      "sources": {
+        "title": "Aufnehmen",
+        "description": "Ich ist das unter Allgemein gewählte Mikrofon; Andere ist alles, was dein PC abspielt.",
+        "both": "Mikrofon und Systemaudio",
+        "microphone": "Nur Mikrofon",
+        "system": "Nur Systemaudio"
+      },
+      "model": {
+        "title": "Transkriptionsmodell",
+        "description": "Für Meetings kann ein größeres, genaueres Modell als für Diktate verwendet werden."
+      },
+      "speakerLabels": {
+        "title": "Sprecherkennzeichnung",
+        "description": "Unterscheidet, wer auf der anderen Seite des Gesprächs spricht, bis zu 4 Sprecher.",
+        "downloadHint": "Beim Einschalten wird das Modell für die Sprecherkennzeichnung heruntergeladen.",
+        "downloadingHint": "Das Modell für die Sprecherkennzeichnung wird heruntergeladen.",
+        "stopDownload": "Download des Modells für die Sprecherkennzeichnung abbrechen"
+      },
+      "retention": {
+        "title": "Meeting-Audio behalten",
+        "description": "Nicht behaltenes Audio wandert in den Papierkorb. Transkriptionen bleiben immer erhalten.",
+        "keep": "Behalten",
+        "after_transcription": "Nach der Transkription",
+        "days_7": "Nach 7 Tagen",
+        "days_30": "Nach 30 Tagen",
+        "days_90": "Nach 90 Tagen",
+        "confirmTitle": "Meeting-Audio in den Papierkorb verschieben?",
+        "confirmDescription_one": "Verschiebt das Audio von {{count}} Meeting in den Papierkorb. Die Transkription bleibt erhalten.",
+        "confirmDescription_other": "Verschiebt das Audio von {{count}} Meetings in den Papierkorb. Die Transkriptionen bleiben erhalten.",
+        "confirm": "In den Papierkorb verschieben",
+        "countFailed": "Das Audio der Meetings konnte nicht geprüft werden. Bitte versuche es erneut."
+      }
+    }
   },
   "onboarding": {
     "customModelDescription": "Nicht offiziell unterstützt",
@@ -724,7 +871,7 @@
     },
     "bin": {
       "loading": "Papierkorb wird geladen...",
-      "empty": "Der Papierkorb ist leer. Gelöschte Diktate und Aufnahmen bleiben hier, bis du sie endgültig löschst.",
+      "empty": "Der Papierkorb ist leer. Gelöschte Diktate, Aufnahmen und Meetings bleiben hier, bis du sie endgültig löschst.",
       "loadFailed": "Der Papierkorb konnte nicht geladen werden.",
       "emptyBin": "Papierkorb leeren",
       "emptyTitle": "Papierkorb leeren?",
@@ -742,7 +889,10 @@
       "deleteTitle": "Endgültig löschen?",
       "deleteDescription": "Dieses Element wird endgültig gelöscht. Das kann nicht rückgängig gemacht werden.",
       "deleteFailed": "Löschen fehlgeschlagen. Die Datei wird möglicherweise verwendet.",
-      "cancel": "Abbrechen"
+      "cancel": "Abbrechen",
+      "meetingAudio": "Audio von {{meeting}}",
+      "meetingAudioNote": "Hier ist nur das Audio. Das Meeting und seine Transkription sind weiterhin unter Meetings.",
+      "meetingNote": "Das ganze Meeting mit seiner Transkription und dem zugehörigen Audio."
     },
     "debug": {
       "logDirectory": {

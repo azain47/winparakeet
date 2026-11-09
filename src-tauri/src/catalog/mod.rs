@@ -420,6 +420,47 @@ pub fn language_detector_mirrors() -> Vec<MirrorFile> {
     })
 }
 
+/// Catalog id of the speaker diarizer meetings use: Sortformer, up to four
+/// speakers. The catalog has no key naming one, so it is named here.
+const DIARIZER_ID: &str = "diar_streaming_sortformer_4spk-v2.1";
+
+/// The speaker diarizer's file, at the package's default quant.
+pub struct DiarizerFile {
+    pub repo_id: String,
+    pub revision: String,
+    pub filename: String,
+    pub size_bytes: u64,
+    sha256: String,
+}
+
+pub static DIARIZER: Lazy<Option<DiarizerFile>> = Lazy::new(|| {
+    let model = ROOT
+        .models
+        .iter()
+        .find(|m| m.id == DIARIZER_ID && m.role == "diarize")?;
+    let file = model.default_file()?;
+    Some(DiarizerFile {
+        repo_id: model.repository.clone(),
+        revision: model.revision.clone(),
+        filename: file.filename.clone(),
+        size_bytes: file.size,
+        sha256: file.sha256.clone(),
+    })
+});
+
+/// Ordered mirror URLs for the diarizer's file.
+pub fn diarizer_mirrors() -> Vec<MirrorFile> {
+    DIARIZER.as_ref().map_or_else(Vec::new, |d| {
+        mirror_files(
+            &d.repo_id,
+            &d.revision,
+            &d.filename,
+            &d.sha256,
+            d.size_bytes,
+        )
+    })
+}
+
 fn mirror_files(
     repository: &str,
     revision: &str,
@@ -509,6 +550,13 @@ mod tests {
         assert!(detector.filename.ends_with(".gguf"));
         assert!(detector.labels.iter().any(|l| l == "en"));
         assert!(detector.labels.iter().any(|l| l == "iw"));
+    }
+
+    #[test]
+    fn names_a_diarizer() {
+        let diarizer = DIARIZER.as_ref().expect("catalog has the diarizer");
+        assert!(diarizer.filename.ends_with(".gguf"));
+        assert!(diarizer.size_bytes > 0);
     }
 
     #[test]

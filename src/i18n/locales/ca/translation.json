@@ -10,7 +10,9 @@
     "secureInputWarning": "⚠ Dreceres blocades per l'entrada segura",
     "language": "Llengua",
     "autoLanguage": "Automàtica",
-    "otherLanguages": "Altres llengües"
+    "otherLanguages": "Altres llengües",
+    "startMeeting": "Enregistra una reunió",
+    "stopMeeting": "Atura l'enregistrament de la reunió"
   },
   "sidebar": {
     "general": "General",
@@ -20,7 +22,152 @@
     "history": "Historial",
     "bin": "Paperera",
     "debug": "Depuració",
-    "about": "Quant a"
+    "about": "Quant a",
+    "meetings": "Reunions"
+  },
+  "meetings": {
+    "cancel": "Cancel·la",
+    "defaultTitle": "Reunió del {{date}}",
+    "duration": {
+      "seconds": "{{seconds}} s",
+      "minutes": "{{minutes}} min",
+      "hours": "{{hours}} h {{minutes}} min"
+    },
+    "speakers": {
+      "me": "Jo",
+      "them": "Ells",
+      "numbered": "Interlocutor {{number}}"
+    },
+    "record": {
+      "title": "Enregistra una reunió",
+      "sources": {
+        "both": "Enregistra el micròfon (Jo) i tot el que reprodueix l'ordinador (Ells) i, després de la trucada, transcriu les dues parts.",
+        "microphone": "Enregistra només el micròfon (Jo) i el transcriu després de la trucada.",
+        "system": "Enregistra només el que reprodueix l'ordinador (Ells) i ho transcriu després de la trucada."
+      },
+      "start": "Enregistra la reunió",
+      "stop": "Atura",
+      "recording": "Enregistrant",
+      "sourceOff": "No s'enregistra",
+      "sourceReconnecting": "S'està tornant a connectar...",
+      "sourceFailed": "No disponible",
+      "startFailed": "No s'ha pogut començar a enregistrar la reunió.",
+      "stopFailed": "No s'ha pogut aturar l'enregistrament de la reunió."
+    },
+    "status": {
+      "recording": "Enregistrant",
+      "queued": "En cua",
+      "transcribing": "Transcrivint",
+      "transcribingPercent": "Transcrivint, {{percent}}%",
+      "failed": "Ha fallat",
+      "notTranscribed": "No transcrita",
+      "recovered": "Recuperada"
+    },
+    "list": {
+      "loading": "S'estan carregant les reunions...",
+      "empty": "Encara no hi ha reunions. Enregistra'n una per obtenir la transcripció de les dues parts d'una trucada.",
+      "today": "Avui",
+      "yesterday": "Ahir",
+      "speakers_one": "{{count}} interlocutor",
+      "speakers_other": "{{count}} interlocutors"
+    },
+    "detail": {
+      "back": "Torna a les reunions",
+      "title": "Títol de la reunió",
+      "recordingNow": "S'està enregistrant aquesta reunió. Es transcriurà quan l'aturis.",
+      "queued": "Esperant per transcriure.",
+      "failed": "La transcripció ha fallat.",
+      "retry": "Torna-ho a provar",
+      "notTranscribed": "Encara no s'ha transcrit.",
+      "transcribe": "Transcriu",
+      "recovered": "L'aplicació es va tancar mentre s'enregistrava aquesta reunió. L'àudio s'ha desat fins a aquell moment.",
+      "audioBinned": "L'àudio és a la paperera, així que no es pot reproduir ni tornar a transcriure. Pots restaurar-lo des de la paperera.",
+      "restoreAudio": "Restaura l'àudio",
+      "audioDeleted": "L'àudio s'ha suprimit. La transcripció es conserva.",
+      "retranscribe": "Torna a transcriure...",
+      "copy": "Copia la transcripció",
+      "copied": "Copiada",
+      "exportTranscript": "Exporta la transcripció",
+      "saveAudio": "Desa l'àudio...",
+      "openFolder": "Obre la carpeta",
+      "binAudio": "Mou l'àudio a la paperera",
+      "binMeeting": "Mou la reunió a la paperera",
+      "speakers": "Interlocutors",
+      "renameSpeaker": "Canvia el nom de l'interlocutor",
+      "transcript": "Transcripció",
+      "noSpeech": "No s'ha trobat cap veu en aquesta reunió.",
+      "playFrom": "Reprodueix des d'aquí",
+      "movedToBin": "S'ha mogut la reunió a la paperera",
+      "audioMovedToBin": "S'ha mogut l'àudio a la paperera",
+      "undo": "Desfés",
+      "undoFailed": "No s'ha pogut restaurar. Encara és a la paperera.",
+      "renameFailed": "No s'ha pogut canviar el nom. Torna-ho a provar.",
+      "transcribeFailed": "No s'ha pogut iniciar la transcripció.",
+      "cancelFailed": "No s'ha pogut cancel·lar la transcripció.",
+      "copyFailed": "No s'ha pogut copiar la transcripció.",
+      "exportFailed": "No s'ha pogut exportar la transcripció.",
+      "saveAudioFailed": "No s'ha pogut desar l'àudio.",
+      "openFolderFailed": "No s'ha pogut obrir la carpeta de la reunió.",
+      "audioFailed": "No s'ha pogut carregar l'àudio de la reunió.",
+      "binFailed": "No s'ha pogut moure la reunió a la paperera.",
+      "binAudioFailed": "No s'ha pogut moure l'àudio a la paperera."
+    },
+    "export": {
+      "txt": "Text",
+      "md": "Markdown",
+      "srt": "Subtítols (SRT)",
+      "vtt": "WebVTT",
+      "json": "JSON",
+      "wav": "Àudio WAV"
+    },
+    "model": {
+      "sameAsDictation": "El mateix que el dictat",
+      "sameAsDictationNamed": "El mateix que el dictat ({{model}})"
+    },
+    "retranscribe": {
+      "title": "Torna a transcriure la reunió",
+      "model": "Model",
+      "hint": "Els models més grans són més lents però més precisos. La transcripció actual es manté fins que la nova estigui llesta.",
+      "moreModels": "Necessites un altre model?",
+      "openModels": "Baixa'n més a Models",
+      "confirm": "Torna a transcriure"
+    },
+    "settings": {
+      "title": "Configuració de les reunions",
+      "description": "Què s'enregistra, com es transcriu i quant de temps se'n conserva l'àudio",
+      "sources": {
+        "title": "Enregistra",
+        "description": "Jo és el micròfon triat a General; Ells és tot el que reprodueix l'ordinador.",
+        "both": "Micròfon i àudio del sistema",
+        "microphone": "Només el micròfon",
+        "system": "Només l'àudio del sistema"
+      },
+      "model": {
+        "title": "Model de transcripció",
+        "description": "Les reunions poden fer servir un model més gran i precís que el dictat."
+      },
+      "speakerLabels": {
+        "title": "Etiquetes d'interlocutor",
+        "description": "Distingeix qui parla a l'altra banda de la trucada, fins a 4 interlocutors.",
+        "downloadHint": "En activar-ho, es baixa el model d'etiquetes d'interlocutor.",
+        "downloadingHint": "S'està baixant el model d'etiquetes d'interlocutor.",
+        "stopDownload": "Atura la baixada del model d'etiquetes d'interlocutor"
+      },
+      "retention": {
+        "title": "Conserva l'àudio de les reunions",
+        "description": "L'àudio que no conservis passa a la paperera. Les transcripcions sempre es queden.",
+        "keep": "Conserva",
+        "after_transcription": "Després de la transcripció",
+        "days_7": "Al cap de 7 dies",
+        "days_30": "Al cap de 30 dies",
+        "days_90": "Al cap de 90 dies",
+        "confirmTitle": "Vols moure l'àudio de les reunions a la paperera?",
+        "confirmDescription_one": "Mou a la paperera l'àudio de {{count}} reunió. La transcripció es queda.",
+        "confirmDescription_other": "Mou a la paperera l'àudio de {{count}} reunions. Les transcripcions es queden.",
+        "confirm": "Mou a la paperera",
+        "countFailed": "No s'ha pogut comprovar l'àudio de les reunions. Torna-ho a provar."
+      }
+    }
   },
   "onboarding": {
     "customModelDescription": "Sense suport oficial",
@@ -724,7 +871,7 @@
     },
     "bin": {
       "loading": "S'està carregant la paperera...",
-      "empty": "La paperera és buida. Els dictats i enregistraments suprimits es queden aquí fins que els suprimeixis definitivament.",
+      "empty": "La paperera és buida. Els dictats, enregistraments i reunions suprimits es queden aquí fins que els suprimeixis definitivament.",
       "loadFailed": "No s'ha pogut carregar la paperera.",
       "emptyBin": "Buida la paperera",
       "emptyTitle": "Vols buidar la paperera?",
@@ -742,7 +889,10 @@
       "deleteTitle": "Vols suprimir-ho definitivament?",
       "deleteDescription": "Aquest element se suprimirà definitivament. No es pot desfer.",
       "deleteFailed": "No s'ha pogut suprimir. Potser el seu fitxer està en ús.",
-      "cancel": "Cancel·la"
+      "cancel": "Cancel·la",
+      "meetingAudio": "Àudio de {{meeting}}",
+      "meetingAudioNote": "Aquí només hi ha l'àudio. La reunió i la seva transcripció encara són a Reunions.",
+      "meetingNote": "La reunió sencera, amb la transcripció i l'àudio que tingués."
     },
     "debug": {
       "logDirectory": {

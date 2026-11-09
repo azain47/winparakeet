@@ -239,6 +239,45 @@ impl RecordingRetentionPeriod {
     }
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Type, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum MeetingSources {
+    #[default]
+    Both,
+    Microphone,
+    System,
+}
+
+/// Which retention moves a meeting's audio to the Bin, and when. Transcripts
+/// always stay.
+// Explicit renames: specta and serde disagree on `snake_case` for digits.
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Type, Default)]
+pub enum MeetingAudioRetention {
+    #[serde(rename = "keep")]
+    #[default]
+    Keep,
+    #[serde(rename = "after_transcription")]
+    AfterTranscription,
+    #[serde(rename = "days_7")]
+    Days7,
+    #[serde(rename = "days_30")]
+    Days30,
+    #[serde(rename = "days_90")]
+    Days90,
+}
+
+impl MeetingAudioRetention {
+    /// How old a meeting's audio may get, in days, for the `Days*` choices.
+    pub fn max_age_days(self) -> Option<u32> {
+        match self {
+            Self::Days7 => Some(7),
+            Self::Days30 => Some(30),
+            Self::Days90 => Some(90),
+            Self::Keep | Self::AfterTranscription => None,
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Type)]
 #[serde(rename_all = "snake_case")]
 pub enum KeyboardImplementation {
@@ -484,6 +523,16 @@ pub struct AppSettings {
     #[serde(default = "default_recording_retention_period")]
     pub recording_retention_period: RecordingRetentionPeriod,
     #[serde(default)]
+    pub meeting_sources: MeetingSources,
+    /// The model meetings are transcribed with; `null` uses `selected_model`.
+    #[serde(default)]
+    pub meeting_model: Option<String>,
+    /// Split the other side of a meeting into speakers (needs the diarizer).
+    #[serde(default = "default_meeting_speaker_labels")]
+    pub meeting_speaker_labels: bool,
+    #[serde(default)]
+    pub meeting_audio_retention: MeetingAudioRetention,
+    #[serde(default)]
     pub paste_method: PasteMethod,
     #[serde(default)]
     pub clipboard_handling: ClipboardHandling,
@@ -698,6 +747,10 @@ fn default_history_limit() -> usize {
 
 fn default_recording_retention_period() -> RecordingRetentionPeriod {
     RecordingRetentionPeriod::PreserveLimit
+}
+
+fn default_meeting_speaker_labels() -> bool {
+    true
 }
 
 fn default_audio_feedback_volume() -> f32 {
@@ -1041,6 +1094,10 @@ pub fn get_default_settings() -> AppSettings {
         word_correction_threshold: default_word_correction_threshold(),
         history_limit: default_history_limit(),
         recording_retention_period: default_recording_retention_period(),
+        meeting_sources: MeetingSources::default(),
+        meeting_model: None,
+        meeting_speaker_labels: default_meeting_speaker_labels(),
+        meeting_audio_retention: MeetingAudioRetention::default(),
         paste_method: PasteMethod::default(),
         clipboard_handling: ClipboardHandling::default(),
         auto_submit: default_auto_submit(),

@@ -10,7 +10,9 @@
     "secureInputWarning": "⚠ Secure Input으로 단축키가 차단됨",
     "language": "언어",
     "autoLanguage": "자동",
-    "otherLanguages": "기타 언어"
+    "otherLanguages": "기타 언어",
+    "startMeeting": "회의 녹음",
+    "stopMeeting": "회의 녹음 중지"
   },
   "sidebar": {
     "general": "일반",
@@ -20,7 +22,152 @@
     "history": "히스토리",
     "bin": "휴지통",
     "debug": "디버그",
-    "about": "정보"
+    "about": "정보",
+    "meetings": "회의"
+  },
+  "meetings": {
+    "cancel": "취소",
+    "defaultTitle": "{{date}} 회의",
+    "duration": {
+      "seconds": "{{seconds}}초",
+      "minutes": "{{minutes}}분",
+      "hours": "{{hours}}시간 {{minutes}}분"
+    },
+    "speakers": {
+      "me": "나",
+      "them": "상대방",
+      "numbered": "화자 {{number}}"
+    },
+    "record": {
+      "title": "회의 녹음",
+      "sources": {
+        "both": "마이크(나)와 PC에서 재생되는 모든 소리(상대방)를 녹음하고, 통화가 끝나면 둘 다 전사합니다.",
+        "microphone": "마이크(나)만 녹음하고, 통화가 끝나면 전사합니다.",
+        "system": "PC에서 재생되는 소리(상대방)만 녹음하고, 통화가 끝나면 전사합니다."
+      },
+      "start": "회의 녹음",
+      "stop": "중지",
+      "recording": "녹음 중",
+      "sourceOff": "녹음 안 함",
+      "sourceReconnecting": "다시 연결하는 중...",
+      "sourceFailed": "사용할 수 없음",
+      "startFailed": "회의 녹음을 시작하지 못했습니다.",
+      "stopFailed": "회의 녹음을 중지하지 못했습니다."
+    },
+    "status": {
+      "recording": "녹음 중",
+      "queued": "대기 중",
+      "transcribing": "전사 중",
+      "transcribingPercent": "전사 중 {{percent}}%",
+      "failed": "실패",
+      "notTranscribed": "전사되지 않음",
+      "recovered": "복구됨"
+    },
+    "list": {
+      "loading": "회의를 불러오는 중...",
+      "empty": "아직 회의가 없습니다. 회의를 녹음하면 통화 양쪽의 전사 내용을 받을 수 있습니다.",
+      "today": "오늘",
+      "yesterday": "어제",
+      "speakers_one": "화자 {{count}}명",
+      "speakers_other": "화자 {{count}}명"
+    },
+    "detail": {
+      "back": "회의 목록으로 돌아가기",
+      "title": "회의 제목",
+      "recordingNow": "이 회의를 녹음하고 있습니다. 녹음을 중지하면 전사됩니다.",
+      "queued": "전사 대기 중입니다.",
+      "failed": "전사에 실패했습니다.",
+      "retry": "다시 시도",
+      "notTranscribed": "아직 전사되지 않았습니다.",
+      "transcribe": "전사",
+      "recovered": "이 회의를 녹음하는 동안 앱이 종료되었습니다. 그 시점까지의 오디오는 저장되었습니다.",
+      "audioBinned": "오디오가 휴지통에 있어 재생하거나 다시 전사할 수 없습니다. 휴지통에서 복원할 수 있습니다.",
+      "restoreAudio": "오디오 복원",
+      "audioDeleted": "오디오가 삭제되었습니다. 전사 내용은 남아 있습니다.",
+      "retranscribe": "다시 전사...",
+      "copy": "전사 내용 복사",
+      "copied": "복사됨",
+      "exportTranscript": "전사 내용 내보내기",
+      "saveAudio": "오디오 저장...",
+      "openFolder": "폴더 열기",
+      "binAudio": "오디오를 휴지통으로 이동",
+      "binMeeting": "회의를 휴지통으로 이동",
+      "speakers": "화자",
+      "renameSpeaker": "화자 이름 변경",
+      "transcript": "전사 내용",
+      "noSpeech": "이 회의에서 음성을 찾지 못했습니다.",
+      "playFrom": "여기부터 재생",
+      "movedToBin": "회의를 휴지통으로 이동했습니다",
+      "audioMovedToBin": "오디오를 휴지통으로 이동했습니다",
+      "undo": "실행 취소",
+      "undoFailed": "복원하지 못했습니다. 아직 휴지통에 있습니다.",
+      "renameFailed": "이름을 변경하지 못했습니다. 다시 시도해 주세요.",
+      "transcribeFailed": "전사를 시작하지 못했습니다.",
+      "cancelFailed": "전사를 취소하지 못했습니다.",
+      "copyFailed": "전사 내용을 복사하지 못했습니다.",
+      "exportFailed": "전사 내용을 내보내지 못했습니다.",
+      "saveAudioFailed": "오디오를 저장하지 못했습니다.",
+      "openFolderFailed": "회의 폴더를 열지 못했습니다.",
+      "audioFailed": "회의 오디오를 불러오지 못했습니다.",
+      "binFailed": "회의를 휴지통으로 이동하지 못했습니다.",
+      "binAudioFailed": "오디오를 휴지통으로 이동하지 못했습니다."
+    },
+    "export": {
+      "txt": "텍스트",
+      "md": "Markdown",
+      "srt": "자막(SRT)",
+      "vtt": "WebVTT",
+      "json": "JSON",
+      "wav": "WAV 오디오"
+    },
+    "model": {
+      "sameAsDictation": "받아쓰기와 동일",
+      "sameAsDictationNamed": "받아쓰기와 동일({{model}})"
+    },
+    "retranscribe": {
+      "title": "회의 다시 전사",
+      "model": "모델",
+      "hint": "모델이 클수록 느리지만 더 정확합니다. 새 전사가 완료될 때까지 현재 전사 내용은 유지됩니다.",
+      "moreModels": "다른 모델이 필요하신가요?",
+      "openModels": "모델에서 더 다운로드",
+      "confirm": "다시 전사"
+    },
+    "settings": {
+      "title": "회의 설정",
+      "description": "녹음할 대상, 전사 방법, 오디오 보관 기간",
+      "sources": {
+        "title": "녹음",
+        "description": "나는 일반에서 선택한 마이크이고, 상대방은 PC에서 재생되는 모든 소리입니다.",
+        "both": "마이크 및 시스템 오디오",
+        "microphone": "마이크만",
+        "system": "시스템 오디오만"
+      },
+      "model": {
+        "title": "전사 모델",
+        "description": "회의에는 받아쓰기보다 더 크고 정확한 모델을 사용할 수 있습니다."
+      },
+      "speakerLabels": {
+        "title": "화자 라벨",
+        "description": "통화 상대방 쪽에서 누가 말하는지 최대 4명까지 구분합니다.",
+        "downloadHint": "켜면 화자 라벨 모델을 다운로드합니다.",
+        "downloadingHint": "화자 라벨 모델을 다운로드하는 중입니다.",
+        "stopDownload": "화자 라벨 모델 다운로드 중지"
+      },
+      "retention": {
+        "title": "회의 오디오 보관",
+        "description": "보관하지 않는 오디오는 휴지통으로 이동합니다. 전사 내용은 항상 남아 있습니다.",
+        "keep": "보관",
+        "after_transcription": "전사 후",
+        "days_7": "7일 후",
+        "days_30": "30일 후",
+        "days_90": "90일 후",
+        "confirmTitle": "회의 오디오를 휴지통으로 이동할까요?",
+        "confirmDescription_one": "회의 {{count}}개의 오디오를 휴지통으로 이동합니다. 전사 내용은 남아 있습니다.",
+        "confirmDescription_other": "회의 {{count}}개의 오디오를 휴지통으로 이동합니다. 전사 내용은 남아 있습니다.",
+        "confirm": "휴지통으로 이동",
+        "countFailed": "회의 오디오를 확인하지 못했습니다. 다시 시도해 주세요."
+      }
+    }
   },
   "onboarding": {
     "customModelDescription": "공식 지원되지 않음",
@@ -724,7 +871,7 @@
     },
     "bin": {
       "loading": "휴지통을 불러오는 중...",
-      "empty": "휴지통이 비어 있습니다. 삭제한 받아쓰기와 녹음은 영구 삭제할 때까지 여기에 남아 있습니다.",
+      "empty": "휴지통이 비어 있습니다. 삭제한 받아쓰기, 녹음, 회의는 영구 삭제할 때까지 여기에 남아 있습니다.",
       "loadFailed": "휴지통을 불러오지 못했습니다.",
       "emptyBin": "휴지통 비우기",
       "emptyTitle": "휴지통을 비울까요?",
@@ -742,7 +889,10 @@
       "deleteTitle": "영구적으로 삭제할까요?",
       "deleteDescription": "이 항목은 영구적으로 삭제됩니다. 이 작업은 되돌릴 수 없습니다.",
       "deleteFailed": "삭제하지 못했습니다. 파일이 사용 중일 수 있습니다.",
-      "cancel": "취소"
+      "cancel": "취소",
+      "meetingAudio": "{{meeting}}의 오디오",
+      "meetingAudioNote": "여기에는 오디오만 있습니다. 회의와 전사 내용은 아직 회의에 있습니다.",
+      "meetingNote": "전사 내용과 오디오를 포함한 회의 전체입니다."
     },
     "debug": {
       "logDirectory": {

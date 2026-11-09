@@ -8678,6 +8678,7 @@ dependencies = [
  "futures-util",
  "gtk",
  "gtk-layer-shell",
+ "handy-cpal",
  "handy-keys",
  "handy-recorder",
  "hf-hub",

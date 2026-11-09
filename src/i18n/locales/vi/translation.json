@@ -10,7 +10,9 @@
     "secureInputWarning": "⚠ Phím tắt bị Secure Input chặn",
     "language": "Ngôn ngữ",
     "autoLanguage": "Tự động",
-    "otherLanguages": "Ngôn ngữ khác"
+    "otherLanguages": "Ngôn ngữ khác",
+    "startMeeting": "Ghi âm cuộc họp",
+    "stopMeeting": "Dừng ghi âm cuộc họp"
   },
   "sidebar": {
     "general": "Chung",
@@ -20,7 +22,152 @@
     "history": "Lịch sử",
     "bin": "Thùng rác",
     "debug": "Gỡ lỗi",
-    "about": "Giới thiệu"
+    "about": "Giới thiệu",
+    "meetings": "Cuộc họp"
+  },
+  "meetings": {
+    "cancel": "Hủy",
+    "defaultTitle": "Cuộc họp ngày {{date}}",
+    "duration": {
+      "seconds": "{{seconds}} giây",
+      "minutes": "{{minutes}} phút",
+      "hours": "{{hours}} giờ {{minutes}} phút"
+    },
+    "speakers": {
+      "me": "Tôi",
+      "them": "Họ",
+      "numbered": "Người nói {{number}}"
+    },
+    "record": {
+      "title": "Ghi âm cuộc họp",
+      "sources": {
+        "both": "Ghi âm micrô của bạn (Tôi) và mọi âm thanh máy tính phát ra (Họ), rồi chép lời cả hai sau cuộc gọi.",
+        "microphone": "Chỉ ghi âm micrô của bạn (Tôi), rồi chép lời sau cuộc gọi.",
+        "system": "Chỉ ghi âm những gì máy tính phát ra (Họ), rồi chép lời sau cuộc gọi."
+      },
+      "start": "Ghi âm cuộc họp",
+      "stop": "Dừng",
+      "recording": "Đang ghi âm",
+      "sourceOff": "Không ghi âm",
+      "sourceReconnecting": "Đang kết nối lại...",
+      "sourceFailed": "Không khả dụng",
+      "startFailed": "Không thể bắt đầu ghi âm cuộc họp.",
+      "stopFailed": "Không thể dừng ghi âm cuộc họp."
+    },
+    "status": {
+      "recording": "Đang ghi âm",
+      "queued": "Đang chờ",
+      "transcribing": "Đang chép lời",
+      "transcribingPercent": "Đang chép lời, {{percent}}%",
+      "failed": "Thất bại",
+      "notTranscribed": "Chưa chép lời",
+      "recovered": "Đã khôi phục"
+    },
+    "list": {
+      "loading": "Đang tải cuộc họp...",
+      "empty": "Chưa có cuộc họp nào. Hãy ghi âm một cuộc họp để có bản chép lời của cả hai bên cuộc gọi.",
+      "today": "Hôm nay",
+      "yesterday": "Hôm qua",
+      "speakers_one": "{{count}} người nói",
+      "speakers_other": "{{count}} người nói"
+    },
+    "detail": {
+      "back": "Quay lại danh sách cuộc họp",
+      "title": "Tiêu đề cuộc họp",
+      "recordingNow": "Cuộc họp này đang được ghi âm. Cuộc họp sẽ được chép lời khi bạn dừng.",
+      "queued": "Đang chờ chép lời.",
+      "failed": "Chép lời thất bại.",
+      "retry": "Thử lại",
+      "notTranscribed": "Chưa được chép lời.",
+      "transcribe": "Chép lời",
+      "recovered": "Ứng dụng đã đóng khi đang ghi âm cuộc họp này. Âm thanh đã được lưu đến thời điểm đó.",
+      "audioBinned": "Âm thanh đang ở trong Thùng rác nên không thể phát hoặc chép lời lại. Bạn có thể khôi phục nó từ Thùng rác.",
+      "restoreAudio": "Khôi phục âm thanh",
+      "audioDeleted": "Âm thanh đã bị xóa. Bản chép lời vẫn được giữ lại.",
+      "retranscribe": "Chép lời lại...",
+      "copy": "Sao chép bản chép lời",
+      "copied": "Đã sao chép",
+      "exportTranscript": "Xuất bản chép lời",
+      "saveAudio": "Lưu âm thanh...",
+      "openFolder": "Mở thư mục",
+      "binAudio": "Chuyển âm thanh vào Thùng rác",
+      "binMeeting": "Chuyển cuộc họp vào Thùng rác",
+      "speakers": "Người nói",
+      "renameSpeaker": "Đổi tên người nói",
+      "transcript": "Bản chép lời",
+      "noSpeech": "Không tìm thấy giọng nói nào trong cuộc họp này.",
+      "playFrom": "Phát từ đây",
+      "movedToBin": "Đã chuyển cuộc họp vào Thùng rác",
+      "audioMovedToBin": "Đã chuyển âm thanh vào Thùng rác",
+      "undo": "Hoàn tác",
+      "undoFailed": "Không thể khôi phục. Mục vẫn ở trong Thùng rác.",
+      "renameFailed": "Không thể đổi tên. Vui lòng thử lại.",
+      "transcribeFailed": "Không thể bắt đầu chép lời.",
+      "cancelFailed": "Không thể hủy chép lời.",
+      "copyFailed": "Không thể sao chép bản chép lời.",
+      "exportFailed": "Không thể xuất bản chép lời.",
+      "saveAudioFailed": "Không thể lưu âm thanh.",
+      "openFolderFailed": "Không thể mở thư mục của cuộc họp.",
+      "audioFailed": "Không thể tải âm thanh của cuộc họp.",
+      "binFailed": "Không thể chuyển cuộc họp vào Thùng rác.",
+      "binAudioFailed": "Không thể chuyển âm thanh vào Thùng rác."
+    },
+    "export": {
+      "txt": "Văn bản",
+      "md": "Markdown",
+      "srt": "Phụ đề (SRT)",
+      "vtt": "WebVTT",
+      "json": "JSON",
+      "wav": "Âm thanh WAV"
+    },
+    "model": {
+      "sameAsDictation": "Giống đọc chính tả",
+      "sameAsDictationNamed": "Giống đọc chính tả ({{model}})"
+    },
+    "retranscribe": {
+      "title": "Chép lời lại cuộc họp",
+      "model": "Mô hình",
+      "hint": "Mô hình lớn hơn chậm hơn nhưng chính xác hơn. Bản chép lời hiện tại được giữ đến khi bản mới hoàn tất.",
+      "moreModels": "Cần mô hình khác?",
+      "openModels": "Tải thêm trong Mô hình",
+      "confirm": "Chép lời lại"
+    },
+    "settings": {
+      "title": "Cài đặt cuộc họp",
+      "description": "Những gì được ghi âm, cách chép lời và thời gian giữ âm thanh",
+      "sources": {
+        "title": "Ghi âm",
+        "description": "Tôi là micrô đã chọn trong Chung; Họ là mọi âm thanh máy tính phát ra.",
+        "both": "Micrô và âm thanh hệ thống",
+        "microphone": "Chỉ micrô",
+        "system": "Chỉ âm thanh hệ thống"
+      },
+      "model": {
+        "title": "Mô hình chép lời",
+        "description": "Cuộc họp có thể dùng mô hình lớn hơn, chính xác hơn so với đọc chính tả."
+      },
+      "speakerLabels": {
+        "title": "Nhãn người nói",
+        "description": "Phân biệt ai đang nói ở phía bên kia cuộc gọi, tối đa 4 người.",
+        "downloadHint": "Bật tùy chọn này sẽ tải xuống mô hình nhãn người nói.",
+        "downloadingHint": "Đang tải xuống mô hình nhãn người nói.",
+        "stopDownload": "Dừng tải xuống mô hình nhãn người nói"
+      },
+      "retention": {
+        "title": "Giữ âm thanh cuộc họp",
+        "description": "Âm thanh không được giữ sẽ chuyển vào Thùng rác. Bản chép lời luôn được giữ lại.",
+        "keep": "Giữ lại",
+        "after_transcription": "Sau khi chép lời",
+        "days_7": "Sau 7 ngày",
+        "days_30": "Sau 30 ngày",
+        "days_90": "Sau 90 ngày",
+        "confirmTitle": "Chuyển âm thanh cuộc họp vào Thùng rác?",
+        "confirmDescription_one": "Chuyển âm thanh của {{count}} cuộc họp vào Thùng rác. Bản chép lời vẫn được giữ lại.",
+        "confirmDescription_other": "Chuyển âm thanh của {{count}} cuộc họp vào Thùng rác. Bản chép lời vẫn được giữ lại.",
+        "confirm": "Chuyển vào Thùng rác",
+        "countFailed": "Không thể kiểm tra âm thanh của các cuộc họp. Vui lòng thử lại."
+      }
+    }
   },
   "onboarding": {
     "customModelDescription": "Không được hỗ trợ chính thức",
@@ -724,7 +871,7 @@
     },
     "bin": {
       "loading": "Đang tải Thùng rác...",
-      "empty": "Thùng rác trống. Bản đọc chính tả và bản ghi âm đã xóa sẽ ở đây cho đến khi bạn xóa vĩnh viễn.",
+      "empty": "Thùng rác trống. Bản đọc chính tả, bản ghi âm và cuộc họp đã xóa sẽ ở đây cho đến khi bạn xóa vĩnh viễn.",
       "loadFailed": "Không thể tải Thùng rác.",
       "emptyBin": "Dọn sạch Thùng rác",
       "emptyTitle": "Dọn sạch Thùng rác?",
@@ -742,7 +889,10 @@
       "deleteTitle": "Xóa vĩnh viễn?",
       "deleteDescription": "Mục này sẽ bị xóa vĩnh viễn. Không thể hoàn tác.",
       "deleteFailed": "Không thể xóa. Tệp của nó có thể đang được sử dụng.",
-      "cancel": "Hủy"
+      "cancel": "Hủy",
+      "meetingAudio": "Âm thanh của {{meeting}}",
+      "meetingAudioNote": "Ở đây chỉ có âm thanh. Cuộc họp và bản chép lời của nó vẫn ở trong Cuộc họp.",
+      "meetingNote": "Toàn bộ cuộc họp, gồm bản chép lời và mọi âm thanh của nó."
     },
     "debug": {
       "logDirectory": {

@@ -21,6 +21,7 @@
 //! icon/menu/tooltip, so those must only ever be set through the applier.
 
 use crate::managers::history::{HistoryEntry, HistoryManager};
+use crate::managers::meeting::capture::MeetingRecorder;
 use crate::managers::model::{ModelInfo, ModelManager};
 use crate::managers::transcription::TranscriptionManager;
 use crate::notices::{self, NoticeCode};
@@ -57,6 +58,8 @@ impl TrayIconState {
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct MenuInputs {
     busy: bool,
+    /// A meeting is recording: its menu item stops it instead of starting one.
+    meeting_recording: bool,
     /// A background transcription holds the model, so it can't be switched
     /// or unloaded.
     models_locked: bool,
@@ -100,6 +103,9 @@ struct TrayDesired {
 struct TrayInner {
     /// Intent set by [`set_tray_state`].
     icon_state: TrayIconState,
+    /// Set by [`set_meeting_recording`]. Shows as the recording icon while
+    /// dictation is idle; dictation's own state wins while it runs.
+    meeting_recording: bool,
     /// Latest computed snapshot, waiting to be (or just) applied.
     desired: Option<TrayDesired>,
     /// Icon the native tray currently shows. Only updated when `set_icon`
@@ -127,6 +133,7 @@ impl TrayState {
     pub fn new() -> Self {
         Self(Mutex::new(TrayInner {
             icon_state: TrayIconState::Idle,
+            meeting_recording: false,
             desired: None,
             applied_icon: None,
             applied_menu: None,
@@ -242,6 +249,40 @@ pub fn set_tray_state(app: &AppHandle, state: TrayIconState) {
     sync_tray_with(app, |inner| inner.icon_state = state);
 }
 
+/// Sets whether a meeting is recording (icon + meeting menu item).
+pub fn set_meeting_recording(app: &AppHandle, recording: bool) {
+    sync_tray_with(app, |inner| inner.meeting_recording = recording);
+}
+
+/// The tray's meeting item: starts or stops recording a meeting. Off the
+/// main thread, which menu events run on: opening devices can take seconds.
+pub fn toggle_meeting(app: &AppHandle) {
+    let app = app.clone();
+    let spawned = std::thread::Builder::new()
+        .name("tray-meeting-toggle".into())
+        .spawn(move || {
+            let Some(recorder) = app.try_state::<Arc<MeetingRecorder>>() else {
+                error!("Meeting recorder is not ready");
+                return;
+            };
+            match recorder.toggle() {
+                Ok(meeting) => info!("Meeting {} toggled via tray", meeting.id),
+                Err(err) => error!("Failed to toggle the meeting via tray: {err:#}"),
+            }
+        });
+    if let Err(err) = spawned {
+        error!("Failed to toggle the meeting via tray: {err}");
+    }
+}
+
+/// The tray's Quit: saves a meeting being recorded (bounded wait), then exits.
+pub fn quit(app: &AppHandle) {
+    if let Some(recorder) = app.try_state::<Arc<MeetingRecorder>>() {
+        recorder.shutdown();
+    }
+    app.exit(0);
+}
+
 /// Whether a dictation is recording, or transcribing until its pipeline
 /// drains. Read from the transcription coordinator, which owns that
 /// lifecycle; the tray icon only displays it (a cancel resets the icon
@@ -288,11 +329,11 @@ fn sync_tray_with(app: &AppHandle, update: impl FnOnce(&mut TrayInner)) {
 
     // Record intent and claim a sequence number in one critical section, so
     // sequence order == the order in which state changes were requested.
-    let (seq, icon_state) = {
+    let (seq, icon_state, meeting_recording) = {
         let mut inner = state.lock();
         update(&mut inner);
         inner.next_seq += 1;
-        (inner.next_seq, inner.icon_state)
+        (inner.next_seq, inner.icon_state, inner.meeting_recording)
     };
 
     // Tray not built yet (early secure-input monitor callbacks). The intent
@@ -301,7 +342,7 @@ fn sync_tray_with(app: &AppHandle, update: impl FnOnce(&mut TrayInner)) {
         return;
     }
 
-    let desired = compute_desired(app, icon_state);
+    let desired = compute_desired(app, icon_state, meeting_recording);
 
     // Decode the icon off the main thread, once per path, outside the lock.
     let needs_icon = !state.lock().icons.contains_key(desired.icon_path);
@@ -348,7 +389,20 @@ fn sync_tray_with(app: &AppHandle, update: impl FnOnce(&mut TrayInner)) {
     }
 }
 
-fn compute_desired(app: &AppHandle, icon_state: TrayIconState) -> TrayDesired {
+/// The icon a meeting shows: recording, unless dictation shows its own state.
+fn displayed_icon_state(icon_state: TrayIconState, meeting_recording: bool) -> TrayIconState {
+    if meeting_recording && !icon_state.is_busy() {
+        TrayIconState::Recording
+    } else {
+        icon_state
+    }
+}
+
+fn compute_desired(
+    app: &AppHandle,
+    icon_state: TrayIconState,
+    meeting_recording: bool,
+) -> TrayDesired {
     let settings = settings::get_settings(app);
     let theme = get_current_theme(app);
     let secure_input = crate::secure_input::tray_warning_active(app);
@@ -384,9 +438,14 @@ fn compute_desired(app: &AppHandle, icon_state: TrayIconState) -> TrayDesired {
     };
 
     TrayDesired {
-        icon_path: get_icon_path(theme, icon_state, badge),
+        icon_path: get_icon_path(
+            theme,
+            displayed_icon_state(icon_state, meeting_recording),
+            badge,
+        ),
         menu: MenuInputs {
             busy: icon_state.is_busy(),
+            meeting_recording,
             models_locked,
             secure_input,
             notice: notice.map(|notice| notice.code),
@@ -692,6 +751,23 @@ fn build_menu(app: &AppHandle, inputs: &MenuInputs) -> tauri::Result<(Menu<tauri
         None::<&str>,
     )?;
     let quit_i = MenuItem::with_id(app, "quit", &strings.quit, true, quit_accelerator)?;
+    // Locales without the meeting strings yet get English, as above.
+    let meeting_label = {
+        let pick = |strings: &crate::tray_i18n::TrayStrings| {
+            if inputs.meeting_recording {
+                strings.stop_meeting.clone()
+            } else {
+                strings.start_meeting.clone()
+            }
+        };
+        let label = pick(&strings);
+        if label.is_empty() {
+            pick(&get_tray_translations(Some("en".to_string())))
+        } else {
+            label
+        }
+    };
+    let meeting_i = MenuItem::with_id(app, "meeting_toggle", &meeting_label, true, None::<&str>)?;
     let separator = || PredefinedMenuItem::separator(app);
 
     let menu = if inputs.busy {
@@ -703,6 +779,7 @@ fn build_menu(app: &AppHandle, inputs: &MenuInputs) -> tauri::Result<(Menu<tauri
                 &separator()?,
                 &cancel_i,
                 &separator()?,
+                &meeting_i,
                 &copy_last_transcript_i,
                 &separator()?,
                 &settings_i,
@@ -742,6 +819,7 @@ fn build_menu(app: &AppHandle, inputs: &MenuInputs) -> tauri::Result<(Menu<tauri
             &[
                 &version_i,
                 &separator()?,
+                &meeting_i,
                 &copy_last_transcript_i,
                 &separator()?,
                 &model_submenu,
@@ -753,9 +831,10 @@ fn build_menu(app: &AppHandle, inputs: &MenuInputs) -> tauri::Result<(Menu<tauri
                 &quit_i,
             ],
         )?;
-        // Right below the model submenu: version, separator, copy, separator, model.
+        // Right below the model submenu: version, separator, meeting, copy,
+        // separator, model.
         if let Some(language) = &inputs.language {
-            menu.insert(&language_submenu(app, &strings, language)?, 5)?;
+            menu.insert(&language_submenu(app, &strings, language)?, 6)?;
         }
         menu
     };
@@ -865,8 +944,8 @@ pub fn copy_last_transcript(app: &AppHandle) {
 #[cfg(test)]
 mod tests {
     use super::{
-        get_icon_path, language_menu, last_transcript_text, load_tray_icon, AppTheme, MenuInputs,
-        TrayDesired, TrayIconState,
+        displayed_icon_state, get_icon_path, language_menu, last_transcript_text, load_tray_icon,
+        AppTheme, MenuInputs, TrayDesired, TrayIconState,
     };
     use crate::managers::history::HistoryEntry;
     use crate::managers::model::{ModelInfo, ModelSource};
@@ -982,6 +1061,7 @@ mod tests {
     fn inputs(busy: bool) -> MenuInputs {
         MenuInputs {
             busy,
+            meeting_recording: false,
             models_locked: false,
             secure_input: false,
             notice: None,
@@ -1054,5 +1134,30 @@ mod tests {
     #[test]
     fn idle_and_busy_menus_differ() {
         assert_ne!(inputs(false), inputs(true));
+    }
+
+    #[test]
+    fn a_meeting_rebuilds_the_menu() {
+        let recording = MenuInputs {
+            meeting_recording: true,
+            ..inputs(false)
+        };
+        assert_ne!(recording, inputs(false));
+    }
+
+    #[test]
+    fn a_meeting_shows_recording_unless_dictation_shows_its_state() {
+        assert_eq!(
+            displayed_icon_state(TrayIconState::Idle, true),
+            TrayIconState::Recording
+        );
+        assert_eq!(
+            displayed_icon_state(TrayIconState::Idle, false),
+            TrayIconState::Idle
+        );
+        assert_eq!(
+            displayed_icon_state(TrayIconState::Transcribing, true),
+            TrayIconState::Transcribing
+        );
     }
 }

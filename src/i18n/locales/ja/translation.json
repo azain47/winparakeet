@@ -10,7 +10,9 @@
     "secureInputWarning": "⚠ Secure Input でショートカットがブロック中",
     "language": "言語",
     "autoLanguage": "自動",
-    "otherLanguages": "その他の言語"
+    "otherLanguages": "その他の言語",
+    "startMeeting": "会議を録音",
+    "stopMeeting": "会議の録音を停止"
   },
   "sidebar": {
     "general": "一般",
@@ -20,7 +22,152 @@
     "history": "履歴",
     "bin": "ごみ箱",
     "debug": "デバッグ",
-    "about": "概要"
+    "about": "概要",
+    "meetings": "会議"
+  },
+  "meetings": {
+    "cancel": "キャンセル",
+    "defaultTitle": "{{date}} の会議",
+    "duration": {
+      "seconds": "{{seconds}} 秒",
+      "minutes": "{{minutes}} 分",
+      "hours": "{{hours}} 時間 {{minutes}} 分"
+    },
+    "speakers": {
+      "me": "自分",
+      "them": "相手",
+      "numbered": "話者 {{number}}"
+    },
+    "record": {
+      "title": "会議を録音",
+      "sources": {
+        "both": "マイク（自分）と PC で再生されるすべての音声（相手）を録音し、通話後に両方を文字起こしします。",
+        "microphone": "マイク（自分）のみを録音し、通話後に文字起こしします。",
+        "system": "PC で再生される音声（相手）のみを録音し、通話後に文字起こしします。"
+      },
+      "start": "会議を録音",
+      "stop": "停止",
+      "recording": "録音中",
+      "sourceOff": "録音しない",
+      "sourceReconnecting": "再接続中...",
+      "sourceFailed": "利用不可",
+      "startFailed": "会議の録音を開始できませんでした。",
+      "stopFailed": "会議の録音を停止できませんでした。"
+    },
+    "status": {
+      "recording": "録音中",
+      "queued": "待機中",
+      "transcribing": "文字起こし中",
+      "transcribingPercent": "文字起こし中 {{percent}}%",
+      "failed": "失敗",
+      "notTranscribed": "未文字起こし",
+      "recovered": "復旧済み"
+    },
+    "list": {
+      "loading": "会議を読み込み中...",
+      "empty": "まだ会議がありません。会議を録音すると、通話の双方の文字起こしを取得できます。",
+      "today": "今日",
+      "yesterday": "昨日",
+      "speakers_one": "{{count}} 人の話者",
+      "speakers_other": "{{count}} 人の話者"
+    },
+    "detail": {
+      "back": "会議一覧に戻る",
+      "title": "会議のタイトル",
+      "recordingNow": "この会議は録音中です。停止すると文字起こしされます。",
+      "queued": "文字起こしを待機中です。",
+      "failed": "文字起こしに失敗しました。",
+      "retry": "再試行",
+      "notTranscribed": "まだ文字起こしされていません。",
+      "transcribe": "文字起こし",
+      "recovered": "この会議の録音中にアプリが終了しました。それまでの音声は保存されています。",
+      "audioBinned": "音声はごみ箱にあるため、再生や再文字起こしはできません。ごみ箱から復元できます。",
+      "restoreAudio": "音声を復元",
+      "audioDeleted": "音声は削除されました。文字起こしは残ります。",
+      "retranscribe": "再文字起こし...",
+      "copy": "文字起こしをコピー",
+      "copied": "コピーしました",
+      "exportTranscript": "文字起こしをエクスポート",
+      "saveAudio": "音声を保存...",
+      "openFolder": "フォルダを開く",
+      "binAudio": "音声をごみ箱に移動",
+      "binMeeting": "会議をごみ箱に移動",
+      "speakers": "話者",
+      "renameSpeaker": "話者名を変更",
+      "transcript": "文字起こし",
+      "noSpeech": "この会議では音声が検出されませんでした。",
+      "playFrom": "ここから再生",
+      "movedToBin": "会議をごみ箱に移動しました",
+      "audioMovedToBin": "音声をごみ箱に移動しました",
+      "undo": "元に戻す",
+      "undoFailed": "復元できませんでした。ごみ箱に残っています。",
+      "renameFailed": "名前を変更できませんでした。もう一度お試しください。",
+      "transcribeFailed": "文字起こしを開始できませんでした。",
+      "cancelFailed": "文字起こしをキャンセルできませんでした。",
+      "copyFailed": "文字起こしをコピーできませんでした。",
+      "exportFailed": "文字起こしをエクスポートできませんでした。",
+      "saveAudioFailed": "音声を保存できませんでした。",
+      "openFolderFailed": "会議のフォルダを開けませんでした。",
+      "audioFailed": "会議の音声を読み込めませんでした。",
+      "binFailed": "会議をごみ箱に移動できませんでした。",
+      "binAudioFailed": "音声をごみ箱に移動できませんでした。"
+    },
+    "export": {
+      "txt": "テキスト",
+      "md": "Markdown",
+      "srt": "字幕 (SRT)",
+      "vtt": "WebVTT",
+      "json": "JSON",
+      "wav": "WAV 音声"
+    },
+    "model": {
+      "sameAsDictation": "音声入力と同じ",
+      "sameAsDictationNamed": "音声入力と同じ ({{model}})"
+    },
+    "retranscribe": {
+      "title": "会議を再文字起こし",
+      "model": "モデル",
+      "hint": "大きいモデルほど遅くなりますが、精度は上がります。新しい文字起こしが完了するまで、現在の文字起こしは残ります。",
+      "moreModels": "別のモデルが必要ですか？",
+      "openModels": "「モデル」でさらにダウンロード",
+      "confirm": "再文字起こし"
+    },
+    "settings": {
+      "title": "会議の設定",
+      "description": "録音する内容、文字起こしの方法、音声の保存期間",
+      "sources": {
+        "title": "録音",
+        "description": "自分は「一般」で選択したマイク、相手は PC で再生されるすべての音声です。",
+        "both": "マイクとシステム音声",
+        "microphone": "マイクのみ",
+        "system": "システム音声のみ"
+      },
+      "model": {
+        "title": "文字起こしモデル",
+        "description": "会議では音声入力より大きく高精度なモデルを使用できます。"
+      },
+      "speakerLabels": {
+        "title": "話者ラベル",
+        "description": "通話相手側で誰が話しているかを最大 4 人まで区別します。",
+        "downloadHint": "オンにすると話者ラベルモデルをダウンロードします。",
+        "downloadingHint": "話者ラベルモデルをダウンロード中です。",
+        "stopDownload": "話者ラベルモデルのダウンロードを停止"
+      },
+      "retention": {
+        "title": "会議の音声を保持",
+        "description": "保持しない音声はごみ箱に移動します。文字起こしは常に残ります。",
+        "keep": "保持する",
+        "after_transcription": "文字起こし後",
+        "days_7": "7日後",
+        "days_30": "30日後",
+        "days_90": "90日後",
+        "confirmTitle": "会議の音声をごみ箱に移動しますか？",
+        "confirmDescription_one": "{{count}} 件の会議の音声をごみ箱に移動します。文字起こしは残ります。",
+        "confirmDescription_other": "{{count}} 件の会議の音声をごみ箱に移動します。文字起こしは残ります。",
+        "confirm": "ごみ箱に移動",
+        "countFailed": "会議の音声を確認できませんでした。もう一度お試しください。"
+      }
+    }
   },
   "onboarding": {
     "customModelDescription": "公式サポート対象外",
@@ -724,7 +871,7 @@
     },
     "bin": {
       "loading": "ごみ箱を読み込み中...",
-      "empty": "ごみ箱は空です。削除した音声入力と録音は、完全に削除するまでここに残ります。",
+      "empty": "ごみ箱は空です。削除した音声入力、録音、会議は、完全に削除するまでここに残ります。",
       "loadFailed": "ごみ箱を読み込めませんでした。",
       "emptyBin": "ごみ箱を空にする",
       "emptyTitle": "ごみ箱を空にしますか？",
@@ -742,7 +889,10 @@
       "deleteTitle": "完全に削除しますか？",
       "deleteDescription": "この項目は完全に削除されます。この操作は元に戻せません。",
       "deleteFailed": "削除できませんでした。ファイルが使用中の可能性があります。",
-      "cancel": "キャンセル"
+      "cancel": "キャンセル",
+      "meetingAudio": "{{meeting}} の音声",
+      "meetingAudioNote": "ここにあるのは音声だけです。会議とその文字起こしは「会議」に残っています。",
+      "meetingNote": "会議全体（文字起こしと音声を含む）。"
     },
     "debug": {
       "logDirectory": {

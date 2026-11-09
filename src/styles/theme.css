@@ -5,6 +5,7 @@
  * logo-primary is the accent (selection, focus, links); background-ui is the
  * accent fill behind on-accent text; plum is the ink for keycaps and picked
  * items (onboarding); moss / warning / error (+ -wash) for status.
+ * speaker-* tell a meeting's speakers apart in its transcript.
  * demo-* are illustration, not UI.
  *
  * The neutrals follow Windows 11's Settings app; the accent is one muted
@@ -123,6 +124,20 @@
     var(--dark-color-card)
   );
 
+  /* Meeting speakers: Me, Them, then the other side's Speaker 1-4. */
+  --light-color-speaker-me: #005fb8;
+  --light-color-speaker-them: #8764b8;
+  --light-color-speaker-1: #b4009e;
+  --light-color-speaker-2: #a35200;
+  --light-color-speaker-3: #00796b;
+  --light-color-speaker-4: #4f5bd5;
+  --dark-color-speaker-me: #60cdff;
+  --dark-color-speaker-them: #c5a7f2;
+  --dark-color-speaker-1: #ee8fe4;
+  --dark-color-speaker-2: #ffb366;
+  --dark-color-speaker-3: #4fd6cc;
+  --dark-color-speaker-4: #9ea8ff;
+
   /* Flyouts (menus, tooltips, popups) float on a soft shadow. */
   --light-shadow-flyout:
     0 8px 16px rgba(0, 0, 0, 0.14), 0 0 2px rgba(0, 0, 0, 0.12);
@@ -153,6 +168,12 @@
   --color-warning-wash: var(--light-color-warning-wash);
   --color-error-wash: var(--light-color-error-wash);
   --shadow-flyout: var(--light-shadow-flyout);
+  --color-speaker-me: var(--light-color-speaker-me);
+  --color-speaker-them: var(--light-color-speaker-them);
+  --color-speaker-1: var(--light-color-speaker-1);
+  --color-speaker-2: var(--light-color-speaker-2);
+  --color-speaker-3: var(--light-color-speaker-3);
+  --color-speaker-4: var(--light-color-speaker-4);
 
   /* Neutral steps, all derived from the text color so both themes stay in
      proportion: secondary text, hints/icons, control edges, dividers, hover fill. */
@@ -191,6 +212,12 @@
     --color-warning-wash: var(--dark-color-warning-wash);
     --color-error-wash: var(--dark-color-error-wash);
     --shadow-flyout: var(--dark-shadow-flyout);
+    --color-speaker-me: var(--dark-color-speaker-me);
+    --color-speaker-them: var(--dark-color-speaker-them);
+    --color-speaker-1: var(--dark-color-speaker-1);
+    --color-speaker-2: var(--dark-color-speaker-2);
+    --color-speaker-3: var(--dark-color-speaker-3);
+    --color-speaker-4: var(--dark-color-speaker-4);
   }
 }
 
@@ -227,6 +254,12 @@
   --color-warning-wash: var(--light-color-warning-wash);
   --color-error-wash: var(--light-color-error-wash);
   --shadow-flyout: var(--light-shadow-flyout);
+  --color-speaker-me: var(--light-color-speaker-me);
+  --color-speaker-them: var(--light-color-speaker-them);
+  --color-speaker-1: var(--light-color-speaker-1);
+  --color-speaker-2: var(--light-color-speaker-2);
+  --color-speaker-3: var(--light-color-speaker-3);
+  --color-speaker-4: var(--light-color-speaker-4);
 }
 
 :root[data-theme="dark"] {
@@ -252,4 +285,10 @@
   --color-warning-wash: var(--dark-color-warning-wash);
   --color-error-wash: var(--dark-color-error-wash);
   --shadow-flyout: var(--dark-shadow-flyout);
+  --color-speaker-me: var(--dark-color-speaker-me);
+  --color-speaker-them: var(--dark-color-speaker-them);
+  --color-speaker-1: var(--dark-color-speaker-1);
+  --color-speaker-2: var(--dark-color-speaker-2);
+  --color-speaker-3: var(--dark-color-speaker-3);
+  --color-speaker-4: var(--dark-color-speaker-4);
 }

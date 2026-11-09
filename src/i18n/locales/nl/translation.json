@@ -10,7 +10,9 @@
     "secureInputWarning": "⚠ Sneltoetsen geblokkeerd door Secure Input",
     "language": "Taal",
     "autoLanguage": "Automatisch",
-    "otherLanguages": "Andere talen"
+    "otherLanguages": "Andere talen",
+    "startMeeting": "Vergadering opnemen",
+    "stopMeeting": "Vergaderopname stoppen"
   },
   "sidebar": {
     "general": "Algemeen",
@@ -20,7 +22,152 @@
     "history": "Geschiedenis",
     "bin": "Prullenbak",
     "debug": "Probleemoplossing",
-    "about": "Over WinParakeet"
+    "about": "Over WinParakeet",
+    "meetings": "Vergaderingen"
+  },
+  "meetings": {
+    "cancel": "Annuleren",
+    "defaultTitle": "Vergadering van {{date}}",
+    "duration": {
+      "seconds": "{{seconds}} s",
+      "minutes": "{{minutes}} min",
+      "hours": "{{hours}} u {{minutes}} min"
+    },
+    "speakers": {
+      "me": "Ik",
+      "them": "Zij",
+      "numbered": "Spreker {{number}}"
+    },
+    "record": {
+      "title": "Een vergadering opnemen",
+      "sources": {
+        "both": "Neemt je microfoon (Ik) en alles wat je pc afspeelt (Zij) op, en transcribeert beide na het gesprek.",
+        "microphone": "Neemt alleen je microfoon (Ik) op en transcribeert die na het gesprek.",
+        "system": "Neemt alleen op wat je pc afspeelt (Zij) en transcribeert dat na het gesprek."
+      },
+      "start": "Vergadering opnemen",
+      "stop": "Stoppen",
+      "recording": "Opnemen",
+      "sourceOff": "Niet opgenomen",
+      "sourceReconnecting": "Opnieuw verbinden...",
+      "sourceFailed": "Niet beschikbaar",
+      "startFailed": "Kan de opname van de vergadering niet starten.",
+      "stopFailed": "Kan de opname van de vergadering niet stoppen."
+    },
+    "status": {
+      "recording": "Opnemen",
+      "queued": "In wachtrij",
+      "transcribing": "Transcriberen",
+      "transcribingPercent": "Transcriberen {{percent}}%",
+      "failed": "Mislukt",
+      "notTranscribed": "Niet getranscribeerd",
+      "recovered": "Hersteld"
+    },
+    "list": {
+      "loading": "Vergaderingen laden...",
+      "empty": "Nog geen vergaderingen. Neem er een op voor een transcriptie van beide kanten van een gesprek.",
+      "today": "Vandaag",
+      "yesterday": "Gisteren",
+      "speakers_one": "{{count}} spreker",
+      "speakers_other": "{{count}} sprekers"
+    },
+    "detail": {
+      "back": "Terug naar vergaderingen",
+      "title": "Titel van vergadering",
+      "recordingNow": "Deze vergadering wordt opgenomen. Ze wordt getranscribeerd zodra je stopt.",
+      "queued": "Wacht op transcriptie.",
+      "failed": "Transcriptie mislukt.",
+      "retry": "Opnieuw proberen",
+      "notTranscribed": "Nog niet getranscribeerd.",
+      "transcribe": "Transcriberen",
+      "recovered": "De app werd gesloten tijdens de opname van deze vergadering. De audio is tot dat moment bewaard.",
+      "audioBinned": "De audio staat in de prullenbak en kan dus niet worden afgespeeld of opnieuw getranscribeerd. Je kunt hem terugzetten vanuit de prullenbak.",
+      "restoreAudio": "Audio terugzetten",
+      "audioDeleted": "De audio is verwijderd. De transcriptie blijft bewaard.",
+      "retranscribe": "Opnieuw transcriberen...",
+      "copy": "Transcriptie kopiëren",
+      "copied": "Gekopieerd",
+      "exportTranscript": "Transcriptie exporteren",
+      "saveAudio": "Audio opslaan...",
+      "openFolder": "Map openen",
+      "binAudio": "Audio naar de prullenbak verplaatsen",
+      "binMeeting": "Vergadering naar de prullenbak verplaatsen",
+      "speakers": "Sprekers",
+      "renameSpeaker": "Spreker hernoemen",
+      "transcript": "Transcriptie",
+      "noSpeech": "Er is geen spraak gevonden in deze vergadering.",
+      "playFrom": "Vanaf hier afspelen",
+      "movedToBin": "Vergadering naar de prullenbak verplaatst",
+      "audioMovedToBin": "Audio naar de prullenbak verplaatst",
+      "undo": "Ongedaan maken",
+      "undoFailed": "Kan het niet terugzetten. Het staat nog in de prullenbak.",
+      "renameFailed": "Kan de naam niet wijzigen. Probeer het opnieuw.",
+      "transcribeFailed": "Kan de transcriptie niet starten.",
+      "cancelFailed": "Kan de transcriptie niet annuleren.",
+      "copyFailed": "Kan de transcriptie niet kopiëren.",
+      "exportFailed": "Kan de transcriptie niet exporteren.",
+      "saveAudioFailed": "Kan de audio niet opslaan.",
+      "openFolderFailed": "Kan de map van de vergadering niet openen.",
+      "audioFailed": "Kan de audio van de vergadering niet laden.",
+      "binFailed": "Kan de vergadering niet naar de prullenbak verplaatsen.",
+      "binAudioFailed": "Kan de audio niet naar de prullenbak verplaatsen."
+    },
+    "export": {
+      "txt": "Tekst",
+      "md": "Markdown",
+      "srt": "Ondertitels (SRT)",
+      "vtt": "WebVTT",
+      "json": "JSON",
+      "wav": "WAV-audio"
+    },
+    "model": {
+      "sameAsDictation": "Zelfde als dicteren",
+      "sameAsDictationNamed": "Zelfde als dicteren ({{model}})"
+    },
+    "retranscribe": {
+      "title": "Vergadering opnieuw transcriberen",
+      "model": "Model",
+      "hint": "Grotere modellen zijn trager maar nauwkeuriger. De huidige transcriptie blijft staan tot de nieuwe klaar is.",
+      "moreModels": "Ander model nodig?",
+      "openModels": "Download meer via Modellen",
+      "confirm": "Opnieuw transcriberen"
+    },
+    "settings": {
+      "title": "Vergaderinstellingen",
+      "description": "Wat er wordt opgenomen, hoe het wordt getranscribeerd en hoelang de audio wordt bewaard",
+      "sources": {
+        "title": "Opnemen",
+        "description": "Ik is de microfoon die in Algemeen is gekozen; Zij is alles wat je pc afspeelt.",
+        "both": "Microfoon en systeemaudio",
+        "microphone": "Alleen microfoon",
+        "system": "Alleen systeemaudio"
+      },
+      "model": {
+        "title": "Transcriptiemodel",
+        "description": "Vergaderingen kunnen een groter, nauwkeuriger model gebruiken dan dicteren."
+      },
+      "speakerLabels": {
+        "title": "Sprekerlabels",
+        "description": "Onderscheid wie er aan de andere kant van het gesprek spreekt, tot 4 sprekers.",
+        "downloadHint": "Als je dit inschakelt, wordt het sprekerlabelmodel gedownload.",
+        "downloadingHint": "Het sprekerlabelmodel wordt gedownload.",
+        "stopDownload": "Download van het sprekerlabelmodel stoppen"
+      },
+      "retention": {
+        "title": "Vergaderaudio bewaren",
+        "description": "Audio die je niet bewaart, gaat naar de prullenbak. Transcripties blijven altijd bewaard.",
+        "keep": "Bewaren",
+        "after_transcription": "Na transcriptie",
+        "days_7": "Na 7 dagen",
+        "days_30": "Na 30 dagen",
+        "days_90": "Na 90 dagen",
+        "confirmTitle": "Vergaderaudio naar de prullenbak verplaatsen?",
+        "confirmDescription_one": "Verplaatst de audio van {{count}} vergadering naar de prullenbak. De transcriptie blijft bewaard.",
+        "confirmDescription_other": "Verplaatst de audio van {{count}} vergaderingen naar de prullenbak. De transcripties blijven bewaard.",
+        "confirm": "Naar prullenbak verplaatsen",
+        "countFailed": "Kan de audio van de vergaderingen niet controleren. Probeer het opnieuw."
+      }
+    }
   },
   "onboarding": {
     "customModelDescription": "Niet officieel ondersteund",
@@ -724,7 +871,7 @@
     },
     "bin": {
       "loading": "Prullenbak laden...",
-      "empty": "De prullenbak is leeg. Verwijderde dictaten en opnames blijven hier tot je ze definitief verwijdert.",
+      "empty": "De prullenbak is leeg. Verwijderde dictaten, opnames en vergaderingen blijven hier tot je ze definitief verwijdert.",
       "loadFailed": "Kan de prullenbak niet laden.",
       "emptyBin": "Prullenbak legen",
       "emptyTitle": "Prullenbak legen?",
@@ -742,7 +889,10 @@
       "deleteTitle": "Definitief verwijderen?",
       "deleteDescription": "Dit item wordt definitief verwijderd. Dit kan niet ongedaan worden gemaakt.",
       "deleteFailed": "Kan het niet verwijderen. Het bestand is mogelijk in gebruik.",
-      "cancel": "Annuleren"
+      "cancel": "Annuleren",
+      "meetingAudio": "Audio van {{meeting}}",
+      "meetingAudioNote": "Alleen de audio staat hier. De vergadering en de transcriptie staan nog in Vergaderingen.",
+      "meetingNote": "De hele vergadering, met de transcriptie en eventuele audio."
     },
     "debug": {
       "logDirectory": {
