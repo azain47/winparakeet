@@ -222,8 +222,8 @@
   },
   "modelTable": {
     "tags": {
-      "preview": "Aperçu en direct",
-      "previewTitle": "Affiche vos mots dans l'overlay Live pendant que vous parlez, puis les saisit quand vous vous arrêtez",
+      "preview": "Streaming",
+      "previewTitle": "Décode pendant que vous parlez : l'overlay Live suit mot à mot. Les autres modèles le mettent à jour environ toutes les secondes.",
       "translate": "Traduit",
       "translateTitle": "Peut transformer ce que vous dites en texte anglais. À activer dans les paramètres"
     },
@@ -509,7 +509,7 @@
       "overlay": {
         "style": {
           "title": "Overlay",
-          "description": "Choisissez l'overlay d'enregistrement : « Aucun » le masque, « Minimal » affiche une pilule compacte, « Live » affiche la transcription en temps réel pendant que vous parlez (uniquement pour les modèles compatibles avec le streaming — recherchez le badge Streaming dans le sélecteur de modèle). Sur Linux, « Aucun » est recommandé.",
+          "description": "Choisissez l'overlay d'enregistrement : « Aucune » le masque, « Minimal » affiche une pilule compacte et « Live » affiche vos mots pendant que vous parlez : mot à mot avec un modèle de streaming, environ toutes les secondes avec les autres. Sur Linux, l'option « Aucune » est recommandée.",
           "options": {
             "none": "Aucune",
             "minimal": "Minimal",

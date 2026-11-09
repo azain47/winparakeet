@@ -222,8 +222,8 @@
   },
   "modelTable": {
     "tags": {
-      "preview": "Pratinjau langsung",
-      "previewTitle": "Menampilkan kata-kata Anda di overlay Langsung saat Anda berbicara, lalu mengetiknya setelah Anda berhenti",
+      "preview": "Streaming",
+      "previewTitle": "Mendekode saat Anda berbicara, sehingga overlay Waktu Nyata mengikuti kata demi kata. Model lain memperbaruinya sekitar setiap detik.",
       "translate": "Menerjemahkan",
       "translateTitle": "Bisa mengubah ucapan Anda menjadi teks bahasa Inggris. Aktifkan di pengaturan"
     },
@@ -509,7 +509,7 @@
       "overlay": {
         "style": {
           "title": "Overlay",
-          "description": "Pilih overlay perekaman: Tidak Ada menyembunyikannya, Minimal menampilkan indikator ringkas, dan Langsung menampilkan transkripsi secara waktu nyata saat Anda berbicara (hanya model yang mendukung streaming — cari lencana Streaming di pemilih model). Di Linux, 'Tidak Ada' direkomendasikan.",
+          "description": "Pilih overlay perekaman: Tidak Ada menyembunyikannya, Minimal menampilkan indikator ringkas, dan Waktu Nyata menampilkan kata-kata Anda saat berbicara: kata demi kata dengan model streaming, sekitar setiap detik dengan model lain. Di Linux, 'Tidak Ada' direkomendasikan.",
           "options": {
             "none": "Tidak Ada",
             "minimal": "Minimal",

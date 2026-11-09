@@ -222,8 +222,8 @@
   },
   "modelTable": {
     "tags": {
-      "preview": "Live preview",
-      "previewTitle": "Shows your words in the Live overlay while you talk, then types them when you stop",
+      "preview": "Streams",
+      "previewTitle": "Decodes as you talk, so the Live overlay keeps up word by word. Other models update it about every second.",
       "translate": "Translates",
       "translateTitle": "Can turn what you say into English text. Turn it on in settings"
     },
@@ -509,7 +509,7 @@
       "overlay": {
         "style": {
           "title": "Overlay",
-          "description": "Choose the recording overlay: None hides it, Minimal shows a compact pill, Live shows transcription in real time as you speak (streaming-capable models only — look for the Streaming badge in the model picker). On Linux 'None' is recommended.",
+          "description": "Choose the recording overlay: None hides it, Minimal shows a compact pill, and Live shows your words as you speak: word by word with a streaming model, about every second with others. On Linux, None is recommended.",
           "options": {
             "none": "None",
             "minimal": "Minimal",

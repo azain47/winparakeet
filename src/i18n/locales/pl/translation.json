@@ -222,8 +222,8 @@
   },
   "modelTable": {
     "tags": {
-      "preview": "Podgląd na żywo",
-      "previewTitle": "Pokazuje Twoje słowa w nakładce Na żywo podczas mówienia, a po zakończeniu wpisuje je",
+      "preview": "Streaming",
+      "previewTitle": "Dekoduje na bieżąco, gdy mówisz, więc nakładka „Na żywo” nadąża słowo po słowie. Inne modele aktualizują ją mniej więcej co sekundę.",
       "translate": "Tłumaczy",
       "translateTitle": "Potrafi zamienić to, co mówisz, na tekst angielski. Włącz to w ustawieniach"
     },
@@ -509,7 +509,7 @@
       "overlay": {
         "style": {
           "title": "Nakładka",
-          "description": "Wybierz nakładkę nagrywania: „Brak“ ją ukrywa, „Minimalna“ pokazuje kompaktowy wskaźnik, „Na żywo“ wyświetla transkrypcję w czasie rzeczywistym podczas mówienia (tylko modele obsługujące streaming — poszukaj etykiety „Streaming“ w selektorze modeli). W systemie Linux zalecana jest opcja „Brak“.",
+          "description": "Wybierz nakładkę nagrywania: „Brak” ją ukrywa, „Minimalna” pokazuje kompaktowy wskaźnik, a „Na żywo” wyświetla Twoje słowa podczas mówienia: słowo po słowie z modelem strumieniowym, mniej więcej co sekundę z innymi. W systemie Linux zalecana jest opcja „Brak”.",
           "options": {
             "none": "Brak",
             "minimal": "Minimalna",

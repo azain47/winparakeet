@@ -222,8 +222,8 @@
   },
   "modelTable": {
     "tags": {
-      "preview": "Liveförhandsvisning",
-      "previewTitle": "Visar dina ord i Live-överlägget medan du talar och skriver dem när du slutar",
+      "preview": "Streamar",
+      "previewTitle": "Avkodar medan du talar, så att Live-överlägget hänger med ord för ord. Andra modeller uppdaterar det ungefär varje sekund.",
       "translate": "Översätter",
       "translateTitle": "Kan göra om det du säger till engelsk text. Slå på det i inställningarna"
     },
@@ -509,7 +509,7 @@
       "overlay": {
         "style": {
           "title": "Overlay",
-          "description": "Välj inspelningsöverlägget: ”Ingen” döljer det, ”Minimal” visar en kompakt indikator, ”Live” visar transkriberingen i realtid medan du talar (endast modeller med streamingstöd — leta efter Streaming-märket i modellväljaren). På Linux rekommenderas ”Ingen”.",
+          "description": "Välj inspelningsöverlägget: ”Ingen” döljer det, ”Minimal” visar en kompakt indikator och ”Live” visar dina ord medan du talar: ord för ord med en streamingmodell, ungefär varje sekund med andra. På Linux rekommenderas ”Ingen”.",
           "options": {
             "none": "Ingen",
             "minimal": "Minimal",

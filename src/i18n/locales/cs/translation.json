@@ -222,8 +222,8 @@
   },
   "modelTable": {
     "tags": {
-      "preview": "Živý náhled",
-      "previewTitle": "Zobrazuje vaše slova v překryvu Živě, zatímco mluvíte, a po skončení je napíše",
+      "preview": "Streaming",
+      "previewTitle": "Dekóduje průběžně, jak mluvíte, takže překryv „Živě“ drží krok slovo po slově. Ostatní modely ho aktualizují zhruba každou sekundu.",
       "translate": "Překládá",
       "translateTitle": "Umí změnit to, co řeknete, na anglický text. Zapnete to v nastavení"
     },
@@ -509,7 +509,7 @@
       "overlay": {
         "style": {
           "title": "Překryv",
-          "description": "Vyberte překryv při nahrávání: „Žádné“ jej skryje, „Minimální“ zobrazí kompaktní indikátor, „Živě“ zobrazuje přepis v reálném čase, když mluvíte (pouze modely podporující streaming — hledejte odznak „Streaming“ ve výběru modelů). Na Linuxu se doporučuje „Žádné“.",
+          "description": "Vyberte překryv při nahrávání: „Žádné“ jej skryje, „Minimální“ zobrazí kompaktní indikátor a „Živě“ zobrazuje vaše slova, když mluvíte: se streamingovým modelem slovo po slově, s ostatními zhruba každou sekundu. Na Linuxu se doporučuje „Žádné“.",
           "options": {
             "none": "Žádné",
             "minimal": "Minimální",

@@ -222,8 +222,8 @@
   },
   "modelTable": {
     "tags": {
-      "preview": "Xem trước trực tiếp",
-      "previewTitle": "Hiển thị lời bạn nói trong lớp phủ Trực tiếp khi bạn nói, rồi gõ ra khi bạn dừng",
+      "preview": "Truyền trực tiếp",
+      "previewTitle": "Giải mã ngay khi bạn nói, nên lớp phủ 'Trực tiếp' theo kịp từng từ. Các mô hình khác cập nhật nó khoảng mỗi giây.",
       "translate": "Dịch",
       "translateTitle": "Có thể chuyển lời bạn nói thành văn bản tiếng Anh. Bật trong cài đặt"
     },
@@ -509,7 +509,7 @@
       "overlay": {
         "style": {
           "title": "Lớp phủ",
-          "description": "Chọn lớp phủ khi ghi âm: 'Không có' sẽ ẩn nó, 'Tối giản' hiển thị một chỉ báo nhỏ gọn, 'Trực tiếp' hiển thị bản chép lời theo thời gian thực khi bạn nói (chỉ với các mô hình hỗ trợ truyền trực tiếp — hãy tìm huy hiệu 'Truyền trực tiếp' trong bộ chọn mô hình). Trên Linux, khuyến nghị chọn 'Không có'.",
+          "description": "Chọn lớp phủ khi ghi âm: 'Không có' sẽ ẩn nó, 'Tối giản' hiển thị một chỉ báo nhỏ gọn, còn 'Trực tiếp' hiển thị lời bạn nói ngay khi bạn nói: từng từ với mô hình truyền trực tiếp, khoảng mỗi giây với các mô hình khác. Trên Linux, khuyến nghị chọn 'Không có'.",
           "options": {
             "none": "Không có",
             "minimal": "Tối giản",

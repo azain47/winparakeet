@@ -222,8 +222,8 @@
   },
   "modelTable": {
     "tags": {
-      "preview": "Vista previa en vivo",
-      "previewTitle": "Muestra tus palabras en la superposición En vivo mientras hablas y las escribe cuando terminas",
+      "preview": "Streaming",
+      "previewTitle": "Descodifica mientras hablas, así que la superposición En vivo te sigue palabra por palabra. Los demás modelos la actualizan aproximadamente cada segundo.",
       "translate": "Traduce",
       "translateTitle": "Puede convertir lo que dices en texto en inglés. Actívalo en la configuración"
     },
@@ -509,7 +509,7 @@
       "overlay": {
         "style": {
           "title": "Superposición",
-          "description": "Elige la superposición de grabación: Ninguna la oculta, Minimalista muestra una píldora compacta, En vivo muestra la transcripción en tiempo real mientras hablas (solo modelos compatibles con streaming — busca la insignia Streaming en el selector de modelos). En Linux se recomienda 'Ninguna'.",
+          "description": "Elige la superposición de grabación: Ninguna la oculta, Minimalista muestra una píldora compacta y En vivo muestra tus palabras mientras hablas: palabra por palabra con un modelo de streaming y aproximadamente cada segundo con los demás. En Linux se recomienda 'Ninguna'.",
           "options": {
             "none": "Ninguna",
             "minimal": "Minimalista",

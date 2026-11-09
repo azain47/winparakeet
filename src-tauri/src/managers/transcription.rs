@@ -935,15 +935,15 @@ impl TranscriptionManager {
         };
         self.touch_activity();
 
-        while let Ok(cmd) = rx.recv() {
+        let mut next = rx.recv().ok();
+        while let Some(cmd) = next {
             match cmd {
                 StreamCmd::Feed(pcm) => {
                     // Audio queued ahead of a cancel is dropped, not decoded.
-                    if cancelled.load(Ordering::Acquire) {
-                        continue;
+                    if !cancelled.load(Ordering::Acquire) {
+                        self.touch_activity();
+                        session.feed(pcm);
                     }
-                    self.touch_activity();
-                    session.feed(pcm);
                 }
                 StreamCmd::Finalize { reply, samples } => {
                     let _ = reply.send(session.finish(samples));
@@ -952,6 +952,18 @@ impl TranscriptionManager {
                 // Dropping the session resets the worker's stream.
                 StreamCmd::Cancel => return,
             }
+            next = match rx.try_recv() {
+                Ok(cmd) => Some(cmd),
+                // Caught up with the recording: a preview started now can't
+                // hold up a stop that is already queued.
+                Err(mpsc::TryRecvError::Empty) => {
+                    if !cancelled.load(Ordering::Acquire) {
+                        session.preview();
+                    }
+                    rx.recv().ok()
+                }
+                Err(mpsc::TryRecvError::Disconnected) => None,
+            };
         }
         // The channel closed without finalize/cancel; dropping the session
         // resets the worker's stream. `_worker` drops after, clearing this

@@ -222,8 +222,8 @@
   },
   "modelTable": {
     "tags": {
-      "preview": "Prévia ao vivo",
-      "previewTitle": "Mostra suas palavras na sobreposição Ao vivo enquanto você fala e as digita quando você para",
+      "preview": "Streaming",
+      "previewTitle": "Decodifica enquanto você fala, então a sobreposição 'Ao vivo' acompanha palavra por palavra. Outros modelos a atualizam mais ou menos a cada segundo.",
       "translate": "Traduz",
       "translateTitle": "Pode transformar o que você diz em texto em inglês. Ative nos ajustes"
     },
@@ -509,7 +509,7 @@
       "overlay": {
         "style": {
           "title": "Sobreposição",
-          "description": "Escolha a sobreposição de gravação: 'Nenhum' a oculta, 'Minimalista' mostra um indicador compacto, 'Ao vivo' mostra a transcrição em tempo real enquanto você fala (apenas modelos com suporte a streaming — procure o selo 'Streaming' no seletor de modelos). No Linux, recomenda-se 'Nenhum'.",
+          "description": "Escolha a sobreposição de gravação: 'Nenhum' a oculta, 'Minimalista' mostra um indicador compacto e 'Ao vivo' mostra suas palavras enquanto você fala: palavra por palavra com um modelo de streaming, mais ou menos a cada segundo com os outros. No Linux, recomenda-se 'Nenhum'.",
           "options": {
             "none": "Nenhum",
             "minimal": "Minimalista",

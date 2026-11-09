@@ -222,8 +222,8 @@
   },
   "modelTable": {
     "tags": {
-      "preview": "Live-forhåndsvisning",
-      "previewTitle": "Viser dine ord i Live-overlayet, mens du taler, og skriver dem, når du stopper",
+      "preview": "Streamer",
+      "previewTitle": "Afkoder, mens du taler, så Live-overlayet følger med ord for ord. Andre modeller opdaterer det cirka hvert sekund.",
       "translate": "Oversætter",
       "translateTitle": "Kan omdanne det, du siger, til engelsk tekst. Slå det til i indstillingerne"
     },
@@ -509,7 +509,7 @@
       "overlay": {
         "style": {
           "title": "Overlay",
-          "description": "Vælg optagelses-overlay: Ingen skjuler det, Minimal viser en kompakt pille, Live viser transskription i realtid, mens du taler (kun modeller med streaming-understøttelse — se efter Streaming-mærket i modelvælgeren). På Linux anbefales 'Ingen'.",
+          "description": "Vælg optagelses-overlay: Ingen skjuler det, Minimal viser en kompakt pille, og Live viser dine ord, mens du taler: ord for ord med en streamingmodel, cirka hvert sekund med andre. På Linux anbefales 'Ingen'.",
           "options": {
             "none": "Ingen",
             "minimal": "Minimal",

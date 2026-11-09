@@ -222,8 +222,8 @@
   },
   "modelTable": {
     "tags": {
-      "preview": "Vista prèvia en directe",
-      "previewTitle": "Mostra les paraules a la finestra superposada En directe mentre parleu i les escriu quan acabeu",
+      "preview": "En temps real",
+      "previewTitle": "Descodifica mentre parleu, de manera que la finestra En directe us segueix paraula per paraula. Els altres models l'actualitzen més o menys cada segon.",
       "translate": "Tradueix",
       "translateTitle": "Pot convertir el que digueu en text en anglès. Activeu-ho a la configuració"
     },
@@ -509,7 +509,7 @@
       "overlay": {
         "style": {
           "title": "Finestra superposada",
-          "description": "Tria la finestra superposada d'enregistrament: Cap l'amaga, Mínima mostra un indicador compacte i En directe mostra la transcripció en temps real mentre parleu (només amb models compatibles; cerqueu el distintiu En temps real al selector de models). Al Linux es recomana Cap.",
+          "description": "Tria la finestra superposada d'enregistrament: Cap l'amaga, Mínima mostra un indicador compacte i En directe mostra les vostres paraules mentre parleu: paraula per paraula amb un model en temps real i més o menys cada segon amb els altres. Al Linux es recomana Cap.",
           "options": {
             "none": "Cap",
             "minimal": "Mínima",

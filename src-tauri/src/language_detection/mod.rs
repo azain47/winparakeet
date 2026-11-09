@@ -142,6 +142,33 @@ impl Plan {
         matches!(self, Plan::Detect { .. })
     }
 
+    /// The language before any speech is heard: a fixed one, the model's own
+    /// detection, or a detect plan's fallback, which is also what
+    /// [`decide`](Self::decide) settles on when it can't detect.
+    pub fn without_speech(&self) -> LanguageDecision {
+        match self {
+            Plan::Fixed { language, source } => LanguageDecision {
+                language: Some(language.clone()),
+                source: *source,
+            },
+            Plan::Native => LanguageDecision {
+                language: None,
+                source: LanguageSource::Model,
+            },
+            Plan::Detect {
+                languages,
+                fallback,
+                ..
+            } => LanguageDecision {
+                language: match fallback {
+                    DetectFallback::FirstLanguage => languages.first().cloned(),
+                    DetectFallback::Native => None,
+                },
+                source: LanguageSource::Fallback,
+            },
+        }
+    }
+
     /// The language, given the transcription's `speech` (VAD'd, at most the
     /// detection window), or `None` if the detector isn't on disk. `identify`
     /// runs the detector over `allowed`.
@@ -150,33 +177,13 @@ impl Plan {
         speech: Option<&[f32]>,
         identify: impl FnOnce(&[f32], &[String]) -> Result<Identified, IdentifyError>,
     ) -> LanguageDecision {
-        let (languages, allowed, fallback) = match self {
-            Plan::Fixed { language, source } => {
-                return LanguageDecision {
-                    language: Some(language.clone()),
-                    source: *source,
-                }
-            }
-            Plan::Native => {
-                return LanguageDecision {
-                    language: None,
-                    source: LanguageSource::Model,
-                }
-            }
-            Plan::Detect {
-                languages,
-                allowed,
-                fallback,
-            } => (languages, allowed, *fallback),
+        let Plan::Detect {
+            languages, allowed, ..
+        } = self
+        else {
+            return self.without_speech();
         };
-
-        let fallback_decision = LanguageDecision {
-            language: match fallback {
-                DetectFallback::FirstLanguage => languages.first().cloned(),
-                DetectFallback::Native => None,
-            },
-            source: LanguageSource::Fallback,
-        };
+        let fallback_decision = self.without_speech();
         let transcribing_as = match &fallback_decision.language {
             Some(language) => format!("transcribing as {language}, the first preferred language"),
             None => "using the model's own detection".to_string(),

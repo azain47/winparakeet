@@ -222,8 +222,8 @@
   },
   "modelTable": {
     "tags": {
-      "preview": "Anteprima in tempo reale",
-      "previewTitle": "Mostra le tue parole nell'overlay In tempo reale mentre parli, poi le scrive quando smetti",
+      "preview": "Streaming",
+      "previewTitle": "Decodifica mentre parli, così l'overlay 'In tempo reale' ti segue parola per parola. Gli altri modelli lo aggiornano circa ogni secondo.",
       "translate": "Traduce",
       "translateTitle": "Può trasformare ciò che dici in testo inglese. Attivalo nelle impostazioni"
     },
@@ -509,7 +509,7 @@
       "overlay": {
         "style": {
           "title": "Overlay",
-          "description": "Scegli l'overlay di registrazione: 'Nessuno' lo nasconde, 'Minimo' mostra una barra compatta, 'In tempo reale' mostra la trascrizione in tempo reale mentre parli (solo per modelli che supportano lo streaming — cerca il badge 'Streaming' nel selettore del modello). Su Linux si raccomanda l'opzione 'Nessuno'.",
+          "description": "Scegli l'overlay di registrazione: 'Nessuno' lo nasconde, 'Minimo' mostra una barra compatta e 'In tempo reale' mostra le tue parole mentre parli: parola per parola con un modello in streaming, circa ogni secondo con gli altri. Su Linux si raccomanda l'opzione 'Nessuno'.",
           "options": {
             "none": "Nessuno",
             "minimal": "Minimo",

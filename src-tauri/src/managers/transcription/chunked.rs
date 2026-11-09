@@ -4,10 +4,10 @@
 use std::time::Instant;
 
 use log::info;
-use transcribe_cpp::Transcript;
+use transcribe_cpp::{RunOptions, Transcript};
 
 use super::{RunSetup, TranscriptionManager};
-use crate::audio_toolkit::chunking::Chunker;
+use crate::audio_toolkit::chunking::{self, Chunker};
 use crate::engine_supervisor::{CancelMark, EngineError, LoadedInfo};
 use crate::language_detection::Plan;
 use crate::managers::audio::create_detector;
@@ -51,6 +51,8 @@ pub(super) struct ChunkedDecode<'a> {
     model_id: String,
     chunker: Chunker,
     transcripts: Vec<Transcript>,
+    /// The audio the transcripts cover: every chunk decoded so far.
+    decoded_samples: usize,
     /// The first run that failed or was cancelled; nothing more is decoded
     /// after it.
     failure: Option<EngineError>,
@@ -73,6 +75,7 @@ impl<'a> ChunkedDecode<'a> {
             model_id: model_id.to_string(),
             chunker: Chunker::new(Box::new(move || create_detector(backend, &app_handle))),
             transcripts: Vec::new(),
+            decoded_samples: 0,
             failure: None,
         }
     }
@@ -99,6 +102,31 @@ impl<'a> ChunkedDecode<'a> {
     /// Chunks decoded so far.
     pub(super) fn decoded(&self) -> usize {
         self.transcripts.len()
+    }
+
+    /// Samples the chunks decoded so far cover, from the start: chunks are
+    /// cut back to back.
+    pub(super) fn decoded_samples(&self) -> usize {
+        self.decoded_samples
+    }
+
+    /// The text of the chunks decoded so far, joined as the final text is.
+    pub(super) fn decoded_text(&self) -> String {
+        chunking::join_transcripts(
+            &self
+                .transcripts
+                .iter()
+                .map(|t| t.text.as_str())
+                .collect::<Vec<_>>(),
+        )
+    }
+
+    /// The run options every chunk uses, once the first chunk has set them.
+    pub(super) fn run_options(&self) -> Option<&RunOptions> {
+        match &self.setup {
+            ChunkSetup::Ready(setup) => Some(&setup.run_options),
+            ChunkSetup::Pending(_) => None,
+        }
     }
 
     /// Whether a failure already ended the decode; [`finish`](Self::finish)
@@ -148,7 +176,8 @@ impl<'a> ChunkedDecode<'a> {
             }
             // The first chunk picks the language for every chunk.
             let run_options = self.setup.resolve(self.tm, &chunk).run_options.clone();
-            let audio_secs = chunk.len() as f64 / 16_000.0;
+            let samples = chunk.len();
+            let audio_secs = samples as f64 / 16_000.0;
             let started = Instant::now();
             match self
                 .tm
@@ -156,6 +185,7 @@ impl<'a> ChunkedDecode<'a> {
             {
                 Ok(transcript) => {
                     self.transcripts.push(transcript);
+                    self.decoded_samples += samples;
                     // Real-time factor: audio seconds decoded per second of
                     // wall clock. Floored so a near-instant decode reports a
                     // large factor instead of infinity.

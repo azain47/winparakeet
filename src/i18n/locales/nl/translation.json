@@ -222,8 +222,8 @@
   },
   "modelTable": {
     "tags": {
-      "preview": "Live voorvertoning",
-      "previewTitle": "Toont je woorden in de Live-overlay terwijl je praat en typt ze zodra je stopt",
+      "preview": "Streamt",
+      "previewTitle": "Decodeert terwijl je praat, zodat de Live-overlay woord voor woord meekomt. Andere modellen werken hem ongeveer elke seconde bij.",
       "translate": "Vertaalt",
       "translateTitle": "Kan wat je zegt omzetten in Engelse tekst. Zet dit aan in de instellingen"
     },
@@ -509,7 +509,7 @@
       "overlay": {
         "style": {
           "title": "Overlay",
-          "description": "Kies de opname-overlay: 'Geen' verbergt deze, 'Minimaal' toont een compacte balk, 'Live' toont de tekst in realtime tijdens het spreken (alleen voor streaming-modellen). Op Linux wordt 'Geen' aanbevolen.",
+          "description": "Kies de opname-overlay: 'Geen' verbergt deze, 'Minimaal' toont een compacte balk en 'Live' toont je woorden terwijl je spreekt: woord voor woord met een streaming-model, ongeveer elke seconde met andere. Op Linux wordt 'Geen' aanbevolen.",
           "options": {
             "none": "Geen",
             "minimal": "Minimaal",

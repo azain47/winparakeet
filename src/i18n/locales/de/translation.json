@@ -222,8 +222,8 @@
   },
   "modelTable": {
     "tags": {
-      "preview": "Live-Vorschau",
-      "previewTitle": "Zeigt deine Worte im Live-Overlay, während du sprichst, und tippt sie, sobald du aufhörst",
+      "preview": "Streamt",
+      "previewTitle": "Dekodiert, während du sprichst, sodass das Live-Overlay Wort für Wort mithält. Andere Modelle aktualisieren es etwa jede Sekunde.",
       "translate": "Übersetzt",
       "translateTitle": "Kann das Gesagte in englischen Text umwandeln. In den Einstellungen aktivieren"
     },
@@ -509,7 +509,7 @@
       "overlay": {
         "style": {
           "title": "Overlay",
-          "description": "Wähle das Aufnahme-Overlay: „Keine“ blendet es aus, „Minimal“ zeigt ein kompaktes Element, „Live“ zeigt die Transkription in Echtzeit während des Sprechens an (nur für streamingfähige Modelle – suche nach dem Streaming-Badge in der Modellauswahl). Unter Linux wird „Keine“ empfohlen.",
+          "description": "Wähle das Aufnahme-Overlay: „Keine“ blendet es aus, „Minimal“ zeigt ein kompaktes Element, und „Live“ zeigt deine Worte, während du sprichst: Wort für Wort mit einem Streaming-Modell, etwa jede Sekunde mit anderen. Unter Linux wird „Keine“ empfohlen.",
           "options": {
             "none": "Keine",
             "minimal": "Minimal",
