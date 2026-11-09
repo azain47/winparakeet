@@ -187,8 +187,13 @@ const OVERLAY_TOP_OFFSET: f64 = 4.0;
 #[cfg(target_os = "macos")]
 const OVERLAY_BOTTOM_OFFSET: f64 = 15.0;
 
-#[cfg(any(target_os = "windows", target_os = "linux"))]
+#[cfg(target_os = "linux")]
 const OVERLAY_BOTTOM_OFFSET: f64 = 40.0;
+
+/// Windows measures it from the work area's bottom, which is the top of a
+/// bottom taskbar: the gap Windows leaves above its own flyouts.
+#[cfg(target_os = "windows")]
+const OVERLAY_BOTTOM_OFFSET: f64 = 12.0;
 
 /// Configures the edge and offset of a GTK layer surface. gtk-layer-shell
 /// commits anchor and margin changes itself, including while the surface is
@@ -346,12 +351,12 @@ fn is_mouse_within_monitor(
 
 /// Returns overlay position in logical coordinates (points on macOS).
 ///
-/// The Bottom anchor uses the macOS work area (visibleFrame) so the overlay
-/// tracks the Dock — above it when shown, at the screen edge when hidden.
-/// This relies on tauri 2.11's work_area.position.y fix (#14655), the same
-/// bug that led PR #969 to abandon work_area for full monitor bounds. Top and
-/// the other platforms keep full monitor bounds plus the fixed offsets
-/// (work_area is unreliable on Wayland; Windows' offset clears the taskbar).
+/// The Bottom anchor uses the work area, so the overlay sits above the macOS
+/// Dock (visibleFrame) and the Windows taskbar, or at the screen edge when
+/// they hide. On macOS this relies on tauri 2.11's work_area.position.y fix
+/// (#14655), the same bug that led PR #969 to abandon work_area for full
+/// monitor bounds. Top, and Linux, keep full monitor bounds plus the fixed
+/// offsets (work_area is unreliable on Wayland).
 ///
 /// We must use LogicalPosition (not PhysicalPosition) because Tauri/tao
 /// converts PhysicalPosition using the scale factor of the monitor the window
@@ -385,12 +390,12 @@ fn calculate_edge_position(
         OverlayPosition::Bottom => {
             // work_area.position shares monitor.position's global coordinate
             // space, so no monitor offset is added.
-            #[cfg(target_os = "macos")]
+            #[cfg(any(target_os = "macos", target_os = "windows"))]
             let bottom = {
                 let wa = monitor.work_area();
                 (wa.position.y as f64 + wa.size.height as f64) / scale
             };
-            #[cfg(not(target_os = "macos"))]
+            #[cfg(target_os = "linux")]
             let bottom = monitor_y + monitor.size().height as f64 / scale;
 
             bottom - height - OVERLAY_BOTTOM_OFFSET
@@ -422,11 +427,13 @@ fn windows_text_scale_factor() -> f64 {
 }
 
 /// Overlay rectangle in the destination monitor's physical pixels, so nothing
-/// is converted through the window's previous-monitor DPI.
+/// is converted through the window's previous-monitor DPI. `area` is that
+/// monitor's work area: the screen minus the taskbar, on whichever edge and
+/// however tall it is (all of the screen when it auto-hides).
 #[cfg(target_os = "windows")]
 fn windows_overlay_bounds(
-    monitor_position: PhysicalPosition<i32>,
-    monitor_size: PhysicalSize<u32>,
+    area_position: PhysicalPosition<i32>,
+    area_size: PhysicalSize<u32>,
     scale: f64,
     text_scale: f64,
     logical_width: f64,
@@ -438,13 +445,12 @@ fn windows_overlay_bounds(
     let content_scale = scale * text_scale;
     let width = (logical_width * content_scale).round().max(1.0) as i32;
     let height = (logical_height * content_scale).round().max(1.0) as i32;
-    let x = (monitor_position.x as f64 + (monitor_size.width as f64 - width as f64) / 2.0).round()
-        as i32;
+    let x = (area_position.x as f64 + (area_size.width as f64 - width as f64) / 2.0).round() as i32;
     let y = match overlay_position {
         OverlayPosition::Top => {
-            (monitor_position.y as f64 + OVERLAY_TOP_OFFSET * scale).round() as i32
+            (area_position.y as f64 + OVERLAY_TOP_OFFSET * scale).round() as i32
         }
-        OverlayPosition::Bottom => (monitor_position.y as f64 + monitor_size.height as f64
+        OverlayPosition::Bottom => (area_position.y as f64 + area_size.height as f64
             - height as f64
             - OVERLAY_BOTTOM_OFFSET * scale)
             .round() as i32,
@@ -486,9 +492,13 @@ fn place_windows_edge_window(
     let monitor = get_monitor_with_cursor(app_handle)
         .ok_or_else(|| "failed to determine the monitor containing the cursor".to_string())?;
     let text_scale = windows_text_scale_factor();
+    // Inside the work area, never over the taskbar. Both are always on top and
+    // the one raised last wins, so a click on the taskbar would cover the part
+    // of a window that overlaps it, such as the bottom of the meeting bar.
+    let area = monitor.work_area();
     let (x, y, width, height) = windows_overlay_bounds(
-        *monitor.position(),
-        *monitor.size(),
+        area.position,
+        area.size,
         monitor.scale_factor(),
         text_scale,
         logical_width,
@@ -1241,25 +1251,25 @@ mod tests {
     #[cfg(target_os = "windows")]
     #[test]
     fn windows_overlay_bounds_use_destination_monitor_scale() {
-        let monitor_position = PhysicalPosition::new(1920, 0);
-        let monitor_size = PhysicalSize::new(3840, 2160);
+        let area_position = PhysicalPosition::new(1920, 0);
+        let area_size = PhysicalSize::new(3840, 2160);
 
         assert_eq!(
             windows_overlay_bounds(
-                monitor_position,
-                monitor_size,
+                area_position,
+                area_size,
                 1.5,
                 1.0,
                 OVERLAY_WIDTH,
                 OVERLAY_HEIGHT,
                 OverlayPosition::Bottom,
             ),
-            (3641, 2025, 399, 75)
+            (3641, 2067, 399, 75)
         );
         assert_eq!(
             windows_overlay_bounds(
-                monitor_position,
-                monitor_size,
+                area_position,
+                area_size,
                 1.5,
                 1.0,
                 OVERLAY_WIDTH,
@@ -1283,19 +1293,19 @@ mod tests {
                 OVERLAY_STREAM_HEIGHT,
                 OverlayPosition::Bottom,
             ),
-            (-1530, 1040, 500, 150)
+            (-1530, 1075, 500, 150)
         );
     }
 
     #[cfg(target_os = "windows")]
     #[test]
     fn windows_overlay_bounds_grow_with_text_scale_without_moving_the_anchored_edge() {
-        let monitor_position = PhysicalPosition::new(-2560, -200);
-        let monitor_size = PhysicalSize::new(2560, 1440);
+        let area_position = PhysicalPosition::new(-2560, -200);
+        let area_size = PhysicalSize::new(2560, 1440);
 
         let (x, y, width, height) = windows_overlay_bounds(
-            monitor_position,
-            monitor_size,
+            area_position,
+            area_size,
             1.25,
             1.1,
             OVERLAY_STREAM_WIDTH,
@@ -1303,13 +1313,13 @@ mod tests {
             OverlayPosition::Bottom,
         );
         // 400x120 logical at 1.25 DPI x 1.1 text, still centered horizontally.
-        assert_eq!((x, y, width, height), (-1555, 1025, 550, 165));
-        // Bottom edge unchanged from the 1.0 case above (1040 + 150).
-        assert_eq!(y + height, 1190);
+        assert_eq!((x, y, width, height), (-1555, 1060, 550, 165));
+        // Bottom edge unchanged from the 1.0 case above (1075 + 150).
+        assert_eq!(y + height, 1225);
 
         let (_, top_y, _, _) = windows_overlay_bounds(
-            monitor_position,
-            monitor_size,
+            area_position,
+            area_size,
             1.25,
             1.1,
             OVERLAY_STREAM_WIDTH,
