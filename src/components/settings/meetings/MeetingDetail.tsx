@@ -188,8 +188,12 @@ const SpeakerChip: React.FC<{
     const trimmed = draft.trim();
     const current =
       meeting.speakers.find((s) => s.key === speakerKey)?.name ?? null;
-    // Empty goes back to the default label.
-    const next = trimmed === "" ? null : trimmed;
+    // Empty, or the default label itself, goes back to the default label
+    // (which follows the app's language).
+    const next =
+      trimmed === "" || trimmed === defaultSpeakerName(speakerKey, t)
+        ? null
+        : trimmed;
     if (next === current) return;
     try {
       const result = await commands.renameMeetingSpeaker(
@@ -217,6 +221,8 @@ const SpeakerChip: React.FC<{
           value={draft}
           placeholder={defaultSpeakerName(speakerKey, t)}
           aria-label={t("meetings.detail.renameSpeaker")}
+          // Typing replaces the name rather than appending to it.
+          onFocus={(event) => event.currentTarget.select()}
           onChange={(event) => setDraft(event.target.value)}
           onBlur={() => void commit()}
           onKeyDown={(event) => {

@@ -22,10 +22,13 @@ use std::path::Path;
 
 use super::gguf_meta::{self, GgufError, GgufMetadata};
 
-/// Architecture strings transcribe-cpp can load — the `.name` of each arch under
-/// its `src/arch/`, which is exactly the value stored in `general.architecture`.
-/// Keep this in sync with transcribe-cpp; an arch absent here still parses, it's
-/// just surfaced as [`Compatibility::MaybeIncompatible`] rather than promised.
+/// Transcription architectures transcribe-cpp can load — the `.name` of each
+/// arch under its `src/arch/`, which is exactly the value stored in
+/// `general.architecture`. Keep this in sync with transcribe-cpp; an arch absent
+/// here still parses, it's just surfaced as [`Compatibility::MaybeIncompatible`]
+/// rather than promised. Models that produce no text stay out (`sortformer`,
+/// the meeting diarizer; `ecapa_tdnn`, the language detector), so a cached copy
+/// is never offered as a transcription model.
 pub const KNOWN_ARCHES: &[&str] = &[
     "whisper",
     "parakeet",
@@ -48,7 +51,6 @@ pub const KNOWN_ARCHES: &[&str] = &[
     "granite5_ctc",
     "medasr",
     "moss",
-    "sortformer",
 ];
 
 // GGUF metadata keys transcribe-cpp writes for ASR models.

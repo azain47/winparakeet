@@ -351,7 +351,7 @@ fn initialize_core_logic(app_handle: &AppHandle) {
                 tray::quit(app);
             }
             "meeting_toggle" => {
-                tray::toggle_meeting(app);
+                tray::toggle_meeting(app, "tray");
             }
             id if id.starts_with("model_select:") => {
                 let model_id = id.strip_prefix("model_select:").unwrap().to_string();
@@ -969,7 +969,7 @@ pub fn run(cli_args: CliArgs) {
             } else if args.iter().any(|a| a == "--cancel") {
                 crate::utils::cancel_current_operation(app);
             } else if args.iter().any(|a| a == "--toggle-meeting") {
-                tray::toggle_meeting(app);
+                tray::toggle_meeting(app, "CLI");
             } else {
                 // A second process was launched without remote-control flags
                 // (e.g. the binary run from a shell). On macOS, relaunching the

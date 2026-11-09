@@ -31,7 +31,7 @@ const LevelMeter: React.FC<LevelMeterProps> = ({
 
   return (
     <div className="flex items-center gap-3 min-w-0">
-      <span className="flex w-24 shrink-0 items-center gap-1.5 text-sm text-ink-2">
+      <span className="flex w-32 shrink-0 items-center gap-1.5 text-sm text-ink-2">
         <Icon className="size-4 shrink-0 text-ink-3" />
         <span className="truncate">{label}</span>
       </span>

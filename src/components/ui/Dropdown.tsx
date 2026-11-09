@@ -1,6 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+/** The menu's tallest (`max-h-60`), and a row's usual height, in rem. */
+const MENU_MAX_REM = 15;
+const ROW_REM = 2.25;
+
 export interface DropdownOption {
   value: string;
   label: React.ReactNode;
@@ -21,6 +25,31 @@ interface DropdownProps {
   placement?: "below" | "above";
 }
 
+/**
+ * Whether a menu of `rows` fits better above `trigger`: too little room
+ * below it in its scroll area (which would clip the menu) or the window, and
+ * more room above.
+ */
+const opensBetterAbove = (trigger: HTMLElement, rows: number): boolean => {
+  const rect = trigger.getBoundingClientRect();
+  let top = 0;
+  let bottom = window.innerHeight;
+  for (let el = trigger.parentElement; el; el = el.parentElement) {
+    const overflow = getComputedStyle(el).overflowY;
+    if (overflow === "auto" || overflow === "scroll") {
+      const area = el.getBoundingClientRect();
+      top = Math.max(area.top, 0);
+      bottom = Math.min(area.bottom, window.innerHeight);
+      break;
+    }
+  }
+  const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
+  const menu = Math.min(rows * ROW_REM + 0.5, MENU_MAX_REM) * rem;
+  const below = bottom - rect.bottom;
+  const above = rect.top - top;
+  return below < menu + 8 && above > below;
+};
+
 export const Dropdown: React.FC<DropdownProps> = ({
   options,
   selectedValue,
@@ -34,6 +63,7 @@ export const Dropdown: React.FC<DropdownProps> = ({
 }) => {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
+  const [flipped, setFlipped] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
 
@@ -61,7 +91,14 @@ export const Dropdown: React.FC<DropdownProps> = ({
 
   const handleToggle = () => {
     if (disabled) return;
-    if (!isOpen) onOpen?.();
+    if (!isOpen) {
+      onOpen?.();
+      setFlipped(
+        placement === "below" &&
+          triggerRef.current !== null &&
+          opensBetterAbove(triggerRef.current, Math.max(options.length, 1)),
+      );
+    }
     setIsOpen(!isOpen);
   };
 
@@ -109,7 +146,7 @@ export const Dropdown: React.FC<DropdownProps> = ({
       </button>
       {isOpen && !disabled && (
         <div
-          className={`absolute ${placement === "above" ? "bottom-full mb-1" : "top-full mt-1"} animate-drop bg-flyout border border-line rounded-[8px] shadow-flyout z-50 max-h-60 overflow-y-auto p-1 ${
+          className={`absolute ${placement === "above" || flipped ? "bottom-full mb-1" : "top-full mt-1"} animate-drop bg-flyout border border-line rounded-[8px] shadow-flyout z-50 max-h-60 overflow-y-auto p-1 ${
             menuClassName ?? "left-0 right-0"
           }`}
         >

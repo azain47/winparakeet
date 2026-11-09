@@ -254,24 +254,25 @@ pub fn set_meeting_recording(app: &AppHandle, recording: bool) {
     sync_tray_with(app, |inner| inner.meeting_recording = recording);
 }
 
-/// The tray's meeting item: starts or stops recording a meeting. Off the
-/// main thread, which menu events run on: opening devices can take seconds.
-pub fn toggle_meeting(app: &AppHandle) {
+/// Starts or stops recording a meeting, for the tray's item and the CLI
+/// (`source` names which, for the log). Off the calling thread: menu events
+/// run on the main thread, and opening devices can take seconds.
+pub fn toggle_meeting(app: &AppHandle, source: &'static str) {
     let app = app.clone();
     let spawned = std::thread::Builder::new()
-        .name("tray-meeting-toggle".into())
+        .name("meeting-toggle".into())
         .spawn(move || {
             let Some(recorder) = app.try_state::<Arc<MeetingRecorder>>() else {
                 error!("Meeting recorder is not ready");
                 return;
             };
             match recorder.toggle() {
-                Ok(meeting) => info!("Meeting {} toggled via tray", meeting.id),
-                Err(err) => error!("Failed to toggle the meeting via tray: {err:#}"),
+                Ok(meeting) => info!("Meeting {} toggled via {source}", meeting.id),
+                Err(err) => error!("Failed to toggle the meeting via {source}: {err:#}"),
             }
         });
     if let Err(err) = spawned {
-        error!("Failed to toggle the meeting via tray: {err}");
+        error!("Failed to toggle the meeting via {source}: {err}");
     }
 }
 

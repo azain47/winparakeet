@@ -3425,6 +3425,18 @@ mod tests {
             &[],
         );
 
+        // The meeting diarizer (transcribe-cpp loads it, but it writes no
+        // text) -> must be ignored too, not offered as a transcription model.
+        let repo3 = root.join("models--handy-computer--diar-test");
+        fs::create_dir_all(repo3.join("snapshots").join("aaa111")).unwrap();
+        fs::create_dir_all(repo3.join("refs")).unwrap();
+        fs::write(repo3.join("refs").join("main"), "aaa111").unwrap();
+        write_synthetic_gguf(
+            &repo3.join("snapshots").join("aaa111").join("diar-q8.gguf"),
+            "sortformer",
+            &[],
+        );
+
         let mut models = HashMap::new();
         ModelManager::discover_hf_cache_models_in(root, &mut models);
 
@@ -3442,6 +3454,10 @@ mod tests {
         assert!(
             !models.contains_key("someone/llama-7b/llama-q8.gguf"),
             "non-ASR gguf must be ignored"
+        );
+        assert!(
+            !models.contains_key("handy-computer/diar-test/diar-q8.gguf"),
+            "the diarizer must not be listed as a transcription model"
         );
     }
 }

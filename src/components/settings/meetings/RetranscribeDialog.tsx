@@ -7,7 +7,7 @@ import { notify } from "@/stores/noticeStore";
 import { Button } from "../../ui/Button";
 import { Dialog } from "../../ui/Dialog";
 import { Radio } from "../../ui/Radio";
-import { SAME_AS_DICTATION, useModelOptions } from "./useModelOptions";
+import { useModelOptions } from "./useModelOptions";
 
 interface RetranscribeDialogProps {
   meetingId: number;
@@ -26,22 +26,22 @@ export const RetranscribeDialog: React.FC<RetranscribeDialogProps> = ({
   const { t } = useTranslation();
   const { getSetting } = useSettings();
   const meetingModel = getSetting("meeting_model") ?? null;
-  const options = useModelOptions(meetingModel);
-  const [choice, setChoice] = useState(meetingModel ?? SAME_AS_DICTATION);
+  const dictationModel = useModelStore((state) => state.currentModel);
+  // A one-off choice, so the models are listed once each, by name; it
+  // starts on the model meetings are set to use.
+  const options = useModelOptions(meetingModel, false);
+  const initial = meetingModel ?? dictationModel ?? "";
+  const [choice, setChoice] = useState(initial);
   const [busy, setBusy] = useState(false);
 
   // Each time it opens it starts from the setting.
   useEffect(() => {
-    if (open) setChoice(meetingModel ?? SAME_AS_DICTATION);
-  }, [open, meetingModel]);
+    if (open) setChoice(initial);
+  }, [open, initial]);
 
   const transcribe = async () => {
-    // "Same as dictation" means the dictation model now; `null` would mean
-    // the meeting setting, which may name another model.
-    const modelId =
-      choice === SAME_AS_DICTATION
-        ? useModelStore.getState().currentModel || null
-        : choice;
+    // `null` (nothing to choose from) leaves it to the meeting setting.
+    const modelId = choice || null;
     setBusy(true);
     try {
       const result = await commands.transcribeMeeting(meetingId, modelId);
