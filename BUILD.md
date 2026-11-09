@@ -1,266 +1,78 @@
-# Build Instructions
+# Building WinParakeet
 
-This guide covers how to set up the development environment and build Handy from source across different platforms.
+WinParakeet targets Windows x64. There are three ways to build it:
 
-## Prerequisites
+- [Cross-compile from WSL](#cross-compile-from-wsl): no Windows toolchain needed; a runnable portable build for local work.
+- [Native Windows build](#native-windows-build): Visual Studio Build Tools, CMake and the Vulkan SDK on Windows; needed for installers.
+- [GitHub Actions](#github-actions): installers for every push to `main`, and draft releases.
 
-### All Platforms
+## Cross-compile from WSL
 
-- [Rust](https://rustup.rs/) (latest stable)
-- [Bun](https://bun.sh/) package manager
-- [Tauri Prerequisites](https://tauri.app/start/prerequisites/)
+`scripts/build-windows-wsl.sh` builds with [cargo-xwin](https://github.com/rust-cross/cargo-xwin) (clang-cl, lld and the MSVC CRT/Windows SDK it downloads), including the Vulkan GPU backend.
 
-### Platform-Specific Requirements
+One-time setup inside WSL:
 
-#### macOS
+- Rust with the target: `rustup target add x86_64-pc-windows-msvc`
+- cargo-xwin, for example `cargo install --locked cargo-xwin`
+- [Bun](https://bun.sh)
+- LLVM with `clang-cl`, `llvm-lib`, `llvm-rc` and `llvm-dlltool` (Ubuntu: `sudo apt install clang llvm`)
+- `cmake`, `ninja` and `glslc` (Homebrew: `brew install cmake ninja shaderc`; apt: `cmake ninja-build glslc`)
 
-- Xcode Command Line Tools
-- Install with: `xcode-select --install`
+Build, from Windows:
 
-#### Windows
-
-- Microsoft C++ Build Tools: Visual Studio 2019/2022 with C++ development
-  tools, or Visual Studio Build Tools 2019/2022
-- [CMake](https://cmake.org/download/) (must be on `PATH`):
-
-  ```powershell
-  winget install Kitware.CMake
-  ```
-
-- [Vulkan SDK](https://vulkan.lunarg.com/sdk/home) from LunarG — required to
-  build the Vulkan GPU backend (`vulkan-shaders-gen` needs the SDK's headers
-  and `glslc`):
-
-  ```powershell
-  winget install KhronosGroup.VulkanSDK
-  ```
-
-  Open a new terminal afterward so `VULKAN_SDK` is set.
-
-> [!NOTE]
-> Windows' 260-character path limit used to break the native Vulkan build in
-> most checkouts. Since `transcribe-cpp` 0.1.3 the build works around it
-> automatically (it compiles through a short NTFS junction — no admin rights
-> or setup needed), so a normal checkout just builds. If you still hit
-> path-limit errors, see
-> [Windows build fails with path-limit errors](#windows-build-fails-with-path-limit-errors-msb3491--ftk1011--msb6003)
-> in Troubleshooting.
-
-#### Linux
-
-- Build essentials
-- ALSA development libraries
-- Install with:
-
-  ```bash
-  # Ubuntu/Debian
-  sudo apt update
-  sudo apt install build-essential clang libclang-dev libevdev-dev libasound2-dev pkg-config libssl-dev libvulkan-dev vulkan-tools glslc spirv-headers glslang-tools libgtk-3-dev libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev libgtk-layer-shell0 libgtk-layer-shell-dev patchelf cmake
-
-  # Fedora/RHEL
-  sudo dnf groupinstall "Development Tools"
-  sudo dnf install alsa-lib-devel pkgconf openssl-devel vulkan-devel glslc \
-    clang clang-devel libevdev-devel \
-    spirv-headers-devel spirv-tools-devel glslang \
-    gtk3-devel webkit2gtk4.1-devel libappindicator-gtk3-devel librsvg2-devel \
-    gtk-layer-shell gtk-layer-shell-devel \
-    cmake
-
-  # Arch Linux
-  sudo pacman -S base-devel clang libevdev shaderc spirv-headers glslang alsa-lib pkgconf openssl vulkan-devel \
-    gtk3 webkit2gtk-4.1 libappindicator-gtk3 librsvg gtk-layer-shell \
-    cmake
-  ```
-
-## Setup Instructions
-
-### 1. Clone the Repository
-
-```bash
-git clone git@github.com:cjpais/Handy.git
-cd Handy
+```powershell
+wsl -d Ubuntu -e bash /mnt/d/winparakeet/scripts/build-windows-wsl.sh --run
 ```
 
-### 2. Install Dependencies
+or from the repository inside WSL: `bash scripts/build-windows-wsl.sh`.
 
-```bash
+The script:
+
+1. On first run, assembles a minimal Windows Vulkan SDK under `~/.cache/winparakeet-tools`: Vulkan-Headers and SPIRV-Headers, plus an import library for `vulkan-1.dll` generated from the Vulkan loader's export list. The version matches the CI build.
+2. Runs `tauri build --target x86_64-pc-windows-msvc --no-bundle` with cargo-xwin's environment. Build output goes to `~/.cache/winparakeet-target` (`CARGO_TARGET_DIR` overrides it).
+3. Lays out `dist-windows/`: `winparakeet.exe`, the transcribe.cpp and ggml DLLs, `resources/`, and a `portable` marker, so settings, models and logs stay in `dist-windows/Data/`. A running copy is closed first; `--run` starts the new one.
+
+How this build differs from the CI build:
+
+- One CPU backend module built for AVX2/FMA/F16C/BMI2 (Intel Haswell or AMD Zen and newer). ggml's per-ISA modules pass MSVC `/arch` flags only, and clang-cl rejects the AVX-VNNI and AMX ones; CI builds with MSVC and ships all of them.
+- No installer and no app-local VC++ runtime. It runs on any machine with the Visual C++ 2015-2022 redistributable, which almost every Windows 10/11 machine has.
+
+`LLVM_BIN` selects an LLVM install other than the newest `/usr/lib/llvm-*`; `WINPARAKEET_TOOLS_DIR` moves the SDK cache.
+
+## Native Windows build
+
+Requirements:
+
+- [Rust](https://rustup.rs/) (stable, MSVC toolchain) and [Bun](https://bun.sh/)
+- Visual Studio 2022 Build Tools with the C++ workload
+- [CMake](https://cmake.org/download/) on `PATH`: `winget install Kitware.CMake`
+- The [Vulkan SDK](https://vulkan.lunarg.com/sdk/home): `winget install KhronosGroup.VulkanSDK`, then open a new terminal so `VULKAN_SDK` is set
+
+Then:
+
+```powershell
 bun install
+bun run tauri dev                  # development build with hot reload
+bun run tauri build --no-bundle    # release executable only
+bun run tauri build                # NSIS and MSI installers
 ```
 
-### 3. Start Dev Server
+A full `tauri build` also signs the updater artifacts, so it needs the updater key in `TAURI_SIGNING_PRIVATE_KEY` (and `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`). Without it, add `--config '{"bundle":{"createUpdaterArtifacts":false}}'`.
+
+The Vulkan backend's shader generator nests deep CMake build trees. transcribe-cpp-sys builds through a short NTFS junction under `%LOCALAPPDATA%\tcs` to stay under the 260-character path limit. If junctions are blocked and the build fails with `MSB3491`, `FTK1011` or `MSB6003`, set a short target directory, for example `$env:CARGO_TARGET_DIR = "C:\h"`.
+
+## GitHub Actions
+
+`.github/workflows/windows.yml` builds the NSIS and MSI installers on `windows-latest` for every push to `main` and every pull request, smoke-tests both packages (`winparakeet.exe --list-devices`), and uploads them as the `winparakeet-windows-x64` artifact.
+
+Running the workflow manually with **release** checked creates a draft GitHub release for the version in `src-tauri/tauri.conf.json`, with the installers and the updater manifest (`latest.json`). The updater artifacts are signed with the key in the `TAURI_SIGNING_PRIVATE_KEY` and `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` secrets; the matching public key is `plugins.updater.pubkey` in `tauri.conf.json`.
+
+## App icon
+
+The icon source is `src-tauri/icons/app-icon.svg`. Regenerate every size with:
 
 ```bash
-bun tauri dev
+bun tauri icon src-tauri/icons/app-icon.svg
 ```
 
-### 4. Build for Production
-
-```bash
-bun run tauri build
-```
-
-This compiles a release binary and generates platform-specific bundles (deb, rpm, AppImage on Linux; dmg on macOS; msi on Windows).
-
-## Linux Install (from source)
-
-The raw binary (`src-tauri/target/release/handy`) cannot run standalone — it needs Tauri resource files (tray icons, sounds, VAD model) to be co-located at the expected path.
-
-**Install from the deb bundle** (works on any Linux distro):
-
-```bash
-cd /tmp
-ar x /path/to/Handy/src-tauri/target/release/bundle/deb/Handy_*_amd64.deb data.tar.gz
-tar xzf data.tar.gz
-sudo cp usr/bin/handy /usr/bin/
-sudo cp -a usr/lib/. /usr/lib/
-sudo cp -r usr/share/icons/hicolor/* /usr/share/icons/hicolor/
-sudo cp usr/share/applications/Handy.desktop /usr/share/applications/
-```
-
-The runtime libraries live in the app-private `/usr/lib/Handy/` (on the binary's rpath), so no `ldconfig` step is needed.
-
-After subsequent rebuilds, copy the binary and any refreshed runtime libraries:
-
-```bash
-sudo cp src-tauri/target/release/handy /usr/bin/
-sudo mkdir -p /usr/lib/Handy
-sudo cp -a src-tauri/transcribe-libs/. /usr/lib/Handy/
-```
-
-Resources only need re-copying if they change upstream (new icons, sounds, models, etc.).
-
-## Troubleshooting
-
-### macOS Accessibility remains enabled after a local rebuild
-
-Local builds use the ad-hoc `signingIdentity: "-"`. A rebuild can have a new macOS code
-identity while the old **System Settings > Privacy & Security > Accessibility** entry
-remains visibly enabled, leaving Handy on `Waiting...`.
-
-After installing the final bundle at `/Applications/Handy.app`, quit Handy, clear only its
-stale Accessibility record, then reopen it:
-
-```bash
-osascript -e 'tell application id "com.pais.handy" to quit' || true
-tccutil reset Accessibility com.pais.handy
-open /Applications/Handy.app
-```
-
-Grant Accessibility again when prompted. This does not reset Microphone or other TCC
-services, and official releases normally do not need it.
-
-For optional diagnosis, compare the designated requirements of the previous and rebuilt
-bundles:
-
-```bash
-codesign -dr - /path/to/previous/Handy.app 2>&1
-codesign -dr - /Applications/Handy.app 2>&1
-```
-
-An ad-hoc requirement contains a `cdhash`; a changed requirement confirms the rebuild is
-not covered by the old grant. The reset procedure does not require this check.
-
-See [issue #1618](https://github.com/cjpais/Handy/issues/1618) for the related onboarding
-and stale-permission report.
-
-### AppImage build fails on Arch / rolling-release distros
-
-`linuxdeploy` bundles its own `strip` binary which is too old to process system libraries built with newer toolchains on rolling-release distros (Arch, CachyOS, Manjaro, EndeavourOS).
-
-The error from Tauri:
-
-```
-Bundling Handy_*_amd64.AppImage
-failed to bundle project `failed to run linuxdeploy`
-```
-
-Tauri swallows the real linuxdeploy error. To see it, run linuxdeploy manually:
-
-```bash
-cd src-tauri/target/release/bundle/appimage
-~/.cache/tauri/linuxdeploy-x86_64.AppImage --appimage-extract-and-run \
-  --appdir Handy.AppDir --plugin gtk --output appimage
-```
-
-**Workaround:** The binary, deb, and rpm bundles all build fine — only the AppImage step fails. To skip it:
-
-```bash
-bun run tauri build -- --bundles deb
-```
-
-Then install using the deb extraction method above.
-
-### Windows build fails with path-limit errors (`MSB3491` / `FTK1011` / `MSB6003`)
-
-On Windows the native build can fail partway through `transcribe-cpp-sys` with
-any of these (all the same root cause):
-
-```
-error MSB3491: Could not write lines to file "...VCTargetsPath.tlog\VCTargetsPath.lastbuildstate".
-Path: ... exceeds the OS max path limit. The fully qualified file name must be less than 260 characters.
-```
-
-```
-FileTracker : error FTK1011: could not create the new file tracking log file:
-...\vulkan-shaders-gen-build\...\cmTC_xxxxx.tlog\link.write.1.tlog.
-The system cannot find the path specified.
-```
-
-```
-error MSB6003: The specified task executable "CL.exe" could not be run.
-System.IO.DirectoryNotFoundException: Could not find a part of the path ...
-```
-
-This is **not** a code or toolchain problem — it's Windows' legacy 260-character
-path limit (`MAX_PATH`), overflowed by the Vulkan shader generator's nested
-CMake build tree on top of Cargo's already-deep
-`target\release\build\<crate>-<hash>\out\build\...` directory.
-
-Since `transcribe-cpp` 0.1.3 this is mitigated automatically: the native build
-compiles through a short NTFS junction under `%LOCALAPPDATA%\tcs` (created
-without admin rights), so a normal checkout builds with no setup. Enabling
-Windows long paths does **not** reliably help here — MSBuild's native
-`FileTracker` (`tracker.exe`) ignores the long-paths flag — which is why the
-junction, not the registry flag, is the fix.
-
-If you still see the errors above, junction creation was likely blocked
-(filesystem or corporate policy) — the failing build's log then contains a
-`transcribe-cpp-sys: could not create short build junction ...` warning — or
-your checkout is deep enough to overflow even the shortened layout. Work
-around either case with a short Cargo target directory:
-
-```powershell
-# Per-shell:
-$env:CARGO_TARGET_DIR = "C:\h"
-
-# Or persist it for all future terminals (note: redirects ALL your
-# Rust projects' build output, not just Handy):
-[Environment]::SetEnvironmentVariable('CARGO_TARGET_DIR', 'C:\h', 'User')
-```
-
-Artifacts then land in `C:\h\release\...` instead of the repo's
-`src-tauri\target\`. Open a **new terminal** if you persisted the variable —
-it is only picked up by freshly started processes. Then `bun run tauri dev`
-and `bun run tauri build` work normally.
-
-### Windows `tauri build` fails at bundling with `program not found`
-
-If the build compiles all the way to `Built application at: ...\handy.exe` and
-then fails with:
-
-```
-Signing C:\...\handy.exe with a custom signing command
-failed to bundle project `program not found`
-```
-
-that's the code-signing step: `tauri.conf.json` configures a custom
-`signCommand` (`trusted-signing-cli`, Azure Trusted Signing) that only exists
-in the release CI environment. Local development doesn't need it:
-
-```powershell
-# Development (no bundling/signing at all):
-bun run tauri dev
-
-# Or compile a release binary without the installer/signing step:
-bun run tauri build --no-bundle
-```
+The tray icons in `src-tauri/resources/` are 64×64 renders of the glyphs in `src/components/icons/TrayIcon.tsx`: white for dark taskbars, `#111111` for light ones (`*_dark.png`), and `#16A34A` for the colored Linux set.
