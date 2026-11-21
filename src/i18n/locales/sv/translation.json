@@ -670,7 +670,8 @@
           "description": "Visa visuell återkoppling under inspelning och transkription. På Linux rekommenderas 'Ingen'.",
           "options": {
             "bottom": "Nederst",
-            "top": "Överst"
+            "top": "Överst",
+            "dragged": "Där du drog den"
           }
         }
       },

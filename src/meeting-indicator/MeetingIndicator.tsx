@@ -10,6 +10,7 @@ import {
 import i18n, { syncLanguageFromSettings } from "@/i18n";
 import { getLanguageDirection } from "@/lib/utils/rtl";
 import { formatClock } from "@/components/settings/meetings/format";
+import { useOverlayDrag } from "@/lib/overlayDrag";
 import "./MeetingIndicator.css";
 
 interface MeterProps {
@@ -64,6 +65,8 @@ const MeetingIndicator: React.FC = () => {
   const [clock, setClock] = useState({ ms: 0, at: performance.now() });
   const [now, setNow] = useState(() => performance.now());
   const [stopping, setStopping] = useState(false);
+  // The bar can be dragged anywhere on screen.
+  const dragHandlers = useOverlayDrag();
 
   useEffect(() => {
     let disposed = false;
@@ -118,7 +121,12 @@ const MeetingIndicator: React.FC = () => {
 
   return (
     <div className="mi-stage" dir={getLanguageDirection(i18n.language)}>
-      <div className="mi-card" role="status" aria-label={`${label} ${elapsed}`}>
+      <div
+        className="mi-card"
+        role="status"
+        aria-label={`${label} ${elapsed}`}
+        {...dragHandlers}
+      >
         <span className="mi-dot" aria-hidden="true" />
         <span className="mi-label">{label}</span>
         <span className="mi-time">{elapsed}</span>

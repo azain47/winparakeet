@@ -670,7 +670,8 @@
           "description": "Visuelles Feedback-Overlay während Aufnahme und Transkription anzeigen. Unter Linux wird 'Keine' empfohlen.",
           "options": {
             "bottom": "Unten",
-            "top": "Oben"
+            "top": "Oben",
+            "dragged": "Wohin du sie gezogen hast"
           }
         }
       },

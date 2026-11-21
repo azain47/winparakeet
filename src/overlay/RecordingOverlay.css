@@ -464,3 +464,14 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* The pill can be dragged anywhere on screen (src/lib/overlayDrag.ts). */
+.scard {
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.ov-dragging,
+.ov-dragging * {
+  cursor: grabbing !important;
+}

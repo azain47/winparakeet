@@ -670,7 +670,8 @@
           "description": "Hiển thị lớp phủ phản hồi trực quan trong quá trình ghi âm và chuyển đổi. Trên Linux, 'Không có' được khuyến nghị.",
           "options": {
             "bottom": "Dưới",
-            "top": "Trên"
+            "top": "Trên",
+            "dragged": "Nơi bạn đã kéo đến"
           }
         }
       },

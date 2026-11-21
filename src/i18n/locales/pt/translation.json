@@ -670,7 +670,8 @@
           "description": "Exibir sobreposição de feedback visual durante gravação e transcrição. No Linux, 'Nenhum' é recomendado.",
           "options": {
             "bottom": "Inferior",
-            "top": "Superior"
+            "top": "Superior",
+            "dragged": "Onde você arrastou"
           }
         }
       },

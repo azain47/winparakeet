@@ -670,7 +670,8 @@
           "description": "Hvor overlayet vises på skærmen under optagelse og transskription.",
           "options": {
             "bottom": "Bund",
-            "top": "Top"
+            "top": "Top",
+            "dragged": "Hvor du trak den hen"
           }
         }
       },

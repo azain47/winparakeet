@@ -670,7 +670,8 @@
           "description": "Mostra un feedback visivo in sovrimpressione durante la registrazione e la trascrizione. Su Linux si raccomanda 'Nessuna'.",
           "options": {
             "bottom": "In basso",
-            "top": "In alto"
+            "top": "In alto",
+            "dragged": "Dove l'hai trascinata"
           }
         }
       },

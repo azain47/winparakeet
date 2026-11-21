@@ -670,7 +670,8 @@
           "description": "Dónde aparece la superposición en la pantalla durante la grabación y la transcripción.",
           "options": {
             "bottom": "Abajo",
-            "top": "Arriba"
+            "top": "Arriba",
+            "dragged": "Donde la arrastraste"
           }
         }
       },

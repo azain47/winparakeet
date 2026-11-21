@@ -670,7 +670,8 @@
           "description": "在录制和转录期间显示可视反馈悬浮窗。在 Linux 上建议选择「无」。",
           "options": {
             "bottom": "底部",
-            "top": "顶部"
+            "top": "顶部",
+            "dragged": "拖动到的位置"
           }
         }
       },

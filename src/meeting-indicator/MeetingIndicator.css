@@ -153,3 +153,14 @@
     animation: none;
   }
 }
+
+/* The bar can be dragged anywhere on screen (src/lib/overlayDrag.ts). */
+.mi-card {
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.ov-dragging,
+.ov-dragging * {
+  cursor: grabbing !important;
+}

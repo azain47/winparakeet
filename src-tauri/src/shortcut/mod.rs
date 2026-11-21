@@ -744,7 +744,17 @@ pub fn change_overlay_position_setting(app: AppHandle, position: String) -> Resu
         }
     };
     settings.overlay_position = parsed;
+    // Picking a position puts the bars back on that edge of the screen,
+    // forgetting where they were dragged.
+    let was_dragged = settings.overlay_spot.take().is_some();
     settings::write_settings(&app, settings);
+    if was_dragged {
+        // The settings window still shows the dragged spot until it re-reads.
+        let _ = app.emit(
+            "settings-changed",
+            serde_json::json!({ "setting": "overlay_spot" }),
+        );
+    }
 
     // Whether the overlay shows at all is owned by overlay_style now; position
     // only ever toggles Top/Bottom, so the enabled cache is untouched here.

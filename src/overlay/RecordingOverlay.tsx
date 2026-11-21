@@ -15,6 +15,7 @@ import i18n, { syncLanguageFromSettings } from "@/i18n";
 import { noticeDisplay } from "@/lib/notices";
 import type { ModelStateEvent } from "@/lib/types/events";
 import { getLanguageDirection } from "@/lib/utils/rtl";
+import { useOverlayDrag } from "@/lib/overlayDrag";
 
 type OverlayState =
   | "recording"
@@ -91,6 +92,8 @@ const RecordingOverlay: React.FC = () => {
   const capRef = useRef<HTMLDivElement>(null);
   const pinnedRef = useRef(true);
   const direction = getLanguageDirection(i18n.language);
+  // The pill can be dragged anywhere on screen.
+  const dragHandlers = useOverlayDrag();
 
   useEffect(() => {
     // Listeners register asynchronously; one that resolves after unmount is
@@ -438,6 +441,7 @@ const RecordingOverlay: React.FC = () => {
           } ${noticeClass}`}
           style={liveNotice && !open ? { width: noticeWidth } : undefined}
           onClick={dismissNotice}
+          {...dragHandlers}
         >
           <div className="stext">
             <div className="stext-clip">
@@ -490,6 +494,7 @@ const RecordingOverlay: React.FC = () => {
         className={`scard compact ${working && isVisible ? "cworking" : ""} ${noticeClass}`}
         style={shownNotice ? { width: noticeWidth } : undefined}
         onClick={dismissNotice}
+        {...dragHandlers}
       >
         {shownNotice
           ? noticeRow

@@ -670,7 +670,8 @@
           "description": "在錄製和轉錄期間顯示視覺回饋懸浮窗。在 Linux 上建議選擇「無」",
           "options": {
             "bottom": "底部",
-            "top": "頂部"
+            "top": "頂部",
+            "dragged": "拖曳到的位置"
           }
         }
       },

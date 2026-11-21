@@ -25,6 +25,8 @@ While you dictate, a pill shows the microphone level and a cancel button:
 
 <p align="center"><img src="docs/screenshots/recording-pill.png" alt="The recording pill: a green dot, the microphone level, and a cancel button" width="217"></p>
 
+Drag the pill, or the meeting bar below, to put it anywhere on screen; both show there from then on. **Advanced → Overlay Position** puts them back at the top or bottom.
+
 ## Meetings
 
 The **Meetings** tab records a call without joining it: your microphone ("Me") and whatever the computer plays (the other side of a Teams, Zoom or Meet call) are recorded as two separate tracks. After the call both are transcribed on your machine, with timestamps.

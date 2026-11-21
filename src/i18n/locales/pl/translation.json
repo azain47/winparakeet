@@ -670,7 +670,8 @@
           "description": "Wyświetlaj wizualną nakładkę podczas nagrywania i transkrypcji. Na Linuxie zalecane 'Brak'.",
           "options": {
             "bottom": "Dół",
-            "top": "Góra"
+            "top": "Góra",
+            "dragged": "Tam, gdzie przeciągnięto"
           }
         }
       },

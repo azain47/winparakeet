@@ -670,7 +670,8 @@
           "description": "Zobrazovat vizuální překryv během nahrávání a přepisu. Na Linuxu je doporučeno 'Žádné'.",
           "options": {
             "bottom": "Dole",
-            "top": "Nahoře"
+            "top": "Nahoře",
+            "dragged": "Kam jste ji přetáhli"
           }
         }
       },

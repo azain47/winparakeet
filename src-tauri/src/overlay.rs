@@ -459,6 +459,72 @@ fn windows_overlay_bounds(
     (x, y, width, height)
 }
 
+/// [`windows_overlay_bounds`] for a bar the user dragged to `spot`: its
+/// anchored edge on `spot.y` and centred on `spot.x`, kept inside `area` (the
+/// work area of the monitor `spot` is on), so it's never dropped over the
+/// taskbar or half off the screen.
+#[cfg(target_os = "windows")]
+#[allow(clippy::too_many_arguments)]
+fn windows_spot_bounds(
+    spot: settings::OverlaySpot,
+    area_position: PhysicalPosition<i32>,
+    area_size: PhysicalSize<u32>,
+    scale: f64,
+    text_scale: f64,
+    logical_width: f64,
+    logical_height: f64,
+    edge: OverlayPosition,
+) -> (i32, i32, i32, i32) {
+    let content_scale = scale * text_scale;
+    let width = (logical_width * content_scale).round().max(1.0) as i32;
+    let height = (logical_height * content_scale).round().max(1.0) as i32;
+    let x = spot.x - width / 2;
+    let y = match edge {
+        OverlayPosition::Top => spot.y,
+        OverlayPosition::Bottom => spot.y - height,
+    };
+    let right = area_position.x + area_size.width as i32 - width;
+    let bottom = area_position.y + area_size.height as i32 - height;
+    let x = x.clamp(area_position.x, right.max(area_position.x));
+    let y = y.clamp(area_position.y, bottom.max(area_position.y));
+    (x, y, width, height)
+}
+
+/// The spot a bar whose window is at `(x, y, width, height)` sits on: the
+/// inverse of [`windows_spot_bounds`].
+#[cfg(target_os = "windows")]
+fn windows_spot_of(
+    (x, y, width, height): (i32, i32, i32, i32),
+    edge: OverlayPosition,
+) -> settings::OverlaySpot {
+    settings::OverlaySpot {
+        x: x + width / 2,
+        y: match edge {
+            OverlayPosition::Top => y,
+            OverlayPosition::Bottom => y + height,
+        },
+    }
+}
+
+/// The monitor `spot` is on, if it's still connected.
+#[cfg(target_os = "windows")]
+fn monitor_at_spot(
+    app_handle: &AppHandle,
+    spot: settings::OverlaySpot,
+    edge: OverlayPosition,
+) -> Option<tauri::Monitor> {
+    // A bottom spot is the bar's bottom edge, one pixel below the bar itself.
+    let probe = match edge {
+        OverlayPosition::Top => (spot.x, spot.y),
+        OverlayPosition::Bottom => (spot.x, spot.y - 1),
+    };
+    app_handle
+        .available_monitors()
+        .ok()?
+        .into_iter()
+        .find(|monitor| is_mouse_within_monitor(probe, monitor.position(), monitor.size()))
+}
+
 /// Moves and sizes the overlay in one native SetWindowPos, bypassing tao's
 /// current-DPI logical conversion that mislands cross-monitor moves.
 #[cfg(target_os = "windows")]
@@ -489,22 +555,42 @@ fn place_windows_edge_window(
 ) -> Result<(), String> {
     use windows::Win32::UI::WindowsAndMessaging::{SetWindowPos, SWP_NOACTIVATE, SWP_NOZORDER};
 
-    let monitor = get_monitor_with_cursor(app_handle)
-        .ok_or_else(|| "failed to determine the monitor containing the cursor".to_string())?;
     let text_scale = windows_text_scale_factor();
+    // Where the user dragged the bars, while that monitor is connected;
+    // otherwise centred on the edge of the screen the cursor is on.
+    let dragged = settings::get_settings(app_handle)
+        .overlay_spot
+        .and_then(|spot| Some((spot, monitor_at_spot(app_handle, spot, edge)?)));
+    let monitor = match &dragged {
+        Some((_, monitor)) => monitor.clone(),
+        None => get_monitor_with_cursor(app_handle)
+            .ok_or_else(|| "failed to determine the monitor containing the cursor".to_string())?,
+    };
     // Inside the work area, never over the taskbar. Both are always on top and
     // the one raised last wins, so a click on the taskbar would cover the part
     // of a window that overlaps it, such as the bottom of the meeting bar.
     let area = monitor.work_area();
-    let (x, y, width, height) = windows_overlay_bounds(
-        area.position,
-        area.size,
-        monitor.scale_factor(),
-        text_scale,
-        logical_width,
-        logical_height,
-        edge,
-    );
+    let (x, y, width, height) = match dragged {
+        Some((spot, _)) => windows_spot_bounds(
+            spot,
+            area.position,
+            area.size,
+            monitor.scale_factor(),
+            text_scale,
+            logical_width,
+            logical_height,
+            edge,
+        ),
+        None => windows_overlay_bounds(
+            area.position,
+            area.size,
+            monitor.scale_factor(),
+            text_scale,
+            logical_width,
+            logical_height,
+            edge,
+        ),
+    };
     let hwnd = overlay_window
         .hwnd()
         .map_err(|error| format!("failed to get overlay window handle: {error}"))?;
@@ -1139,6 +1225,196 @@ fn place_meeting_indicator_on_main(app_handle: &AppHandle) {
     }
 }
 
+/* ──────────────────────────────── dragging ──────────────────────────────── */
+
+// The bars move with the mouse: the bar's webview reports a press that moved
+// (start), each move after it, and the release (end). The window follows the
+// cursor, read here in physical pixels so a drag across monitors with
+// different scaling stays under it. It never takes focus, so the app being
+// dictated into keeps it. On release the spot is saved, and both bars, which
+// share one spot, show there from then on. Windows only: elsewhere the bars
+// stay where `overlay_position` puts them.
+
+/// A drag in progress: which bar, and where the cursor and window started.
+#[cfg(target_os = "windows")]
+struct OverlayDrag {
+    label: String,
+    cursor: (i32, i32),
+    window: (i32, i32),
+}
+
+#[cfg(target_os = "windows")]
+static OVERLAY_DRAG: Mutex<Option<OverlayDrag>> = Mutex::new(None);
+
+#[cfg(target_os = "windows")]
+fn draggable_window(app_handle: &AppHandle, label: &str) -> Option<tauri::webview::WebviewWindow> {
+    if label != "recording_overlay" && label != MEETING_INDICATOR_LABEL {
+        return None;
+    }
+    app_handle.get_webview_window(label)
+}
+
+#[cfg(target_os = "windows")]
+fn cursor_position() -> Option<(i32, i32)> {
+    use windows::Win32::Foundation::POINT;
+    use windows::Win32::UI::WindowsAndMessaging::GetCursorPos;
+    let mut point = POINT::default();
+    unsafe { GetCursorPos(&mut point) }.ok()?;
+    Some((point.x, point.y))
+}
+
+/// The window's bounds in physical screen pixels, as SetWindowPos takes them.
+#[cfg(target_os = "windows")]
+fn window_bounds(window: &tauri::webview::WebviewWindow) -> Option<(i32, i32, i32, i32)> {
+    use windows::Win32::Foundation::RECT;
+    use windows::Win32::UI::WindowsAndMessaging::GetWindowRect;
+    let hwnd = window.hwnd().ok()?;
+    let mut rect = RECT::default();
+    unsafe { GetWindowRect(hwnd, &mut rect) }.ok()?;
+    Some((
+        rect.left,
+        rect.top,
+        rect.right - rect.left,
+        rect.bottom - rect.top,
+    ))
+}
+
+/// Starts dragging the bar in window `label` (its webview saw a press move).
+#[tauri::command]
+#[specta::specta]
+pub fn start_overlay_drag(app: AppHandle, label: String) {
+    #[cfg(target_os = "windows")]
+    {
+        let Some(window) = draggable_window(&app, &label) else {
+            return;
+        };
+        let (Some(cursor), Some((x, y, _, _))) = (cursor_position(), window_bounds(&window)) else {
+            return;
+        };
+        *OVERLAY_DRAG.lock().unwrap_or_else(PoisonError::into_inner) = Some(OverlayDrag {
+            label,
+            cursor,
+            window: (x, y),
+        });
+    }
+    #[cfg(not(target_os = "windows"))]
+    let _ = (app, label);
+}
+
+/// Moves the dragged bar to follow the cursor.
+#[tauri::command]
+#[specta::specta]
+pub fn move_overlay_drag(app: AppHandle) {
+    #[cfg(target_os = "windows")]
+    {
+        use windows::Win32::UI::WindowsAndMessaging::{
+            SetWindowPos, SWP_NOACTIVATE, SWP_NOSIZE, SWP_NOZORDER,
+        };
+        let (label, x, y) = {
+            let drag = OVERLAY_DRAG.lock().unwrap_or_else(PoisonError::into_inner);
+            let (Some(drag), Some(cursor)) = (drag.as_ref(), cursor_position()) else {
+                return;
+            };
+            (
+                drag.label.clone(),
+                drag.window.0 + cursor.0 - drag.cursor.0,
+                drag.window.1 + cursor.1 - drag.cursor.1,
+            )
+        };
+        let Some(hwnd) = draggable_window(&app, &label).and_then(|window| window.hwnd().ok())
+        else {
+            return;
+        };
+        unsafe {
+            let _ = SetWindowPos(
+                hwnd,
+                None,
+                x,
+                y,
+                0,
+                0,
+                SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE,
+            );
+        }
+    }
+    #[cfg(not(target_os = "windows"))]
+    let _ = app;
+}
+
+/// Ends the drag: saves where the bar was dropped, kept inside the screen
+/// it's on and off the taskbar, and settles it there.
+#[tauri::command]
+#[specta::specta]
+pub fn end_overlay_drag(app: AppHandle) {
+    #[cfg(target_os = "windows")]
+    {
+        let Some(drag) = OVERLAY_DRAG
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .take()
+        else {
+            return;
+        };
+        let Some(window) = draggable_window(&app, &drag.label) else {
+            return;
+        };
+        let Some(bounds) = window_bounds(&window) else {
+            return;
+        };
+        let mut settings = settings::get_settings(&app);
+        let edge = settings.overlay_position;
+        let dropped = windows_spot_of(bounds, edge);
+        // Snap the spot to where the bar can actually sit, so what's saved is
+        // where it shows.
+        let spot = match monitor_at_spot(&app, dropped, edge) {
+            Some(monitor) => {
+                let area = monitor.work_area();
+                let (logical_width, logical_height) = if drag.label == MEETING_INDICATOR_LABEL {
+                    (MEETING_INDICATOR_WIDTH, MEETING_INDICATOR_HEIGHT)
+                } else if overlay_state().window_live {
+                    (OVERLAY_STREAM_WIDTH, OVERLAY_STREAM_HEIGHT)
+                } else {
+                    (OVERLAY_WIDTH, OVERLAY_HEIGHT)
+                };
+                windows_spot_of(
+                    windows_spot_bounds(
+                        dropped,
+                        area.position,
+                        area.size,
+                        monitor.scale_factor(),
+                        windows_text_scale_factor(),
+                        logical_width,
+                        logical_height,
+                        edge,
+                    ),
+                    edge,
+                )
+            }
+            // Dropped off every screen: put it back where it was.
+            None => {
+                let (x, y) = drag.window;
+                windows_spot_of((x, y, bounds.2, bounds.3), edge)
+            }
+        };
+        settings.overlay_spot = Some(spot);
+        settings::write_settings(&app, settings);
+        log::debug!("bars dragged to {spot:?}");
+
+        // Settle the dragged bar with its proper size for the screen it's on.
+        if drag.label == MEETING_INDICATOR_LABEL {
+            place_meeting_indicator_on_main(&app);
+        } else {
+            update_overlay_position_on_main(&app);
+        }
+        let _ = app.emit(
+            "settings-changed",
+            serde_json::json!({ "setting": "overlay_spot" }),
+        );
+    }
+    #[cfg(not(target_os = "windows"))]
+    let _ = app;
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1328,5 +1604,84 @@ mod tests {
         );
         // Top offset rides the DPI scale alone, so the top edge doesn't move.
         assert_eq!(top_y, -195);
+    }
+
+    #[cfg(target_os = "windows")]
+    #[test]
+    fn a_dragged_spot_keeps_the_anchored_edge_as_the_bar_grows() {
+        use settings::OverlaySpot;
+        // 1920x1080 at 100% with a 48px bottom taskbar.
+        let area_position = PhysicalPosition::new(0, 0);
+        let area_size = PhysicalSize::new(1920, 1032);
+        let spot = OverlaySpot { x: 500, y: 700 };
+
+        let compact = windows_spot_bounds(
+            spot,
+            area_position,
+            area_size,
+            1.0,
+            1.0,
+            OVERLAY_WIDTH,
+            OVERLAY_HEIGHT,
+            OverlayPosition::Bottom,
+        );
+        let live = windows_spot_bounds(
+            spot,
+            area_position,
+            area_size,
+            1.0,
+            1.0,
+            OVERLAY_STREAM_WIDTH,
+            OVERLAY_STREAM_HEIGHT,
+            OverlayPosition::Bottom,
+        );
+        assert_eq!(compact, (367, 650, 266, 50));
+        assert_eq!(live, (300, 580, 400, 120));
+        assert_eq!(windows_spot_of(compact, OverlayPosition::Bottom), spot);
+        assert_eq!(windows_spot_of(live, OverlayPosition::Bottom), spot);
+
+        let top = windows_spot_bounds(
+            spot,
+            area_position,
+            area_size,
+            1.0,
+            1.0,
+            OVERLAY_STREAM_WIDTH,
+            OVERLAY_STREAM_HEIGHT,
+            OverlayPosition::Top,
+        );
+        assert_eq!(top, (300, 700, 400, 120));
+        assert_eq!(windows_spot_of(top, OverlayPosition::Top), spot);
+    }
+
+    #[cfg(target_os = "windows")]
+    #[test]
+    fn a_dragged_spot_stays_off_the_taskbar_and_on_screen() {
+        use settings::OverlaySpot;
+        let area_position = PhysicalPosition::new(-2560, -200);
+        let area_size = PhysicalSize::new(2560, 1392);
+        let bounds = |spot| {
+            windows_spot_bounds(
+                spot,
+                area_position,
+                area_size,
+                1.25,
+                1.0,
+                MEETING_INDICATOR_WIDTH,
+                MEETING_INDICATOR_HEIGHT,
+                OverlayPosition::Bottom,
+            )
+        };
+
+        // Dropped over the taskbar and past the left edge.
+        let (x, y, width, height) = bounds(OverlaySpot { x: -2600, y: 1300 });
+        assert_eq!((width, height), (425, 53));
+        assert_eq!(x, -2560);
+        assert_eq!(y + height, 1192);
+
+        // Dropped past the top-right corner.
+        let (x, y, width, _) = bounds(OverlaySpot { x: 50, y: -400 });
+        assert_eq!(x + width, 0);
+        assert_eq!(y, -200);
     }
 }

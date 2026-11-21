@@ -30,6 +30,9 @@ export const ShowOverlay: React.FC<ShowOverlayProps> = React.memo(
       },
     ];
 
+    // Dragging a bar saves where it was dropped; the dropdown then says so,
+    // and picking Top or Bottom puts the bars back on that edge.
+    const dragged = getSetting("overlay_spot") != null;
     const positionOptions = [
       {
         value: "bottom",
@@ -39,14 +42,25 @@ export const ShowOverlay: React.FC<ShowOverlayProps> = React.memo(
         value: "top",
         label: t("settings.advanced.overlay.position.options.top"),
       },
+      ...(dragged
+        ? [
+            {
+              value: "dragged",
+              label: t("settings.advanced.overlay.position.options.dragged"),
+            },
+          ]
+        : []),
     ];
 
     const selectedStyle = (getSetting("overlay_style") ||
       "live") as OverlayStyle;
     // Only "top" and "bottom" are selectable; anything else (empty, or a legacy
     // "none" from before the position was retired) falls back to "bottom".
-    const selectedPosition: OverlayPosition =
-      getSetting("overlay_position") === "top" ? "top" : "bottom";
+    const selectedPosition: OverlayPosition | "dragged" = dragged
+      ? "dragged"
+      : getSetting("overlay_position") === "top"
+        ? "top"
+        : "bottom";
 
     return (
       <>
@@ -76,9 +90,10 @@ export const ShowOverlay: React.FC<ShowOverlayProps> = React.memo(
             <Dropdown
               options={positionOptions}
               selectedValue={selectedPosition}
-              onSelect={(value) =>
-                updateSetting("overlay_position", value as OverlayPosition)
-              }
+              onSelect={(value) => {
+                if (value === "dragged") return;
+                updateSetting("overlay_position", value as OverlayPosition);
+              }}
               disabled={isUpdating("overlay_position")}
             />
           </SettingContainer>

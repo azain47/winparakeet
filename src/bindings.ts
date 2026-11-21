@@ -1068,6 +1068,25 @@ async dismissOverlayNotice() : Promise<void> {
     await TAURI_INVOKE("dismiss_overlay_notice");
 },
 /**
+ * Starts dragging the bar in window `label` (its webview saw a press move).
+ */
+async startOverlayDrag(label: string) : Promise<void> {
+    await TAURI_INVOKE("start_overlay_drag", { label });
+},
+/**
+ * Moves the dragged bar to follow the cursor.
+ */
+async moveOverlayDrag() : Promise<void> {
+    await TAURI_INVOKE("move_overlay_drag");
+},
+/**
+ * Ends the drag: saves where the bar was dropped, kept inside the screen
+ * it's on and off the taskbar, and settles it there.
+ */
+async endOverlayDrag() : Promise<void> {
+    await TAURI_INVOKE("end_overlay_drag");
+},
+/**
  * Paint the main window's title bar with the UI's background and text colors.
  * Both are `#rrggbb`. Windows 11 only; a no-op on other platforms and on older
  * Windows builds, which ignore these DWM attributes.
@@ -1473,7 +1492,12 @@ selected_channel?: number | null; clamshell_microphone?: string | null; selected
  * Every language the person dictates in (codes, e.g. ["en", "zh"]),
  * picked during onboarding. Empty until then.
  */
-spoken_languages?: string[]; overlay_position?: OverlayPosition; debug_mode?: boolean; log_level?: LogLevel; custom_words?: string[]; model_unload_timeout?: ModelUnloadTimeout; word_correction_threshold?: number; history_limit?: number; recording_retention_period?: RecordingRetentionPeriod; meeting_sources?: MeetingSources; 
+spoken_languages?: string[]; overlay_position?: OverlayPosition; 
+/**
+ * Set by dragging a bar; `None` centres them on `overlay_position`'s
+ * edge of the screen. Picking a position clears it.
+ */
+overlay_spot?: OverlaySpot | null; debug_mode?: boolean; log_level?: LogLevel; custom_words?: string[]; model_unload_timeout?: ModelUnloadTimeout; word_correction_threshold?: number; history_limit?: number; recording_retention_period?: RecordingRetentionPeriod; meeting_sources?: MeetingSources; 
 /**
  * The model meetings are transcribed with; `null` uses `selected_model`.
  */
@@ -1885,6 +1909,14 @@ notices: Notice[];
  */
 raised: Notice | null }
 export type OverlayPosition = "top" | "bottom"
+/**
+ * Where the user dragged the dictation pill and meeting bar, in physical
+ * screen pixels: `x` is the bars' horizontal centre and `y` the edge their
+ * card is anchored to, the bottom for [`OverlayPosition::Bottom`] and the top
+ * for [`OverlayPosition::Top`], so a bar that grows (the Live panel) grows
+ * away from it.
+ */
+export type OverlaySpot = { x: number; y: number }
 /**
  * Which recording overlay to display. `Minimal` and `Live` share one base
  * (the pill); `Live` grows into the panel that shows live transcription text.

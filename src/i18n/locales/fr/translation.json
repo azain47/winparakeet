@@ -670,7 +670,8 @@
           "description": "Afficher un retour visuel pendant l'enregistrement et la transcription. Sur Linux, 'Aucune' est recommandé.",
           "options": {
             "bottom": "Bas",
-            "top": "Haut"
+            "top": "Haut",
+            "dragged": "Là où vous l'avez déplacée"
           }
         }
       },

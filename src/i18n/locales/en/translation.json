@@ -667,10 +667,11 @@
         },
         "position": {
           "title": "Overlay Position",
-          "description": "Where the overlay appears on screen during recording and transcription.",
+          "description": "Where the overlay appears on screen during recording and transcription. You can also drag it, or the meeting bar, anywhere on screen.",
           "options": {
             "bottom": "Bottom",
-            "top": "Top"
+            "top": "Top",
+            "dragged": "Where you dragged it"
           }
         }
       },

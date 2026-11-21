@@ -670,7 +670,8 @@
           "description": "Lokasi overlay muncul di layar selama perekaman dan transkripsi.",
           "options": {
             "bottom": "Bawah",
-            "top": "Atas"
+            "top": "Atas",
+            "dragged": "Tempat Anda menyeretnya"
           }
         }
       },

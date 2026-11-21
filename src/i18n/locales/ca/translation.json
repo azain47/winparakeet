@@ -670,7 +670,8 @@
           "description": "On apareix la finestra superposada a la pantalla durant l'enregistrament i la transcripció.",
           "options": {
             "bottom": "A baix",
-            "top": "A dalt"
+            "top": "A dalt",
+            "dragged": "On l'has arrossegat"
           }
         }
       },

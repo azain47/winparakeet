@@ -670,7 +670,8 @@
           "description": "Ekran katmanının kayıt ve transkripsiyon sırasında nerede görüneceğini belirler.",
           "options": {
             "bottom": "Alt",
-            "top": "Üst"
+            "top": "Üst",
+            "dragged": "Sürüklediğiniz yer"
           }
         }
       },
